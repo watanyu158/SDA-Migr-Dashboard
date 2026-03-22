@@ -258,6 +258,25 @@ tr:hover td{background:#f8faff}
 .loading{text-align:center;padding:30px;color:var(--text2)}
 
 
+
+/* ── FABRIC BREAKDOWN TABLE ─────────────────────────────────── */
+.fab-table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+.fab-table th{background:#f8faff;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);color:var(--text2);font-size:11px;font-weight:600;white-space:nowrap}
+.fab-table .sub-head th{background:#f1f5ff;font-size:10px;color:var(--text3);padding:4px 10px;border-bottom:1px solid var(--border)}
+.fab-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.fab-table tfoot td{padding:9px 10px;font-weight:600;background:#f8faff;border-top:2px solid var(--border)}
+.fab-table tr:last-child td{border-bottom:none}
+.fab-table tbody tr:hover td{background:#f8faff}
+.fab-name{display:flex;align-items:center;gap:7px;font-weight:600}
+.fab-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.fab-done{font-weight:600;color:var(--text)}
+.fab-plan{color:var(--text2);font-size:11px}
+.fab-pct-bar{display:flex;align-items:center;gap:5px}
+.fpb{width:52px;height:5px;background:var(--border);border-radius:99px;overflow:hidden;flex-shrink:0}
+.fpb-fill{height:100%;border-radius:99px;transition:width .8s ease}
+.fpb-pct{font-size:10px;color:var(--text2);min-width:28px}
+.fab-cell{border-left:1px solid var(--border)}
+
 /* ══ RESPONSIVE ══════════════════════════════════════════════════════════════
 
    Breakpoints:
@@ -280,6 +299,24 @@ main { padding: 12px 10px; }
 .prog-fab-grid   { display: grid; grid-template-columns: 1fr; gap: 12px; }
 .fg2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
 
+.fab-breakdown{margin-bottom:14px}
+.fab-breakdown-head{display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--text)}
+.fab-bd-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.fab-bd-card{background:var(--card);border-radius:var(--rsm);border:1px solid var(--border);padding:12px 10px;position:relative;overflow:hidden;transition:.2s}
+.fab-bd-card:hover{box-shadow:var(--shlg);transform:translateY(-2px)}
+.fab-bd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.fab-bd-name{font-size:12px;font-weight:700;color:var(--text)}
+.fab-bd-pct{font-size:12px;font-weight:700;padding:2px 7px;border-radius:99px}
+.fab-bd-total{font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.3}
+.fab-bd-total strong{font-size:15px;font-weight:700;color:var(--text)}
+.fab-bd-bar{height:4px;background:#f0f4ff;border-radius:99px;overflow:hidden;margin-bottom:8px}
+.fab-bd-fill{height:100%;border-radius:99px;transition:width 1s ease}
+.fab-bd-cats{display:flex;flex-direction:column;gap:4px}
+.fab-bd-cat{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2)}
+.fab-bd-cat-bar{flex:1;height:3px;background:#f0f4ff;border-radius:99px;overflow:hidden}
+.fab-bd-cat-fill{height:100%;border-radius:99px}
+.fab-bd-cat-val{font-size:10px;font-weight:600;min-width:30px;text-align:right;color:var(--text)}
+.fab-bd-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 /* ── xs < 480px — มือถือแนวตั้ง ─────────────────────────────────────────── */
 @media (max-width: 479px) {
   /* ── Topbar: icon + title + sync button only ── */
@@ -328,6 +365,12 @@ main { padding: 12px 10px; }
   /* Tabs: scroll */
   .tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   .tab { padding: 10px 12px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+
+  /* Fabric breakdown: 2 cols on mobile */
+  .fab-bd-grid { grid-template-columns: repeat(2,1fr); gap: 7px; }
+  .fab-bd-card { padding: 10px 8px; }
+  .fab-bd-name { font-size: 11px; }
+  .fab-bd-total strong { font-size: 12px; }
 
   /* Summary cards */
   .g4 { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -395,6 +438,7 @@ main { padding: 12px 10px; }
   .tb-title { font-size: 13px; }
 
   .ins-kpis { gap: 14px; }
+  .fab-bd-grid { grid-template-columns: repeat(3,1fr); gap: 7px; }
   .ins-panels { flex-direction: column; gap: 8px; }
   .ins-gauge-card { min-width: 0; padding: 10px 14px; }
   .ins-gauge-wrap { width: 76px; height: 76px; }
@@ -423,6 +467,7 @@ main { padding: 12px 10px; }
   .tb-stats { display: none; }
   .tb-title { font-size: 13px; }
 
+  .fab-bd-grid { grid-template-columns: repeat(4,1fr); }
   .ins-panels { flex-direction: row; gap: 12px; }
   .ins-gauge-card { min-width: 200px; }
   .ins-pills { grid-template-columns: repeat(6,1fr); gap: 7px; }
@@ -451,6 +496,7 @@ main { padding: 12px 10px; }
 
 /* ── lg 860–1199px — Desktop เล็ก ───────────────────────────────────────── */
 @media (min-width: 860px) and (max-width: 1199px) {
+  .fab-bd-grid { grid-template-columns: repeat(7,1fr); }
   main { padding: 16px 14px; }
 
   .g2  { grid-template-columns: 1fr 1fr; }
@@ -468,6 +514,7 @@ main { padding: 12px 10px; }
 
 /* ── xl 1200–1399px — Desktop ใหญ่ ──────────────────────────────────────── */
 @media (min-width: 1200px) and (max-width: 1399px) {
+  .fab-bd-grid { grid-template-columns: repeat(7,1fr); }
   main { padding: 18px 14px; }
   .g2 { grid-template-columns: 1fr 1fr; gap: 14px; }
   .g3 { grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
@@ -578,6 +625,26 @@ main { padding: 12px 10px; }
 }
 
 /* ── Print ───────────────────────────────────────────────────────────────── */
+/* ── FABRIC BREAKDOWN GRID ──────────────────────────────────── */
+.fab-breakdown{margin-bottom:14px}
+.fab-breakdown-head{display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--text)}
+.fab-bd-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.fab-bd-card{background:var(--card);border-radius:var(--rsm);border:1px solid var(--border);padding:12px 10px;position:relative;overflow:hidden;transition:.2s}
+.fab-bd-card:hover{box-shadow:var(--shlg);transform:translateY(-2px)}
+.fab-bd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.fab-bd-name{font-size:12px;font-weight:700;color:var(--text)}
+.fab-bd-pct{font-size:12px;font-weight:700;padding:2px 7px;border-radius:99px}
+.fab-bd-total{font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.3}
+.fab-bd-total strong{font-size:15px;font-weight:700;color:var(--text)}
+.fab-bd-bar{height:4px;background:#f0f4ff;border-radius:99px;overflow:hidden;margin-bottom:8px}
+.fab-bd-fill{height:100%;border-radius:99px;transition:width 1s ease}
+.fab-bd-cats{display:flex;flex-direction:column;gap:4px}
+.fab-bd-cat{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2)}
+.fab-bd-cat-bar{flex:1;height:3px;background:#f0f4ff;border-radius:99px;overflow:hidden}
+.fab-bd-cat-fill{height:100%;border-radius:99px}
+.fab-bd-cat-val{font-size:10px;font-weight:600;min-width:30px;text-align:right;color:var(--text)}
+.fab-bd-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
 @media print {
   .topbar, .actions, .tabs, .tbtn { display: none !important; }
   .insights-box { background: #fffbeb !important; -webkit-print-color-adjust: exact; }
@@ -755,6 +822,42 @@ main { padding: 12px 10px; }
     <div class="scard ap"><div class="sl" style="color:#065f46">📶 AP</div><div class="sn" id="ov-ap">67/445</div><div class="ss">AP ที่ติดตั้งแล้ว (15.1%)</div><div class="sbar"><div class="sf" id="ov-ap-b" style="width:15.1%"></div></div><div class="sbadge" style="background:var(--success-l);color:#065f46">15.1%</div></div>
     <div class="scard inf"><div class="sl" style="color:#92400e">⚡ Infra</div><div class="sn" id="ov-inf">24/26</div><div class="ss">Infra ที่ติดตั้งแล้ว (92.3%)</div><div class="sbar"><div class="sf" id="ov-inf-b" style="width:92.3%"></div></div><div class="sbadge" style="background:var(--warning-l);color:#92400e">92.3%</div></div>
   </div>
+  <!-- ── Fabric breakdown table ── -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><div class="chi" style="background:#eef1ff;color:var(--primary)">🏭</div>สรุปอุปกรณ์แยก Fabric — Switch / AP / Infra</div>
+    <div style="overflow-x:auto">
+      <table class="fab-table">
+        <thead>
+          <tr>
+            <th>Fabric</th>
+            <th colspan="2" style="text-align:center;border-left:1px solid var(--border)">Switch</th>
+            <th colspan="2" style="text-align:center;border-left:1px solid var(--border)">AP</th>
+            <th colspan="2" style="text-align:center;border-left:1px solid var(--border)">Infra</th>
+            <th colspan="2" style="text-align:center;border-left:1px solid var(--border)">รวม</th>
+          </tr>
+          <tr class="sub-head">
+            <th></th>
+            <th style="border-left:1px solid var(--border)">ติดตั้ง</th><th>เป้า</th>
+            <th style="border-left:1px solid var(--border)">ติดตั้ง</th><th>เป้า</th>
+            <th style="border-left:1px solid var(--border)">ติดตั้ง</th><th>เป้า</th>
+            <th style="border-left:1px solid var(--border)">ติดตั้ง</th><th>เป้า</th>
+          </tr>
+        </thead>
+        <tbody id="fab-breakdown-tbody"></tbody>
+        <tfoot id="fab-breakdown-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Fabric breakdown grid -->
+  <div class="fab-breakdown">
+    <div class="fab-breakdown-head">
+      <div class="sic" style="background:var(--primary-l);color:var(--primary)">🏭</div>
+      สรุป Switch / AP / Infra แยกตาม Fabric
+    </div>
+    <div class="fab-bd-grid" id="fab-bd-grid"></div>
+  </div>
+
   <div class="g2" style="margin-bottom:14px">
     <div class="card"><div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">📉</div>Burn-down Chart</div><div class="cwrap"><canvas id="burndown-c"></canvas></div><div class="cleg"><div class="cl"><div class="cld"></div>แผน</div><div class="cl"><div class="cll" style="background:var(--success)"></div>จริง</div><div class="cl" style="color:var(--danger);font-size:11px">| วันนี้</div></div></div>
     <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
@@ -828,6 +931,23 @@ main { padding: 12px 10px; }
     <div class="card"><div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">🏗</div>ความน่าจะเสร็จตามสถานที่</div><div style="height:170px"><canvas id="loc-bar-c"></canvas></div></div>
     <div class="card"><div class="ch"><div class="chi" style="background:var(--success-l);color:var(--success)">📅</div>ผลต่อวัน (แต่ละวันในสัปดาห์)</div><div id="wd-cells" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px"></div></div>
   </div>
+
+  <!-- Per-Fabric daily charts -->
+  <div style="display:flex;align-items:center;gap:7px;margin:16px 0 10px;font-size:13px;font-weight:600;color:var(--text)">
+    <div class="sic" style="background:var(--primary-l);color:var(--primary)">🏭</div>
+    อุปกรณ์ที่ติดตั้งตามวันที่ — แยกแต่ละ Fabric
+    <span style="font-size:11px;font-weight:400;color:var(--text2)">(Switch / AP / Infra)</span>
+  </div>
+
+  <!-- Summary bar: total done per fabric -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><div class="chi" style="background:#eef1ff;color:var(--primary)">📊</div>สรุปจำนวนติดตั้งแล้ว แยก Fabric</div>
+    <div style="height:180px"><canvas id="fab-total-bar-c"></canvas></div>
+  </div>
+
+  <!-- 2-col grid of per-fabric daily charts -->
+  <div class="g2" id="fab-daily-charts-wrap"></div>
+
 </div>
 
 <!-- ════ TAB: สถานที่ ════ -->
@@ -912,6 +1032,20 @@ const DAILY_SW=[30,6,21,11,12,6,14,14,17,13,12,24,3,12,13,11,14,8,5,42,29,15,18]
 const DAILY_AP=[24,0,15,16,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 const DAILY_INF=[24,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
 
+// Per-fabric daily installs
+const FAB_DAILY = {
+  'D1-041': {sw:[28,6,21,11,12,6,0,0,0,0,0,0,0,12,13,11,14,8,5,0,29,15,18], ap:[0,0,15,16,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], inf:[10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  'CFZ':    {sw:[2,0,0,0,0,0,14,14,17,13,12,24,3,0,0,0,0,0,0,42,0,0,0],    ap:[24,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  inf:[4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  'T1-015': {sw:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],           ap:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],   inf:[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  'D1-091': {sw:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],           ap:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],   inf:[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  'RFF':    {sw:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],           ap:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],   inf:[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  'AMF':    {sw:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],           ap:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],   inf:[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  'PPW':    {sw:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],           ap:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],   inf:[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+};
+// Fabric colors and totals for charts
+const FAB_COLORS = {'D1-041':'#4361ee','CFZ':'#2bc48a','T1-015':'#ff9f43','D1-091':'#a855f7','RFF':'#22b8cf','AMF':'#f76707','PPW':'#74c0fc'};
+const FAB_TOTALS = {'D1-041':{sw:209,ap:43,inf:10},'CFZ':{sw:141,ap:24,inf:4},'T1-015':{sw:0,ap:0,inf:2},'D1-091':{sw:0,ap:0,inf:2},'RFF':{sw:0,ap:0,inf:2},'AMF':{sw:0,ap:0,inf:2},'PPW':{sw:0,ap:0,inf:2}};
+
 const FAB_WEEKLY = {"D1-041":{sw_plan:[9.0,21.0,21.0,27.6,43.4,51.5,66.6,70.5,79.0,89.8,98.5,98.5,98.5,98.5,98.5,100.0,100.0,100.0,100.0,100.0],sw_act:[8.3,20.5,20.5,26.6,42.9,51.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,14.8,14.8,14.8,14.8,14.8,75.5,82.1,87.2,90.3,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],ap_act:[0.0,14.8,14.8,14.8,14.8,14.8,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},"CFZ":{sw_plan:[1.3,1.3,46.2,63.5,89.7,98.7,98.7,98.7,98.7,98.7,98.7,98.7,98.7,98.7,98.7,100.0,100.0,100.0,100.0,100.0],sw_act:[1.3,1.3,46.2,63.5,90.4,90.4,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,96.0,96.0,96.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],ap_act:[96.0,96.0,96.0,96.0,96.0,96.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},"T1-015":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,13.9,17.4,55.9,73.0,95.0,100.0,100.0,100.0,100.0,100.0],sw_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],ap_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},"D1-091":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,53.7,100.0,100.0,100.0,100.0],sw_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0,100.0,100.0,100.0],ap_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},"RFF":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0,100.0,100.0],sw_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0,100.0,100.0],ap_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},"AMF":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0,100.0],sw_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0,100.0],ap_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},"PPW":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0],sw_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],ap_act:[0.0,0.0,0.0,0.0,0.0,0.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}};
 
 const FABRICS=[
@@ -964,10 +1098,66 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
+function buildFabBreakdown() {
+  const wrap = document.getElementById('fab-bd-grid');
+  if (!wrap) return;
+
+  const data = [
+    {n:'D1-041',c:'#4361ee',tot:{d:262,t:710}, sw:{d:209,t:410}, ap:{d:43,t:290},  inf:{d:10,t:10}},
+    {n:'CFZ',   c:'#2bc48a',tot:{d:169,t:187}, sw:{d:141,t:156}, ap:{d:24,t:25},   inf:{d:4,t:6}},
+    {n:'T1-015',c:'#ff9f43',tot:{d:2,  t:327}, sw:{d:0,  t:281}, ap:{d:0,  t:44},  inf:{d:2,t:2}},
+    {n:'D1-091',c:'#a855f7',tot:{d:2,  t:147}, sw:{d:0,  t:134}, ap:{d:0,  t:11},  inf:{d:2,t:2}},
+    {n:'RFF',   c:'#22b8cf',tot:{d:2,  t:99},  sw:{d:0,  t:65},  ap:{d:0,  t:32},  inf:{d:2,t:2}},
+    {n:'AMF',   c:'#f76707',tot:{d:2,  t:114}, sw:{d:0,  t:69},  ap:{d:0,  t:43},  inf:{d:2,t:2}},
+    {n:'PPW',   c:'#74c0fc',tot:{d:2,  t:8},   sw:{d:0,  t:6},   ap:{d:0,  t:0},   inf:{d:2,t:2}},
+  ];
+
+  wrap.innerHTML = data.map(f => {
+    const totPct = Math.round(f.tot.d / Math.max(f.tot.t,1) * 100);
+    const swPct  = Math.round(f.sw.d  / Math.max(f.sw.t,1)  * 100);
+    const apPct  = Math.round(f.ap.d  / Math.max(f.ap.t,1)  * 100);
+    const infPct = Math.round(f.inf.d / Math.max(f.inf.t,1) * 100);
+
+    const pctBg  = totPct >= 80 ? '#ecfdf5' : totPct >= 30 ? '#fff5e6' : '#eef1ff';
+    const pctCol = totPct >= 80 ? '#065f46' : totPct >= 30 ? '#92400e' : '#3451d1';
+
+    const catRow = (icon, label, done, total, pct, color) => `
+      <div class="fab-bd-cat">
+        <div class="fab-bd-dot" style="background:${color}"></div>
+        <span style="min-width:28px;font-size:10px">${label}</span>
+        <div class="fab-bd-cat-bar">
+          <div class="fab-bd-cat-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <span class="fab-bd-cat-val">${done}/${total}</span>
+      </div>`;
+
+    return `<div class="fab-bd-card" style="--fab-c:${f.c}">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${f.c}"></div>
+      <div class="fab-bd-top">
+        <span class="fab-bd-name">${f.n}</span>
+        <span class="fab-bd-pct" style="background:${pctBg};color:${pctCol}">${totPct}%</span>
+      </div>
+      <div class="fab-bd-total">
+        <strong>${f.tot.d}</strong>/${f.tot.t}
+        <span style="font-size:9px;margin-left:3px">เครื่อง</span>
+      </div>
+      <div class="fab-bd-bar">
+        <div class="fab-bd-fill" style="width:${totPct}%;background:${f.c}"></div>
+      </div>
+      <div class="fab-bd-cats">
+        ${catRow('🔀','SW', f.sw.d,  f.sw.t,  swPct,  '#4361ee')}
+        ${f.ap.t > 0 ? catRow('📶','AP',  f.ap.d,  f.ap.t,  apPct,  '#2bc48a') : ''}
+        ${catRow('⚡','Inf',f.inf.d, f.inf.t, infPct, '#ff9f43')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 window.addEventListener('DOMContentLoaded',()=>{
   buildGauge(); buildBurndown(); buildDonut();
   buildTimeline(); buildHeatmap(); buildLocList(); buildFabCards();
   buildProgressCharts();
+  buildFabBreakdown();
   document.getElementById('update-ts')?.remove?.();
   manualRefresh();
 });
@@ -1080,6 +1270,107 @@ function buildGraphs(){
   new Chart(document.getElementById('loc-bar-c'),{type:'bar',data:{labels:tl.map(l=>l[0]),datasets:[{data:tl.map(l=>l[1]),backgroundColor:tl.map(l=>l[1]>=80?'#2bc48a':l[1]>=30?'#ff9f43':'#4361ee'),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,cornerRadius:8,callbacks:{label:(c)=>` ${c.parsed.y}%`}}},scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#f0f4ff'}},x:{ticks:{font:{size:9},maxRotation:45},grid:{display:false}}}}});
   const wd=['อา','จ','อ','พ','พฤ','ศ','ส'],wv=[0,160,120,55,40,20,56],mx=Math.max(...wv);
   document.getElementById('wd-cells').innerHTML=wd.map((d,i)=>{const v=wv[i],p=mx>0?Math.round(v/mx*100):0,bg=p>=80?'#2bc48a':p>=50?'#4361ee':p>=20?'#ff9f43':'#e2e8f0',tc=p>=20?'#fff':'var(--text2)';return `<div style="border-radius:7px;padding:9px 3px;text-align:center;background:${bg};color:${tc}"><div style="font-size:10px;opacity:.8">${d}</div><div style="font-size:14px;font-weight:700;margin-top:3px">${v}</div></div>`;}).join('');
+
+  // ── Summary bar: total done per fabric ──
+  const fabNames = Object.keys(FAB_TOTALS);
+  const fabSwTotals  = fabNames.map(f => FAB_TOTALS[f].sw);
+  const fabApTotals  = fabNames.map(f => FAB_TOTALS[f].ap);
+  const fabInfTotals = fabNames.map(f => FAB_TOTALS[f].inf);
+  new Chart(document.getElementById('fab-total-bar-c'), {
+    type: 'bar',
+    data: {
+      labels: fabNames,
+      datasets: [
+        {label:'Switch', data:fabSwTotals,  backgroundColor:'#4361ee', borderRadius:4, stack:'s'},
+        {label:'AP',     data:fabApTotals,  backgroundColor:'#2bc48a', borderRadius:4, stack:'s'},
+        {label:'Infra',  data:fabInfTotals, backgroundColor:'#ff9f43', borderRadius:4, stack:'s'},
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:12}},
+        tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,cornerRadius:8,
+          callbacks:{label:(c)=>` ${c.dataset.label}: ${c.parsed.y} เครื่อง`}}
+      },
+      scales:{
+        x:{stacked:true,ticks:{font:{size:11},color:'#94a3c4'},grid:{display:false}},
+        y:{stacked:true,ticks:{font:{size:10},color:'#94a3c4',callback:v=>v+' เครื่อง'},grid:{color:'#f0f4ff'}}
+      }
+    }
+  });
+
+  // ── Per-fabric daily stacked bar charts ──
+  const wrap = document.getElementById('fab-daily-charts-wrap');
+  Object.keys(FAB_DAILY).forEach(fab => {
+    const fd = FAB_DAILY[fab];
+    const fabColor = FAB_COLORS[fab];
+    const total = (FAB_TOTALS[fab].sw + FAB_TOTALS[fab].ap + FAB_TOTALS[fab].inf);
+
+    // Only build chart if has any installs
+    const hasData = fd.sw.some(v=>v>0) || fd.ap.some(v=>v>0) || fd.inf.some(v=>v>0);
+
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <div class="ch" style="margin-bottom:10px">
+        <div style="width:10px;height:10px;border-radius:50%;background:${fabColor};flex-shrink:0"></div>
+        ${fab}
+        <span style="font-size:11px;font-weight:400;color:var(--text2)">
+          SW:${FAB_TOTALS[fab].sw} / AP:${FAB_TOTALS[fab].ap} / Infra:${FAB_TOTALS[fab].inf}
+          <span style="margin-left:6px;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:600;background:${fabColor}22;color:${fabColor}">รวม ${total} เครื่อง</span>
+        </span>
+      </div>
+      ${hasData
+        ? `<div style="height:160px"><canvas id="fd-${fab.replace('-','')}-c"></canvas></div>`
+        : `<div style="height:80px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:13px;background:var(--bg);border-radius:8px">ยังไม่มีการติดตั้ง</div>`
+      }
+      <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--text2)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#4361ee;display:inline-block"></span>Switch</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#2bc48a;display:inline-block"></span>AP</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#ff9f43;display:inline-block"></span>Infra</span>
+      </div>`;
+    wrap.appendChild(div);
+
+    if (!hasData) return;
+    setTimeout(() => {
+      const ctx = document.getElementById(`fd-${fab.replace('-','')}-c`);
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: DAILY_L,
+          datasets: [
+            {label:'Switch', data:fd.sw,  backgroundColor:'#4361ee', borderRadius:3, stack:'s'},
+            {label:'AP',     data:fd.ap,  backgroundColor:'#2bc48a', borderRadius:3, stack:'s'},
+            {label:'Infra',  data:fd.inf, backgroundColor:'#ff9f43', borderRadius:3, stack:'s'},
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:8,cornerRadius:8,
+              callbacks:{
+                title:(items)=>`${items[0].label}`,
+                label:(c)=>c.parsed.y>0?` ${c.dataset.label}: ${c.parsed.y} เครื่อง`:'',
+                afterBody:(items)=>{
+                  const total=items.reduce((a,i)=>a+i.parsed.y,0);
+                  return total>0?[`รวม: ${total} เครื่อง`]:[];
+                }
+              }
+            }
+          },
+          scales:{
+            x:{stacked:true,ticks:{font:{size:9},maxRotation:45,color:'#94a3c4'},grid:{display:false}},
+            y:{stacked:true,ticks:{font:{size:9},color:'#94a3c4',callback:v=>v>0?v:''},grid:{color:'#f0f4ff'},min:0}
+          }
+        }
+      });
+    }, 100);
+  });
 }
 
 // ── LOCATION LIST ─────────────────────────────────────────────────────────────
@@ -1099,7 +1390,69 @@ function buildFabCards(){
   w.innerHTML=pairs.map(pair=>`<div class="g2" style="margin-bottom:9px">${pair.map(f=>{const p=Math.round(f.p),swp=f.sw.t>0?Math.round(f.sw.d/f.sw.t*100):0,app=f.ap.t>0?Math.round(f.ap.d/f.ap.t*100):0,inp=f.inf.t>0?Math.round(f.inf.d/f.inf.t*100):0;const pbg=p>=80?'var(--success-l);color:#065f46':p>=30?'var(--warning-l);color:#92400e':'var(--primary-l);color:var(--primary)';return `<div class="fpc"><div class="fpc-h"><div class="fpc-name"><div style="width:9px;height:9px;border-radius:50%;background:${f.c}"></div>🏗 Fabric ${f.n}</div><div class="fpc-pct" style="background:${pbg}">${p}%</div></div><div class="fpc-big">${f.d}/${f.t}</div><div class="fpc-sub">อุปกรณ์ที่ติดตั้งแล้ว</div><div class="fpc-bar"><div class="fpc-fill" style="width:${p}%;background:${f.c}"></div></div><div class="fpc-cats"><div class="fcc"><div class="cl" style="color:#4361ee">🔀 Switch:</div><div class="cv">${f.sw.d}/${f.sw.t} (${swp}%)</div><div class="cb"><div class="cbf" style="width:${swp}%;background:#4361ee"></div></div></div><div class="fcc"><div class="cl" style="color:var(--success)">📶 AP:</div><div class="cv">${f.ap.d}/${f.ap.t} (${app}%)</div><div class="cb"><div class="cbf" style="width:${app}%;background:var(--success)"></div></div></div><div class="fcc"><div class="cl" style="color:var(--warning)">⚡ Infra:</div><div class="cv">${f.inf.d}/${f.inf.t} (${inp}%)</div><div class="cb"><div class="cbf" style="width:${inp}%;background:var(--warning)"></div></div></div></div><div class="fpc-dates"><div class="fdate"><div class="dl">เริ่ม:</div><div class="dv">${f.s}</div></div><div class="fdate"><div class="dl">สิ้นสุด:</div><div class="dv">${f.e}</div></div></div></div>`;}).join('')}</div>`).join('');
 }
 
-// ── TABS ──────────────────────────────────────────────────────────────────────
+// ── FABRIC BREAKDOWN TABLE ───────────────────────────────────────────────────
+function buildFabBreakdown(){
+  const tbody = document.getElementById('fab-breakdown-tbody');
+  const tfoot = document.getElementById('fab-breakdown-tfoot');
+  if(!tbody || !tfoot) return;
+
+  const rows = FABRICS.map(f => {
+    const swPct  = f.sw.t  > 0 ? Math.round(f.sw.d  / f.sw.t  * 100) : 0;
+    const apPct  = f.ap.t  > 0 ? Math.round(f.ap.d  / f.ap.t  * 100) : 0;
+    const infPct = f.inf.t > 0 ? Math.round(f.inf.d / f.inf.t * 100) : 0;
+    const totD   = f.sw.d  + f.ap.d  + f.inf.d;
+    const totT   = f.sw.t  + f.ap.t  + f.inf.t;
+    const totPct = totT > 0 ? Math.round(totD / totT * 100) : 0;
+
+    const swBar  = swPct>=80  ? '#4361ee' : swPct>=40  ? '#7b93f5' : '#c7d2fe';
+    const apBar  = apPct>=80  ? '#2bc48a' : apPct>=40  ? '#52e3aa' : '#a7f3d0';
+    const infBar = infPct>=80 ? '#ff9f43' : infPct>=40 ? '#ffc27d' : '#fde8c8';
+    const totBar = totPct>=80 ? 'var(--success)' : totPct>=40 ? 'var(--warning)' : 'var(--primary)';
+
+    const cell = (done, plan, pct, barColor) => `
+      <td class="fab-cell">
+        <div class="fab-pct-bar">
+          <div class="fpb"><div class="fpb-fill" style="width:${pct}%;background:${barColor}"></div></div>
+          <span class="fpb-pct">${pct}%</span>
+        </div>
+        <div style="font-size:11px;margin-top:2px"><span class="fab-done">${done}</span><span class="fab-plan"> /${plan}</span></div>
+      </td>
+      <td style="font-size:11px;color:var(--text2);white-space:nowrap">${plan}</td>`;
+
+    return `<tr>
+      <td><div class="fab-name"><div class="fab-dot" style="background:${f.c}"></div>${f.n}</div></td>
+      ${cell(f.sw.d, f.sw.t, swPct, swBar)}
+      ${cell(f.ap.d, f.ap.t, apPct, apBar)}
+      ${cell(f.inf.d, f.inf.t, infPct, infBar)}
+      ${cell(totD, totT, totPct, totBar)}
+    </tr>`;
+  });
+  tbody.innerHTML = rows.join('');
+
+  // Footer totals
+  const tSwD  = FABRICS.reduce((a,f)=>a+f.sw.d, 0);
+  const tSwT  = FABRICS.reduce((a,f)=>a+f.sw.t, 0);
+  const tApD  = FABRICS.reduce((a,f)=>a+f.ap.d, 0);
+  const tApT  = FABRICS.reduce((a,f)=>a+f.ap.t, 0);
+  const tInfD = FABRICS.reduce((a,f)=>a+f.inf.d, 0);
+  const tInfT = FABRICS.reduce((a,f)=>a+f.inf.t, 0);
+  const tTotD = tSwD+tApD+tInfD;
+  const tTotT = tSwT+tApT+tInfT;
+  const pct = (d,t)=> t>0?Math.round(d/t*100):0;
+  tfoot.innerHTML = `<tr>
+    <td style="font-weight:600;color:var(--text)">รวมทั้งหมด</td>
+    <td class="fab-cell" style="font-weight:700;color:#4361ee">${tSwD}</td>
+    <td style="color:var(--text2)">${tSwT} <span style="font-size:10px;background:#eef1ff;color:#4361ee;padding:1px 5px;border-radius:4px">${pct(tSwD,tSwT)}%</span></td>
+    <td class="fab-cell" style="font-weight:700;color:var(--success)">${tApD}</td>
+    <td style="color:var(--text2)">${tApT} <span style="font-size:10px;background:var(--success-l);color:var(--success);padding:1px 5px;border-radius:4px">${pct(tApD,tApT)}%</span></td>
+    <td class="fab-cell" style="font-weight:700;color:var(--warning)">${tInfD}</td>
+    <td style="color:var(--text2)">${tInfT} <span style="font-size:10px;background:var(--warning-l);color:var(--warning);padding:1px 5px;border-radius:4px">${pct(tInfD,tInfT)}%</span></td>
+    <td class="fab-cell" style="font-weight:700;color:var(--primary)">${tTotD}</td>
+    <td style="color:var(--text2)">${tTotT} <span style="font-size:10px;background:var(--primary-l);color:var(--primary);padding:1px 5px;border-radius:4px">${pct(tTotD,tTotT)}%</span></td>
+  </tr>`;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────────
 const TABS=['overview','progress','graphs','location','plan'];
 function showTab(n,btn){
   TABS.forEach(t=>document.getElementById('tab-'+t).style.display=t===n?'block':'none');
