@@ -1713,12 +1713,22 @@ function toggleAutoSync(){
   }
 }
 async function manualRefresh(){
-  // Force backend to re-fetch from SharePoint
-  try{ await fetch(API+'/api/cache/refresh',{method:'POST'}); }catch(e){}
+  // Show loading on all refresh buttons
+  const btns = document.querySelectorAll('[onclick*="manualRefresh"]');
+  btns.forEach(b=>{ b._orig=b.textContent; b.textContent='⏳ กำลังโหลด...'; b.disabled=true; });
+
+  try{
+    await fetch(API+'/api/cache/refresh',{method:'POST'});
+  }catch(e){}
+
   loadData();
+
   const now=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const el=document.getElementById('last-sync-lbl');
   if(el)el.textContent=now;
+
+  // Restore buttons
+  btns.forEach(b=>{ b.textContent=b._orig||'↺ รีเฟรชข้อมูล'; b.disabled=false; });
 }
 
 // ── API ───────────────────────────────────────────────────────────────────────
@@ -1752,8 +1762,19 @@ async function exportPDF() {
   const btn = document.getElementById('pdf-btn');
   if(btn){ btn.textContent='⏳ กำลัง export...'; btn.disabled=true; }
 
+  // เปิด window ทันทีก่อน await (ต้องอยู่ใน user gesture ไม่งั้น browser block)
+  const printWin = window.open('','_blank','width=1280,height=900');
+  if(!printWin){
+    alert('กรุณาอนุญาต popup จาก site นี้ใน browser แล้วลองใหม่');
+    if(btn){ btn.textContent='⬇ PDF'; btn.disabled=false; }
+    return;
+  }
+  // แสดง loading ใน popup ก่อน
+  printWin.document.write('<html><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f0f4ff"><div style="text-align:center"><div style="font-size:32px">⏳</div><div style="margin-top:12px;color:#4361ee;font-size:16px">กำลังเตรียมข้อมูล...</div></div></body></html>');
+  printWin.document.close();
+
   try {
-    // 1. Make all tabs visible to capture charts
+    // เปิดทุก tab ให้ chart render
     ['overview','progress','graphs','location','plan'].forEach(t=>{
       const el=document.getElementById('tab-'+t);
       if(el) el.style.display='block';
@@ -1761,92 +1782,83 @@ async function exportPDF() {
     if(typeof buildGraphs==='function') buildGraphs();
     if(typeof buildProgressCharts==='function') buildProgressCharts();
 
-    // 2. Wait for charts to render
+    // รอ chart render
     await new Promise(r=>setTimeout(r,1500));
 
-    // 3. Collect all chart canvas images
+    // จับภาพ canvas ทุกตัว
     const chartImgs = {};
     document.querySelectorAll('canvas').forEach(cv=>{
       try{
         const w=cv.offsetWidth||cv.width;
         const h=cv.offsetHeight||cv.height;
         if(w>10 && h>10){
-          chartImgs[cv.id] = {url:cv.toDataURL('image/png',1.0), w, h};
+          chartImgs[cv.id]={url:cv.toDataURL('image/png',1.0),w,h};
         }
       }catch(e){}
     });
 
-    // 4. Clone the document body into a print window
-    const printWin = window.open('','_blank','width=1200,height=800');
-    if(!printWin){ alert('กรุณาอนุญาต popup เพื่อ export PDF'); return; }
-
-    // 5. Build print HTML
+    // ดึง CSS
     const styles = Array.from(document.styleSheets).map(ss=>{
       try{ return Array.from(ss.cssRules).map(r=>r.cssText).join('\n'); }
       catch(e){ return ''; }
     }).join('\n');
 
-    // Clone main content
-    const main = document.querySelector('main').cloneNode(true);
+    // Clone content
+    const main   = document.querySelector('main').cloneNode(true);
     const insBox = document.querySelector('.insights-box').cloneNode(true);
-    const topInfo = document.querySelector('.topbar .tb-l').cloneNode(true);
 
-    // Show all tab bodies in clone
+    // ซ่อน/แสดงใน clone
     main.querySelectorAll('.tab-body').forEach(t=>t.style.display='block');
-    main.querySelectorAll('.tabs').forEach(t=>t.style.display='none');
-    main.querySelectorAll('.actions').forEach(t=>t.style.display='none');
-    main.querySelectorAll('#fab-daily-charts-wrap').forEach(t=>t.style.display='none');
-    main.querySelectorAll('.prog-fab-grid').forEach(t=>t.style.display='none');
+    main.querySelectorAll('.tabs,.actions,#fab-daily-charts-wrap,.prog-fab-grid').forEach(t=>t.style.display='none');
 
-    // Replace canvas with captured images
+    // แทน canvas ด้วย img
     main.querySelectorAll('canvas').forEach(cv=>{
-      const data = chartImgs[cv.id];
+      const data=chartImgs[cv.id];
       if(data){
         const img=document.createElement('img');
         img.src=data.url;
         img.style.cssText=`display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
         cv.parentNode.replaceChild(img,cv);
-      } else {
-        cv.remove();
-      }
+      } else cv.remove();
     });
 
     const date = new Date().toLocaleDateString('th-TH');
-    printWin.document.write(`<!DOCTYPE html>
+
+    // เขียน HTML ใน popup
+    const html = `<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
 <title>SDA Dashboard ${date}</title>
 <style>
-@page { size: A4 landscape; margin: 8mm 10mm; }
-* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
-body { font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 13px; background: #fff; margin: 0; padding: 0; }
+@page{size:A4 landscape;margin:8mm 10mm}
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;font-size:13px;background:#fff;margin:0;padding:0}
 ${styles}
-.topbar, .tabs-wrap > .tabs, .actions, .tbtn, .hold-tog, #hold-body { display: none !important; }
-.tab-body { display: block !important; page-break-after: always; padding: 12px 0 !important; }
-.tabs-wrap { box-shadow: none !important; border: none !important; }
-.card { break-inside: avoid; }
-canvas { display: none !important; }
-.print-header { background: linear-gradient(135deg,#3a56e4,#6c4de4); color: #fff; padding: 8px 16px; margin-bottom: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; }
+.topbar,.tabs-wrap>.tabs,.actions,.tbtn,.hold-tog,#hold-body{display:none!important}
+.tab-body{display:block!important;page-break-after:always;padding:10px 0!important}
+.tabs-wrap{box-shadow:none!important;border:none!important}
+.card{break-inside:avoid}
+canvas{display:none!important}
+.ph{background:linear-gradient(135deg,#3a56e4,#6c4de4);color:#fff;padding:8px 16px;margin-bottom:10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600}
 </style>
 </head><body>
-<div class="print-header">
-  <span>📡 SDA Installation Dashboard — สุวรรณภูมิ</span>
-  <span>${date}</span>
-</div>
-<div style="padding:0 4px">
+<div class="ph"><span>📡 SDA Installation Dashboard — สุวรรณภูมิ</span><span>${date}</span></div>
 ${insBox.outerHTML}
 ${main.outerHTML}
-</div>
-<script>
-window.onload = function(){
-  setTimeout(function(){ window.print(); window.close(); }, 800);
-};
-<\/script>
-</body></html>`);
+<script>window.onload=function(){setTimeout(function(){window.print();},600)};<\/script>
+</body></html>`;
+
+    // เขียน popup ใหม่ด้วย content จริง
+    printWin.document.open();
+    printWin.document.write(html);
     printWin.document.close();
 
+  } catch(err) {
+    console.error(err);
+    printWin.close();
+    alert('Export ไม่สำเร็จ: '+err.message);
   } finally {
-    // Restore original tabs
+    // Restore tabs
     const active=document.querySelector('.tab.on');
     const name=active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
     ['overview','progress','graphs','location','plan'].forEach(t=>{
