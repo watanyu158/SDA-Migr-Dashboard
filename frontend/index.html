@@ -1298,7 +1298,35 @@ function buildGauge(){
 }
 
 function buildBurndown(){
-  const tdPl={id:'td',afterDraw(chart){const m=chart.getDatasetMeta(0);if(!m.data[TODAY_WK])return;const x=m.data[TODAY_WK].x,{top,bottom}=chart.chartArea,c=chart.ctx;c.save();c.beginPath();c.moveTo(x,top);c.lineTo(x,bottom);c.strokeStyle='#ee4b4b';c.lineWidth=1.5;c.setLineDash([5,3]);c.stroke();c.restore();}};
+  const tdPl={id:'td',afterDraw(chart){
+  const m=chart.getDatasetMeta(0);
+  if(!m.data[TODAY_WK]) return;
+  const {top,bottom}=chart.chartArea;
+  // Interpolate: today's fractional position between week columns
+  const dayInWeek = _todayGMT7.getDay(); // 0=Sun
+  const daysFromMonday = (_todayGMT7.getDay()+6)%7; // Mon=0
+  const frac = Math.min(daysFromMonday/7, 1);
+  // x position between TODAY_WK column and next column
+  const x0 = m.data[TODAY_WK].x;
+  const x1 = m.data[TODAY_WK+1] ? m.data[TODAY_WK+1].x : x0;
+  const x = x0 + (x1-x0)*frac;
+  const cv=chart.ctx;
+  cv.save();
+  cv.beginPath();
+  cv.moveTo(x,top);
+  cv.lineTo(x,bottom);
+  cv.strokeStyle='#ee4b4b';
+  cv.lineWidth=1.5;
+  cv.setLineDash([5,3]);
+  cv.stroke();
+  // Label "วันนี้"
+  cv.setLineDash([]);
+  cv.fillStyle='#ee4b4b';
+  cv.font='bold 10px Segoe UI';
+  cv.textAlign='center';
+  cv.fillText('23/03',x,bottom+14);
+  cv.restore();
+}};
   const actualFull = WK.map((_,i)=>i<=TODAY_WK&&i<BD_ACT.length?BD_ACT[i]:null);
   const _ch_burndownc = Chart.getChart(document.getElementById('burndown-c'));
   if(_ch_burndownc) _ch_burndownc.destroy();
@@ -1860,10 +1888,34 @@ async function exportPDF() {
     const insBox=document.querySelector('.insights-box').cloneNode(true);
     const main=document.querySelector('main').cloneNode(true);
 
-    // Replace canvas in insBox (gauge)
+    // Replace gauge canvas with SVG (looks better in PDF)
     insBox.querySelectorAll('canvas').forEach(cv=>{
-      const d=chartImgs[cv.id];
-      if(d){ const img=document.createElement('img'); img.src=d.url; img.style.cssText=`display:block;width:${d.w}px;height:${d.h}px;max-width:100%`; cv.parentNode.replaceChild(img,cv); }
+      if(cv.id==='gauge-c'){
+        const svgGauge = document.createElementNS('http://www.w3.org/2000/svg','svg');
+        svgGauge.setAttribute('width','90'); svgGauge.setAttribute('height','55');
+        svgGauge.setAttribute('viewBox','0 0 90 55');
+        // Background arc
+        const bg=document.createElementNS('http://www.w3.org/2000/svg','path');
+        bg.setAttribute('d','M 10 45 A 35 35 0 0 1 80 45');
+        bg.setAttribute('fill','none'); bg.setAttribute('stroke','#e8edf5'); bg.setAttribute('stroke-width','8'); bg.setAttribute('stroke-linecap','round');
+        svgGauge.appendChild(bg);
+        // Foreground arc (85% of 180deg = 153deg)
+        const fg=document.createElementNS('http://www.w3.org/2000/svg','path');
+        const angle=0.85*Math.PI; const ex=45-35*Math.cos(angle); const ey=45-35*Math.sin(angle);
+        fg.setAttribute('d',`M 10 45 A 35 35 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`);
+        fg.setAttribute('fill','none'); fg.setAttribute('stroke','#ff9f43'); fg.setAttribute('stroke-width','8'); fg.setAttribute('stroke-linecap','round');
+        svgGauge.appendChild(fg);
+        // Text
+        const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+        txt.setAttribute('x','45'); txt.setAttribute('y','42'); txt.setAttribute('text-anchor','middle');
+        txt.setAttribute('font-size','14'); txt.setAttribute('font-weight','bold'); txt.setAttribute('fill','#ff9f43');
+        txt.textContent='85%';
+        svgGauge.appendChild(txt);
+        cv.parentNode.replaceChild(svgGauge,cv);
+      } else {
+        const d=chartImgs[cv.id];
+        if(d){ const img=document.createElement('img'); img.src=d.url; img.style.cssText=`display:block;width:${d.w}px;height:${d.h}px;max-width:100%`; cv.parentNode.replaceChild(img,cv); }
+      }
     });
 
     // Process main clone
