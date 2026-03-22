@@ -1811,7 +1811,7 @@ async function exportPDF() {
   printWin.document.close();
 
   try {
-    // 1. Show hidden tabs/containers
+    // 1. Show all tabs
     ['overview','progress','graphs','location','plan'].forEach(t=>{
       const el=document.getElementById('tab-'+t);
       if(el) el.style.display='block';
@@ -1824,20 +1824,18 @@ async function exportPDF() {
     if(!gblt && typeof buildGraphs==='function') buildGraphs();
     if(typeof buildOneFabChart==='function'){
       Object.keys(FAB_DAILY).forEach(fab=>{
-        const cid='fd-'+fab.replace(/-/g,'')+'-c';
-        const cv=document.getElementById(cid);
+        const cv=document.getElementById('fd-'+fab.replace(/-/g,'')+'-c');
         if(cv && !Chart.getChart(cv)) buildOneFabChart(fab);
       });
     }
     await new Promise(r=>setTimeout(r,1000));
 
-    // 3. Capture all Chart.js instances via toBase64Image
+    // 3. Capture charts via toBase64Image
     const chartImgs={};
     if(typeof Chart!=='undefined'){
       Object.values(Chart.instances||{}).forEach(ch=>{
         try{
-          const id=ch.canvas?.id;
-          if(!id) return;
+          const id=ch.canvas?.id; if(!id) return;
           const w=ch.canvas.offsetWidth||ch.canvas.width||600;
           const h=ch.canvas.offsetHeight||ch.canvas.height||300;
           chartImgs[id]={url:ch.toBase64Image('image/png',1.0),w,h};
@@ -1851,40 +1849,46 @@ async function exportPDF() {
       catch(e){return '';}
     }).join('\n');
 
-    // 5. Clone content
-    const topbarEl = document.querySelector('.topbar');
-    const insBox   = document.querySelector('.insights-box').cloneNode(true);
-    const main     = document.querySelector('main').cloneNode(true);
+    // 5. Clone and process
+    const insBox=document.querySelector('.insights-box').cloneNode(true);
+    const main=document.querySelector('main').cloneNode(true);
 
-    // Show all tabs in clone
+    // Replace canvas in insBox (gauge)
+    insBox.querySelectorAll('canvas').forEach(cv=>{
+      const d=chartImgs[cv.id];
+      if(d){ const img=document.createElement('img'); img.src=d.url; img.style.cssText=`display:block;width:${d.w}px;height:${d.h}px;max-width:100%`; cv.parentNode.replaceChild(img,cv); }
+    });
+
+    // Process main clone
     main.querySelectorAll('.tab-body').forEach(t=>t.style.display='block');
-    // Hide UI controls
     main.querySelectorAll('.tabs,.actions,.btn').forEach(t=>t.style.display='none');
-    // Show fabric charts
     main.querySelectorAll('#fab-daily-charts-wrap,.prog-fab-grid').forEach(t=>t.style.display='block');
 
-    // Replace canvas with img in clone
+    // Replace canvas in main
     main.querySelectorAll('canvas').forEach(cv=>{
-      const data=chartImgs[cv.id];
-      if(data){
-        const img=document.createElement('img');
-        img.src=data.url;
-        img.style.cssText=`display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
-        cv.parentNode.replaceChild(img,cv);
-      } else {
-        cv.style.display='none';
-      }
+      const d=chartImgs[cv.id];
+      if(d){ const img=document.createElement('img'); img.src=d.url; img.style.cssText=`display:block;width:${d.w}px;height:${d.h}px;max-width:100%`; cv.parentNode.replaceChild(img,cv); }
+      else { cv.style.display='none'; }
     });
-    // Replace gauge canvas in insBox too
-    insBox.querySelectorAll('canvas').forEach(cv=>{
-      const data=chartImgs[cv.id];
-      if(data){
-        const img=document.createElement('img');
-        img.src=data.url;
-        img.style.cssText=`display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
-        cv.parentNode.replaceChild(img,cv);
-      }
-    });
+
+    // ── Plan tab: insert page-break after every 2 fabric pairs (4 fabrics) ──
+    const planTab = main.querySelector('#tab-plan');
+    if(planTab){
+      // Find all .g2 rows containing fabric cards (.fpc)
+      const fabRows = planTab.querySelectorAll('.g2');
+      let fabCount = 0;
+      fabRows.forEach(row=>{
+        const cards = row.querySelectorAll('.fpc');
+        if(cards.length > 0){
+          fabCount += cards.length;
+          // Page break after every 4 fabrics (every 2 rows of 2)
+          if(fabCount % 4 === 0){
+            row.style.pageBreakAfter = 'always';
+            row.style.marginBottom = '0';
+          }
+        }
+      });
+    }
 
     const date=new Date().toLocaleDateString('th-TH');
     const html=`<!DOCTYPE html>
@@ -1892,38 +1896,69 @@ async function exportPDF() {
 <meta charset="UTF-8">
 <title>SDA Migration Dashboard SVB</title>
 <style>
-@page{size:A4 landscape;margin:8mm 10mm}
+@page{size:A4 landscape;margin:8mm 12mm}
 *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,sans-serif;font-size:13px;background:#fff;margin:0;padding:0}
 ${styles}
-/* Print overrides */
-.topbar,.tabs-wrap>.tabs,.actions,.tbtn,.btn,.hold-tog,#hold-body{display:none!important}
-.tab-body{display:block!important;padding:10px 0!important}
-.tabs-wrap{box-shadow:none!important;border:none!important}
-.card{break-inside:avoid;page-break-inside:avoid}
-canvas{display:none!important}
-/* Page break between tabs */
-.tab-body+.tab-body{page-break-before:always}
-/* Plan tab: force layout */
-#tab-plan .g3{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:12px!important}
-#tab-plan .g2{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important}
-#tab-plan .fpc-cats{display:grid!important;grid-template-columns:1fr 1fr 1fr!important}
-/* Print header */
-.print-topbar{background:linear-gradient(135deg,#3a56e4,#6c4de4);color:#fff;padding:10px 18px;margin-bottom:12px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
-.print-topbar-title{font-size:15px;font-weight:700}
-.print-topbar-svb{color:#ffd700;font-size:17px;font-weight:800;margin-left:6px}
-.print-topbar-date{font-size:12px;opacity:.85}
+
+/* ── Hide UI chrome ── */
+.topbar,.tabs-wrap>.tabs,.actions,.tbtn,.btn,.hold-tog,#hold-body,
+.sec-head .actions { display:none!important }
+
+/* ── Tab bodies: each on new page ── */
+.tab-body { display:block!important; padding:8px 0!important; }
+.tab-body + .tab-body { page-break-before:always!important; }
+.tabs-wrap { box-shadow:none!important; border:none!important; }
+
+/* ── Cards: no break inside ── */
+.card,.scard,.fpc,.fab-bd-card { break-inside:avoid!important; page-break-inside:avoid!important; }
+
+/* ── Canvas: hidden (replaced by img) ── */
+canvas { display:none!important; }
+
+/* ── Overview tab ── */
+#tab-overview .g4 { display:grid!important; grid-template-columns:repeat(4,1fr)!important; gap:10px!important; }
+#tab-overview .g2 { display:grid!important; grid-template-columns:1fr 1fr!important; gap:12px!important; }
+#tab-overview .burndown-row { display:grid!important; grid-template-columns:3fr 2fr!important; gap:12px!important; }
+#tab-overview .fab-bd-grid { display:grid!important; grid-template-columns:repeat(7,1fr)!important; gap:8px!important; }
+
+/* ── Progress tab ── */
+#tab-progress .prog-chart-grid { display:grid!important; grid-template-columns:1fr 1fr!important; gap:12px!important; }
+#tab-progress .prog-fab-grid { display:grid!important; grid-template-columns:1fr 1fr!important; gap:12px!important; }
+#tab-progress .prog-fab-grid { display:block!important; }
+#tab-progress .prog-fab-grid { display:block!important; }
+/* Section title: new page */
+#tab-progress > div[style*="🔬"] { page-break-before:always!important; }
+
+/* ── Graphs tab ── */
+#tab-graphs .g2 { display:grid!important; grid-template-columns:1fr 1fr!important; gap:12px!important; }
+#tab-graphs #fab-daily-charts-wrap { display:block!important; }
+#tab-graphs #fab-daily-charts-wrap { display:grid!important; grid-template-columns:1fr 1fr!important; gap:10px!important; }
+
+/* ── Plan tab ── */
+#tab-plan .g3 { display:grid!important; grid-template-columns:1fr 1fr 1fr!important; gap:12px!important; }
+#tab-plan .g2 { display:grid!important; grid-template-columns:1fr 1fr!important; gap:12px!important; }
+#tab-plan .fpc-cats { display:grid!important; grid-template-columns:1fr 1fr 1fr!important; gap:6px!important; }
+#tab-plan .fpc-dates { display:grid!important; grid-template-columns:1fr 1fr!important; gap:6px!important; }
+/* Summary info section: no break */
+#tab-plan > .card:first-of-type { break-inside:avoid!important; }
+
+/* ── Print header ── */
+.print-hd{background:linear-gradient(135deg,#3a56e4,#6c4de4);color:#fff;padding:9px 16px;margin-bottom:10px;border-radius:10px;display:flex;justify-content:space-between;align-items:center}
+.print-hd-title{font-size:15px;font-weight:700}
+.print-hd-svb{color:#ffd700;font-size:17px;font-weight:800;margin-left:6px}
+.print-hd-date{font-size:12px;opacity:.8}
 </style>
 </head><body>
-<div class="print-topbar">
-  <div>
-    <span class="print-topbar-title">✈ SDA Migration Dashboard —</span>
-    <span class="print-topbar-svb">SVB</span>
-  </div>
-  <div class="print-topbar-date">${date}</div>
+
+<div class="print-hd">
+  <div><span class="print-hd-title">✈ SDA Migration Dashboard —</span><span class="print-hd-svb">SVB</span></div>
+  <div class="print-hd-date">${date}</div>
 </div>
+
 ${insBox.outerHTML}
 ${main.outerHTML}
+
 <script>window.onload=function(){setTimeout(function(){window.print();},800)};<\/script>
 </body></html>`;
 
