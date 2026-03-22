@@ -240,6 +240,48 @@ tr:hover td{background:#f8faff}
 
 @media(max-width:860px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.g2,.g3,.g4{grid-template-columns:1fr}.fg2{grid-template-columns:1fr}.tb-stats{display:none}}
+
+/* ── PROGRESS SECTION ─────────────────────────────────────────── */
+.prog-card{position:relative}
+.prog-card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.prog-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.prog-title{font-size:13px;font-weight:600;color:var(--text)}
+.prog-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.dual-bar-wrap{margin-bottom:10px}
+.dual-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px}
+.dual-label b{color:var(--text);font-weight:600}
+.dbar{height:10px;border-radius:99px;overflow:hidden;background:#f0f4ff}
+.plan-bar{background:#e8edf5}
+.dbar-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.23,1,.32,1)}
+.plan-fill{background:linear-gradient(90deg,#94a3c4,#b8c4e0)}
+.act-fill{background:linear-gradient(90deg,var(--primary),var(--primary-mid))}
+.prog-diff{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:11px}
+.diff-badge{padding:3px 9px;border-radius:99px;font-size:11px;font-weight:600}
+.diff-pos{background:var(--success-light);color:#065f46}
+.diff-neg{background:var(--danger-light);color:#991b1b}
+.diff-days{color:var(--text2)}
+
+/* Fabric progress table */
+.prog-table{width:100%;border-collapse:collapse;font-size:12px;min-width:680px}
+.prog-table th{background:#f8faff;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.3px;font-weight:600;white-space:nowrap}
+.prog-table td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.prog-table tr:last-child td{border-bottom:none}
+.prog-table tr:hover td{background:#f8faff}
+.fab-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px}
+.mini-dual{min-width:120px}
+.mdbar{height:7px;border-radius:99px;overflow:hidden;margin-top:2px}
+.mdbar-bg{background:#e8edf5}
+.mdbar-act{height:100%;border-radius:99px;transition:width 1s ease}
+.fab-status{padding:3px 8px;border-radius:99px;font-size:10px;font-weight:600;white-space:nowrap}
+.fst-good{background:var(--success-light);color:#065f46}
+.fst-warn{background:var(--warning-light);color:#92400e}
+.fst-bad{background:var(--danger-light);color:#991b1b}
+.fst-ok{background:var(--primary-light);color:var(--primary)}
+
+/* Sync button active */
+.btn.sync-on{background:var(--success-light);border-color:#a7f3d0;color:#065f46}
+.btn.sync-on:hover{background:#d1fae5}
+
 @media print{.topbar,.insights,.pills,.actions,.tabs{display:none!important}.tab-body{display:block!important}}
 </style>
 </head>
@@ -306,6 +348,95 @@ tr:hover td{background:#f8faff}
   <div class="actions">
     <button class="btn" onclick="loadData()">↺ รีเฟรชข้อมูล</button>
     <button class="btn pdf" onclick="window.print()">⬇ PDF</button>
+  </div>
+</div>
+
+
+<!-- ════ SYNC HEADER ════ -->
+<div class="sec-head">
+  <div class="sec-h2">
+    <div class="sic" style="background:#eef1ff;color:var(--primary)">📊</div>
+    ความก้าวหน้าเทียบแผน (แผน vs จริง)
+    <span class="sec-ts">| ซิงค์: <span id="last-sync-lbl">–</span></span>
+  </div>
+  <div class="actions">
+    <button class="btn" id="auto-sync-btn" onclick="toggleAutoSync()">🔄 เปิดซิงค์อัตโนมัติ</button>
+    <button class="btn" onclick="manualRefresh()">↺ รีเฟรชข้อมูล</button>
+  </div>
+</div>
+
+<!-- ════ OVERALL PROGRESS 3 CARDS ════ -->
+<div class="g3" style="margin-bottom:14px">
+
+  <!-- Total -->
+  <div class="card prog-card">
+    <div class="prog-card-head">
+      <div class="prog-icon" style="background:#eef1ff;color:var(--primary)">🏗</div>
+      <div><div class="prog-title">ความก้าวหน้ารวม</div><div class="prog-sub">อุปกรณ์ทั้งหมด 1,592 รายการ</div></div>
+    </div>
+    <div class="dual-bar-wrap">
+      <div class="dual-label"><span>แผน <b id="op-plan-lbl">30.1%</b></span><span style="color:var(--text2)">ณ วันนี้ควรได้ 479 เครื่อง</span></div>
+      <div class="dbar plan-bar"><div class="dbar-fill plan-fill" style="width:30.1%" id="op-plan-bar"></div></div>
+      <div class="dual-label" style="margin-top:7px"><span>จริง <b id="op-act-lbl" style="color:var(--primary)">27.7%</b></span><span id="op-act-sub" style="color:var(--danger)">460/1,592</span></div>
+      <div class="dbar act-bar" style="margin-top:3px"><div class="dbar-fill act-fill" style="width:27.7%" id="op-act-bar"></div></div>
+    </div>
+    <div class="prog-diff"><span class="diff-badge diff-neg" id="op-diff-badge">▼ ช้ากว่าแผน 2.4%</span><span class="diff-days">เหลือ 94 วัน</span></div>
+  </div>
+
+  <!-- Switch -->
+  <div class="card prog-card">
+    <div class="prog-card-head">
+      <div class="prog-icon" style="background:#eef1ff;color:#4361ee">🔀</div>
+      <div><div class="prog-title">Switch รวม</div><div class="prog-sub">ทั้งหมด 1,121 รายการ</div></div>
+    </div>
+    <div class="dual-bar-wrap">
+      <div class="dual-label"><span>แผน <b>30.1%</b></span><span style="color:var(--text2)">ควรได้ 337 เครื่อง</span></div>
+      <div class="dbar plan-bar"><div class="dbar-fill plan-fill" style="width:30.1%"></div></div>
+      <div class="dual-label" style="margin-top:7px"><span>จริง <b id="sw-act-lbl" style="color:#4361ee">31.2%</b></span><span id="sw-act-sub" style="color:var(--success)">350/1,121</span></div>
+      <div class="dbar act-bar" style="margin-top:3px"><div class="dbar-fill" style="width:31.2%;background:linear-gradient(90deg,#4361ee,#7b93f5)" id="sw-act-bar"></div></div>
+    </div>
+    <div class="prog-diff"><span class="diff-badge diff-pos">▲ เร็วกว่าแผน 1.1%</span><span class="diff-days" style="color:var(--success)">เหลือ 771 เครื่อง</span></div>
+  </div>
+
+  <!-- AP -->
+  <div class="card prog-card">
+    <div class="prog-card-head">
+      <div class="prog-icon" style="background:var(--success-light);color:var(--success)">📶</div>
+      <div><div class="prog-title">AP รวม</div><div class="prog-sub">ทั้งหมด 445 รายการ</div></div>
+    </div>
+    <div class="dual-bar-wrap">
+      <div class="dual-label"><span>แผน <b>30.1%</b></span><span style="color:var(--text2)">ควรได้ 134 เครื่อง</span></div>
+      <div class="dbar plan-bar"><div class="dbar-fill plan-fill" style="width:30.1%"></div></div>
+      <div class="dual-label" style="margin-top:7px"><span>จริง <b id="ap-act-lbl" style="color:var(--success)">15.1%</b></span><span id="ap-act-sub" style="color:var(--danger)">67/445</span></div>
+      <div class="dbar act-bar" style="margin-top:3px"><div class="dbar-fill" style="width:15.1%;background:linear-gradient(90deg,var(--success),#52e3aa)" id="ap-act-bar"></div></div>
+    </div>
+    <div class="prog-diff"><span class="diff-badge diff-neg">▼ ช้ากว่าแผน 15.0%</span><span class="diff-days" style="color:var(--danger)">เหลือ 378 เครื่อง</span></div>
+  </div>
+
+</div>
+
+<!-- ════ PER FABRIC TABLE ════ -->
+<div class="card" style="margin-bottom:14px">
+  <div class="ch">
+    <div class="chi" style="background:#eef1ff;color:var(--primary)">🔬</div>
+    แผน vs จริง แยกตาม Fabric — Switch &amp; AP
+  </div>
+  <div style="overflow-x:auto">
+    <table class="prog-table">
+      <thead>
+        <tr>
+          <th style="min-width:90px">Fabric</th>
+          <th>แผนเวลา %<br><span style="font-size:9px;color:var(--text3);font-weight:400">% ของกรอบเวลาผ่านไป</span></th>
+          <th style="min-width:140px">Switch — แผน vs จริง</th>
+          <th style="min-width:60px">Switch<br>actual%</th>
+          <th style="min-width:140px">AP — แผน vs จริง</th>
+          <th style="min-width:60px">AP<br>actual%</th>
+          <th>รวม<br>actual%</th>
+          <th>สถานะ</th>
+        </tr>
+      </thead>
+      <tbody id="fab-prog-tbody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -677,6 +808,94 @@ async function toggleHold(el){
 }
 
 // ── API ───────────────────────────────────────────────────────────────────────
+
+// ── AUTO SYNC ─────────────────────────────────────────────────────────────────
+let syncTimer = null;
+let syncOn = false;
+const SYNC_INTERVAL = 60000; // 60 วินาที
+
+function toggleAutoSync() {
+  syncOn = !syncOn;
+  const btn = document.getElementById('auto-sync-btn');
+  if (syncOn) {
+    syncTimer = setInterval(manualRefresh, SYNC_INTERVAL);
+    btn.textContent = '⏸ ปิดซิงค์อัตโนมัติ';
+    btn.classList.add('sync-on');
+    manualRefresh();
+  } else {
+    clearInterval(syncTimer);
+    btn.textContent = '🔄 เปิดซิงค์อัตโนมัติ';
+    btn.classList.remove('sync-on');
+  }
+}
+
+function manualRefresh() {
+  loadData();
+  const now = new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  const el = document.getElementById('last-sync-lbl');
+  if(el) el.textContent = now;
+}
+
+// ── FABRIC PROGRESS DATA (computed from Excel) ────────────────────────────────
+const FAB_PROG = [
+  {n:'D1-041',c:'#4361ee',planT:31.0, sw:{plan:410,done:209,planPct:31.0,actPct:51.0}, ap:{plan:290,done:43,planPct:31.0,actPct:14.8}, totActPct:36.9},
+  {n:'CFZ',   c:'#2bc48a',planT:62.2, sw:{plan:156,done:141,planPct:62.2,actPct:90.4}, ap:{plan:25, done:24,planPct:62.2,actPct:96.0}, totActPct:90.4},
+  {n:'T1-015',c:'#ff9f43',planT:29.6, sw:{plan:281,done:0,  planPct:29.6,actPct:0.0},  ap:{plan:44, done:0, planPct:29.6,actPct:0.0},  totActPct:0.6},
+  {n:'D1-091',c:'#a855f7',planT:30.4, sw:{plan:134,done:0,  planPct:30.4,actPct:0.0},  ap:{plan:11, done:0, planPct:30.4,actPct:0.0},  totActPct:1.4},
+  {n:'RFF',   c:'#22b8cf',planT:22.6, sw:{plan:65, done:0,  planPct:22.6,actPct:0.0},  ap:{plan:32, done:0, planPct:22.6,actPct:0.0},  totActPct:2.0},
+  {n:'AMF',   c:'#f76707',planT:18.9, sw:{plan:69, done:0,  planPct:18.9,actPct:0.0},  ap:{plan:43, done:0, planPct:18.9,actPct:0.0},  totActPct:1.8},
+  {n:'PPW',   c:'#74c0fc',planT:0.0,  sw:{plan:6,  done:0,  planPct:0.0, actPct:0.0},  ap:{plan:0,  done:0, planPct:0.0, actPct:0.0},  totActPct:25.0},
+];
+
+function buildFabProgTable() {
+  const tbody = document.getElementById('fab-prog-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = FAB_PROG.map(f => {
+    const swDiff = f.sw.actPct - f.planT;
+    const apDiff = f.ap.actPct - f.planT;
+    const totDiff = f.totActPct - f.planT;
+    const statusCls = totDiff >= 0 ? 'fst-good' : totDiff >= -10 ? 'fst-warn' : 'fst-bad';
+    const statusTxt = totDiff >= 5 ? '▲ เร็วกว่าแผน' : totDiff >= -5 ? '≈ ตามแผน' : totDiff >= -15 ? '▼ ช้าเล็กน้อย' : '▼▼ ช้ามาก';
+    const swActColor = swDiff >= 0 ? 'var(--success)' : 'var(--danger)';
+    const apActColor = apDiff >= 0 ? 'var(--success)' : 'var(--danger)';
+    const swActBg = swDiff >= 0 ? 'linear-gradient(90deg,#4361ee,#7b93f5)' : 'linear-gradient(90deg,var(--danger),#ff8a8a)';
+    const apActBg = apDiff >= 0 ? 'linear-gradient(90deg,var(--success),#52e3aa)' : 'linear-gradient(90deg,var(--danger),#ff8a8a)';
+    return `<tr>
+      <td><span class="fab-dot" style="background:${f.c}"></span><b>${f.n}</b></td>
+      <td>
+        <div style="font-size:12px;font-weight:600;color:var(--text2)">${f.planT}%</div>
+        <div class="mdbar mdbar-bg" style="width:80px;margin-top:3px"><div class="mdbar-act" style="width:${Math.min(f.planT,100)}%;background:linear-gradient(90deg,#94a3c4,#b8c4e0)"></div></div>
+      </td>
+      <td class="mini-dual">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:2px">แผน ${f.planT}% vs จริง ${f.sw.actPct}%</div>
+        <div style="position:relative;height:14px;background:#e8edf5;border-radius:99px;overflow:hidden;width:100%">
+          <div style="position:absolute;height:100%;width:${Math.min(f.planT,100)}%;background:rgba(148,163,196,.5);border-radius:99px"></div>
+          <div style="position:absolute;height:100%;width:${Math.min(f.sw.actPct,100)}%;background:${swActBg};border-radius:99px;opacity:.85"></div>
+        </div>
+        <div style="font-size:10px;color:${swActColor};margin-top:2px">${f.sw.done}/${f.sw.plan} (${swDiff>=0?'+':''}${swDiff.toFixed(1)}%)</div>
+      </td>
+      <td style="text-align:center">
+        <span style="font-size:14px;font-weight:700;color:${swActColor}">${f.sw.actPct}%</span>
+      </td>
+      <td class="mini-dual">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:2px">แผน ${f.planT}% vs จริง ${f.ap.actPct}%</div>
+        <div style="position:relative;height:14px;background:#e8edf5;border-radius:99px;overflow:hidden;width:100%">
+          <div style="position:absolute;height:100%;width:${Math.min(f.planT,100)}%;background:rgba(148,163,196,.5);border-radius:99px"></div>
+          <div style="position:absolute;height:100%;width:${Math.min(f.ap.actPct,100)}%;background:${apActBg};border-radius:99px;opacity:.85"></div>
+        </div>
+        <div style="font-size:10px;color:${apActColor};margin-top:2px">${f.ap.done}/${f.ap.plan} (${apDiff>=0?'+':''}${apDiff.toFixed(1)}%)</div>
+      </td>
+      <td style="text-align:center">
+        <span style="font-size:14px;font-weight:700;color:${apActColor}">${f.ap.actPct}%</span>
+      </td>
+      <td style="text-align:center">
+        <span style="font-size:15px;font-weight:700;color:${totDiff>=0?'var(--success)':'var(--danger)'}">${f.totActPct}%</span>
+      </td>
+      <td><span class="fab-status ${statusCls}">${statusTxt}</span></td>
+    </tr>`;
+  }).join('');
+}
+
 async function loadData(){
   try{
     const r=await fetch(`${API}/api/summary`);
