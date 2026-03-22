@@ -61,7 +61,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 .ikpi .kv.red{color:var(--danger)}
 
 /* PILLS */
-.pills{background:rgba(255,255,255,.7);margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;padding-top:12px;border-top:1px solid rgba(253,211,77,.5)}
+.pills{background:rgba(255,255,255,.7);margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;padding-top:12px;border-top:1px solid rgba(253,211,77,.5);overflow-x:auto;-webkit-overflow-scrolling:touch}
 .pill{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;border:1px solid rgba(253,211,77,.7);background:rgba(255,255,255,.8);white-space:nowrap;font-size:13px}
 .pill .pi{font-size:14px}
 .pill .pv{font-weight:700;color:var(--text)}
@@ -87,7 +87,7 @@ main{max-width:1360px;margin:0 auto;padding:18px 14px}
 
 /* TABS */
 .tabs-wrap{background:#fff;border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--border);overflow:hidden}
-.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 4px}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
 .tab{padding:12px 16px;border:none;background:none;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);border-bottom:3px solid transparent;font-family:inherit;transition:.2s}
 .tab:hover{color:var(--primary)}
 .tab.on{color:var(--primary);border-bottom-color:var(--primary);background:var(--primary-l)}
@@ -238,9 +238,341 @@ tr:hover td{background:#f8faff}
 .ferr{background:var(--danger-l);color:#991b1b;border:1px solid #fecaca}
 .loading{text-align:center;padding:30px;color:var(--text2)}
 
-@media(max-width:860px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.prog-chart-grid{grid-template-columns:1fr}.prog-fab-grid{grid-template-columns:1fr}}
-@media(max-width:560px){.g2,.g3,.g4{grid-template-columns:1fr}.fg2{grid-template-columns:1fr}.tb-stats{display:none}}
-@media print{.topbar,.actions,.tabs{display:none!important}.tab-body{display:block!important}}
+
+/* ══ RESPONSIVE ══════════════════════════════════════════════════════════════
+
+   Breakpoints:
+     xs  < 480px   มือถือแนวตั้ง
+     sm  480-639px  มือถือแนวนอน
+     md  640-859px  แท็บเล็ต
+     lg  860-1199px Desktop เล็ก
+     xl  ≥ 1200px   Desktop ใหญ่
+*/
+
+/* ── Base: mobile-first fluid containers ────────────────────────────────── */
+main { padding: 12px 10px; }
+.tab-body { padding: 12px; }
+
+/* ── Fluid grid: collapse to 1 col by default, expand at breakpoints ─────── */
+.g2  { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.g3  { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.g4  { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.prog-chart-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.prog-fab-grid   { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.fg2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+/* ── xs < 480px — มือถือแนวตั้ง ─────────────────────────────────────────── */
+@media (max-width: 479px) {
+  /* ── Topbar: icon + title + sync button only ── */
+  .topbar { height: auto; padding: 8px 12px; flex-wrap: wrap; gap: 6px; }
+  .tb-title { font-size: 12px; }
+  .tb-sub, .tb-stats, .tb-div { display: none; }
+  .sdot-wrap { font-size: 10px; padding: 2px 8px; }
+  .tbtn { padding: 4px 8px; font-size: 11px; gap: 3px; }
+  .tbtn:nth-child(2) { display: none; } /* ซ่อนปุ่ม refresh — ใช้ sync แทน */
+
+  /* ══ INSIGHTS BOX mobile ════════════════════════════════════════════════ */
+  .insights-box { padding: 10px 12px; }
+  .ins-panels { flex-direction: column; gap: 8px; margin-bottom: 10px; }
+
+  /* Alert card */
+  .ins-alert-card { padding: 11px 13px; }
+  .ins-icon { width: 34px; height: 34px; font-size: 15px; }
+  .ins-big { font-size: 13px; }
+  .ins-big em { font-size: 19px; }
+  .ins-pct-tag { display: none; }
+  .ins-rate-row { gap: 6px; padding: 6px 10px; }
+  .ins-rate-val { font-size: 16px; }
+  .ins-warn { font-size: 11px; }
+
+  /* Gauge card: horizontal on mobile */
+  .ins-gauge-card { min-width: 0; padding: 11px 13px; gap: 14px; }
+  .ins-gauge-wrap { width: 72px; height: 72px; }
+  .ins-gauge-wrap canvas { width: 72px !important; height: 72px !important; }
+  .ins-gc .gp { font-size: 16px; }
+  .ins-kpi-title { font-size: 10px; }
+  .ins-kpi-val { font-size: 14px; }
+  .ins-kpi-lbl { font-size: 11px; min-width: 60px; }
+
+  /* ══ PILLS 3×2 grid mobile ════════════════════════════════════════════════ */
+  .ins-pills { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .ins-pill { padding: 8px 8px; gap: 6px; border-radius: 9px; }
+  .ip-icon { font-size: 15px; width: 22px; }
+  .ip-val { font-size: 16px; }
+  .ip-lbl { font-size: 10px; }
+  .ip-sub { font-size: 9px; }
+
+  /* ── Main layout ── */
+  main { padding: 10px 10px; }
+  .tab-body { padding: 10px; }
+  .sec-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .sec-ts { display: none; }
+  .actions { flex-wrap: wrap; gap: 5px; }
+  .btn { padding: 5px 10px; font-size: 11px; }
+
+  /* Tabs: scroll */
+  .tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .tab { padding: 10px 12px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+
+  /* Summary cards */
+  .g4 { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .scard { padding: 12px; }
+  .scard .sn { font-size: 20px; }
+  .scard .sl { font-size: 10px; }
+  .scard .ss { font-size: 10px; }
+  .scard .sbadge { font-size: 10px; padding: 2px 6px; }
+
+  /* Charts */
+  .cwrap { height: 170px; }
+  .cleg { gap: 10px; }
+  .cl { font-size: 11px; }
+
+  /* Donut */
+  .dwrap { width: 100px; height: 100px; }
+  .dwrap canvas { width: 100px !important; height: 100px !important; }
+  .dc .dp { font-size: 16px; }
+
+  /* Heatmap: 2 col */
+  .heatmap { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .hmc { padding: 10px 8px; }
+  .hmc .hmp { font-size: 20px; }
+  .hmc .hmn { font-size: 10px; }
+
+  /* Timeline */
+  .tltrack { height: 14px; }
+  .tlfill { font-size: 9px; padding-left: 4px; }
+  .tlt { font-size: 11px; }
+  .tlpct { font-size: 10px; padding: 1px 5px; }
+
+  /* Progress charts */
+  .prog-chart-grid { grid-template-columns: 1fr; }
+  .prog-fab-grid { grid-template-columns: 1fr; }
+
+  /* Table */
+  .tblw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 480px; }
+  th, td { padding: 7px 8px; font-size: 11px; }
+  .filters { gap: 5px; }
+  .filters select, .filters input { padding: 6px 8px; font-size: 11px; }
+
+  /* Location */
+  .fgh { font-size: 12px; padding: 8px 11px; }
+  .locname { font-size: 12px; }
+  .locbar { width: 55px; }
+  .locc { font-size: 10px; }
+
+  /* Plan fab cards */
+  .fpc { padding: 12px; }
+  .fpc-big { font-size: 20px; }
+  .fpc-cats { grid-template-columns: 1fr; gap: 5px; }
+  .fpc-dates { grid-template-columns: 1fr 1fr; gap: 5px; }
+
+  /* Form */
+  .fw { max-width: 100%; }
+  .fg2 { grid-template-columns: 1fr; }
+  .fgr input, .fgr select, .fgr textarea { font-size: 16px; } /* prevent iOS zoom */
+}
+
+/* ── sm 480–639px — มือถือแนวนอน ────────────────────────────────────────── */
+@media (min-width: 480px) and (max-width: 639px) {
+  .topbar { height: auto; padding: 8px 14px; flex-wrap: wrap; gap: 6px; }
+  .tb-stats { display: none; }
+  .tb-title { font-size: 13px; }
+
+  .ins-kpis { gap: 14px; }
+  .ins-panels { flex-direction: column; gap: 8px; }
+  .ins-gauge-card { min-width: 0; }
+  .ins-pills { grid-template-columns: repeat(3, 1fr); }
+  .ins-gauge-wrap { width: 76px; height: 76px; }
+  .ins-gauge-wrap canvas { width: 76px !important; height: 76px !important; }
+
+  .pills { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .pill { flex-shrink: 0; }
+
+  .tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .tab { white-space: nowrap; flex-shrink: 0; }
+
+  .g4 { grid-template-columns: 1fr 1fr; }
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .heatmap { grid-template-columns: repeat(3, 1fr); }
+
+  .tblw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 480px; }
+
+  .fpc-cats { grid-template-columns: 1fr 1fr; }
+  .prog-fab-grid { grid-template-columns: 1fr; }
+}
+
+/* ── md 640–859px — แท็บเล็ต ────────────────────────────────────────────── */
+@media (min-width: 640px) and (max-width: 859px) {
+  .tb-stats { display: none; }
+  .tb-title { font-size: 13px; }
+
+  .ins-panels { flex-direction: row; }
+  .ins-gauge-card { min-width: 200px; }
+  .ins-pills { grid-template-columns: repeat(6, 1fr); }
+  .ins-gauge-wrap { width: 80px; height: 80px; }
+  .ins-gauge-wrap canvas { width: 80px !important; height: 80px !important; }
+
+  .pills { flex-wrap: wrap; }
+
+  main { padding: 14px 12px; }
+  .tab-body { padding: 14px; }
+
+  .g2  { grid-template-columns: 1fr 1fr; }
+  .g3  { grid-template-columns: 1fr 1fr; }
+  .g4  { grid-template-columns: 1fr 1fr; }
+  .heatmap { grid-template-columns: repeat(4, 1fr); }
+
+  .prog-chart-grid { grid-template-columns: 1fr 1fr; }
+  .prog-chart-grid .card:last-child { grid-column: span 2; }
+  .prog-fab-grid { grid-template-columns: 1fr 1fr; }
+
+  .cwrap { height: 200px; }
+
+  .tblw { overflow-x: auto; }
+  table { min-width: 560px; }
+
+  .fg2 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── lg 860–1199px — Desktop เล็ก ───────────────────────────────────────── */
+@media (min-width: 860px) and (max-width: 1199px) {
+  main { padding: 16px 14px; }
+
+  .g2  { grid-template-columns: 1fr 1fr; }
+  .g3  { grid-template-columns: 1fr 1fr; }
+  .g4  { grid-template-columns: 1fr 1fr; }
+
+  .heatmap { grid-template-columns: repeat(4, 1fr); }
+
+  .prog-chart-grid { grid-template-columns: 1fr 1fr; }
+  .prog-chart-grid .card:last-child { grid-column: span 2; }
+  .prog-fab-grid { grid-template-columns: 1fr 1fr; }
+
+  .fg2 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── xl 1200–1399px — Desktop ใหญ่ ──────────────────────────────────────── */
+@media (min-width: 1200px) and (max-width: 1399px) {
+  main { padding: 18px 14px; }
+  .g2 { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .g3 { grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .g4 { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .heatmap { grid-template-columns: repeat(7, 1fr); }
+  .prog-chart-grid { grid-template-columns: 1fr 1fr; }
+  .prog-chart-grid .card:last-child { grid-column: span 2; }
+  .prog-fab-grid { grid-template-columns: 1fr 1fr; }
+  .fg2 { grid-template-columns: 1fr 1fr; gap: 11px; }
+}
+
+/* ── tv ≥ 1400px — TV / จอใหญ่ ──────────────────────────────────────────── */
+@media (min-width: 1400px) {
+  main { max-width: 1600px; padding: 24px 20px; }
+  .tab-body { padding: 24px; }
+
+  /* Topbar: ใหญ่ขึ้น */
+  .topbar { height: 64px; padding: 0 28px; }
+  .tb-title { font-size: 17px; }
+  .tb-sub { font-size: 12px; }
+  .tb-stat .v { font-size: 17px; }
+  .tb-stat .l { font-size: 11px; }
+  .sdot-wrap { font-size: 13px; padding: 5px 14px; }
+  .sdot { width: 9px; height: 9px; }
+  .tbtn { padding: 7px 14px; font-size: 13px; }
+
+  /* Insights TV */
+  .insights-box { padding: 20px 28px; }
+  .ins-panels { gap: 18px; margin-bottom: 16px; }
+  .ins-alert-card { padding: 18px 20px; }
+  .ins-icon { width: 50px; height: 50px; font-size: 22px; }
+  .ins-big { font-size: 17px; }
+  .ins-big em { font-size: 28px; }
+  .ins-rate-row { padding: 10px 14px; gap: 10px; }
+  .ins-rate-val { font-size: 22px; }
+  .ins-warn { font-size: 14px; }
+  .ins-gauge-card { padding: 18px 22px; gap: 22px; min-width: 280px; }
+  .ins-gauge-wrap { width: 110px; height: 110px; }
+  .ins-gauge-wrap canvas { width: 110px !important; height: 110px !important; }
+  .ins-gc .gp { font-size: 24px; }
+  .ins-kpi-title { font-size: 12px; }
+  .ins-kpi-lbl { font-size: 14px; min-width: 90px; }
+  .ins-kpi-val { font-size: 20px; }
+  .ins-kpi-unit { font-size: 13px; }
+  .ins-pills { gap: 12px; padding-top: 14px; }
+  .ins-pill { padding: 13px 16px; gap: 12px; border-radius: 12px; }
+  .ip-icon { font-size: 22px; width: 34px; }
+  .ip-val { font-size: 24px; }
+  .ip-lbl { font-size: 13px; }
+  .ip-sub { font-size: 11px; }
+
+  /* Cards */
+  .g2 { grid-template-columns: 1fr 1fr; gap: 18px; }
+  .g3 { grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .g4 { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .card { padding: 20px; border-radius: 14px; }
+  .ch { font-size: 15px; margin-bottom: 16px; }
+  .chi { width: 26px; height: 26px; font-size: 14px; }
+
+  /* Summary cards */
+  .scard { padding: 20px; }
+  .scard .sn { font-size: 32px; }
+  .scard .sl { font-size: 13px; }
+  .scard .ss { font-size: 13px; }
+  .scard .sbadge { font-size: 13px; padding: 4px 12px; }
+  .scard .sbar { height: 7px; margin-top: 12px; }
+
+  /* Charts: สูงขึ้น */
+  .cwrap { height: 280px; }
+
+  /* Heatmap */
+  .heatmap { grid-template-columns: repeat(7, 1fr); gap: 12px; }
+  .hmc { padding: 18px; }
+  .hmc .hmp { font-size: 30px; }
+  .hmc .hmn { font-size: 13px; }
+  .hmc .hms { font-size: 12px; }
+
+  /* Timeline */
+  .tltrack { height: 22px; }
+  .tlfill { font-size: 12px; }
+  .tlt { font-size: 14px; }
+
+  /* Progress charts */
+  .prog-chart-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
+  .prog-fab-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
+
+  /* Table: ใหญ่ขึ้น */
+  table { font-size: 14px; }
+  th { font-size: 12px; padding: 12px 14px; }
+  td { padding: 11px 14px; }
+
+  /* Section head */
+  .sec-h2 { font-size: 15px; }
+  .sic { width: 26px; height: 26px; font-size: 13px; }
+  .btn { padding: 9px 16px; font-size: 13px; }
+
+  /* Tabs */
+  .tab { padding: 14px 22px; font-size: 14px; }
+
+  /* Fab plan cards */
+  .fpc-big { font-size: 30px; }
+  .fpc-name { font-size: 15px; }
+
+  /* Form: ใหญ่ขึ้น */
+  .fw { max-width: 680px; }
+  .fgr input, .fgr select, .fgr textarea { padding: 11px 14px; font-size: 15px; }
+  .fgr label { font-size: 13px; }
+}
+
+/* ── Print ───────────────────────────────────────────────────────────────── */
+@media print {
+  .topbar, .actions, .tabs, .tbtn { display: none !important; }
+  .insights-box { background: #fffbeb !important; -webkit-print-color-adjust: exact; }
+  .tab-body { display: block !important; }
+  .g2, .g3, .g4 { grid-template-columns: 1fr 1fr; }
+  .card { break-inside: avoid; }
+  main { padding: 0; }
+}
 </style>
 </head>
 <body>
@@ -268,36 +600,114 @@ tr:hover td{background:#f8faff}
   </div>
 </div>
 
-<!-- INSIGHTS BOX (กรอบใหญ่เหมือน PDF) -->
+<!-- INSIGHTS BOX — layout: 2-panel + pills row (เหมือน PDF) -->
 <div class="insights-box">
-  <div class="ins-inner">
-    <div class="ins-left">
-      <div class="ins-icon">⚡</div>
-      <div class="ins-text">
-        <div class="ins-big">↑ ต้องเพิ่ม <em>2.0</em> อุปกรณ์/วัน <span style="font-size:12px;font-weight:400;color:#92400e">↑23% จากอัตราปัจจุบัน</span></div>
-        <div class="ins-detail">เพิ่มจาก 11.0 → ต้องทำ 13 อุปกรณ์/วัน เพื่อให้ทันกำหนด</div>
-        <div class="ins-warn">⚠ ถ้าไม่เพิ่ม → คาดเสร็จ 3 ก.ค. 69 — ช้ากว่าเป้า 10 วัน</div>
+
+  <!-- Panel row: insight card + gauge card -->
+  <div class="ins-panels">
+
+    <!-- LEFT: insight alert card -->
+    <div class="ins-alert-card">
+      <div class="ins-alert-head">
+        <div class="ins-icon">⚡</div>
+        <div>
+          <div class="ins-big">↑ ต้องเพิ่ม <em>2.0</em> อุปกรณ์/วัน
+            <span class="ins-pct-tag">↑18% จากอัตราปัจจุบัน</span>
+          </div>
+        </div>
+      </div>
+      <div class="ins-rate-row">
+        <span class="ins-rate-lbl">ทำได้</span>
+        <span class="ins-rate-val">11</span>
+        <span class="ins-rate-arrow">→</span>
+        <span class="ins-rate-lbl">ต้องทำ</span>
+        <span class="ins-rate-val ins-rate-target">13</span>
+        <span class="ins-rate-unit">อุปกรณ์/วัน</span>
+      </div>
+      <div class="ins-warn">⚠ ถ้าไม่เพิ่ม → เสร็จ 3 ก.ค. 69 — ช้ากว่าเป้า 10 วัน</div>
+    </div>
+
+    <!-- RIGHT: gauge + KPI table -->
+    <div class="ins-gauge-card">
+      <div class="ins-gauge-section">
+        <div class="ins-gauge-wrap">
+          <canvas id="gauge-c"></canvas>
+          <div class="ins-gc"><div class="gp" id="gauge-pct-lbl">85%</div></div>
+        </div>
+      </div>
+      <div class="ins-kpi-table">
+        <div class="ins-kpi-title">ประสิทธิภาพ</div>
+        <div class="ins-kpi-row">
+          <span class="ins-kpi-lbl">ทำได้จริง</span>
+          <span class="ins-kpi-val">11</span>
+          <span class="ins-kpi-unit">/วัน</span>
+        </div>
+        <div class="ins-kpi-row">
+          <span class="ins-kpi-lbl">เป้าหมาย</span>
+          <span class="ins-kpi-val">13</span>
+          <span class="ins-kpi-unit">/วัน</span>
+        </div>
+        <div class="ins-kpi-row ins-kpi-gap">
+          <span class="ins-kpi-lbl">ส่วนต่าง</span>
+          <span class="ins-kpi-val" style="color:var(--danger)">+2.0</span>
+          <span class="ins-kpi-unit" style="color:var(--danger)">/วัน</span>
+        </div>
       </div>
     </div>
-    <div class="ins-gauge-wrap">
-      <canvas id="gauge-c"></canvas>
-      <div class="ins-gc"><div class="gp">82%</div><div class="gl">ประสิทธิภาพ</div></div>
+  </div>
+
+  <!-- PILLS: 6 กล่องในแถวเดียว -->
+  <div class="ins-pills">
+    <div class="ins-pill p-date">
+      <div class="ip-icon">📅</div>
+      <div class="ip-body">
+        <div class="ip-val">3 ก.ค. 69</div>
+        <div class="ip-lbl">คาดเสร็จ</div>
+        <div class="ip-sub">ช้า 10 วัน</div>
+      </div>
     </div>
-    <div class="ins-kpis">
-      <div class="ikpi"><div class="kv">11.0</div><div class="kl">ทำได้จริง /วัน</div></div>
-      <div class="ikpi"><div class="kv">13</div><div class="kl">เป้าหมาย /วัน</div></div>
-      <div class="ikpi"><div class="kv red">+2.0</div><div class="kl" style="color:var(--danger)">ส่วนต่าง /วัน</div></div>
+    <div class="ins-pill p-rem">
+      <div class="ip-icon">📦</div>
+      <div class="ip-body">
+        <div class="ip-val" id="pill-rem">1,132</div>
+        <div class="ip-lbl">เหลือ</div>
+        <div class="ip-sub">อุปกรณ์</div>
+      </div>
+    </div>
+    <div class="ins-pill p-days">
+      <div class="ip-icon">⏱</div>
+      <div class="ip-body">
+        <div class="ip-val" style="color:var(--success)">94</div>
+        <div class="ip-lbl">วันเหลือ</div>
+        <div class="ip-sub">วัน</div>
+      </div>
+    </div>
+    <div class="ins-pill p-ot">
+      <div class="ip-icon">✓</div>
+      <div class="ip-body">
+        <div class="ip-val" style="color:var(--success)">99%</div>
+        <div class="ip-lbl">ตรงเวลา</div>
+        <div class="ip-sub">459/1592</div>
+      </div>
+    </div>
+    <div class="ins-pill p-over">
+      <div class="ip-icon">⚠</div>
+      <div class="ip-body">
+        <div class="ip-val" id="pill-over">4</div>
+        <div class="ip-lbl">เกินกำหนด</div>
+        <div class="ip-sub">อุปกรณ์</div>
+      </div>
+    </div>
+    <div class="ins-pill p-hold">
+      <div class="ip-icon">⏸</div>
+      <div class="ip-body">
+        <div class="ip-val" id="pill-hold">8</div>
+        <div class="ip-lbl">HOLD</div>
+        <div class="ip-sub">อุปกรณ์</div>
+      </div>
     </div>
   </div>
-  <!-- PILLS inside insights box -->
-  <div class="pills">
-    <div class="pill p-date"><span class="pi">📅</span><span class="pv">3 ก.ค. 69</span><span class="pl">คาดเสร็จ</span></div>
-    <div class="pill p-rem"><span class="pi">📦</span><span class="pv" id="pill-rem">1,132</span><span class="pl">อุปกรณ์เหลือ</span></div>
-    <div class="pill p-days"><span class="pi">⏱</span><span class="pv">94</span><span class="pl">วันเหลือ</span></div>
-    <div class="pill p-ot"><span class="pi">✓</span><span class="pv">99%</span><span class="pl">ตรงเวลา</span></div>
-    <div class="pill p-over"><span class="pi">⚠</span><span class="pv" id="pill-over">4</span><span class="pl">Overdue Items: เกินกำหนด</span></div>
-    <div class="pill p-hold"><span class="pi">⏸</span><span class="pv" id="pill-hold">8</span><span class="pl">HOLD อุปกรณ์</span></div>
-  </div>
+
 </div>
 
 <!-- MAIN -->
@@ -364,12 +774,12 @@ tr:hover td{background:#f8faff}
     <div class="card">
       <div class="ch"><div class="chi" style="background:#eef1ff;color:#4361ee">🔀</div>Switch รวม — แผน vs จริง (%)</div>
       <div style="height:200px"><canvas id="prog-sw-c"></canvas></div>
-      <div class="cleg"><div class="cl"><div class="cld"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#4361ee"></div>จริง (%)</div></div>
+      <div class="cleg"><div class="cl"><div class="cld" style="border-color:#a5b4fc"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#4361ee"></div>จริง (%)</div></div>
     </div>
     <div class="card" style="grid-column:1/-1">
       <div class="ch"><div class="chi" style="background:var(--success-l);color:var(--success)">📶</div>AP รวม — แผน vs จริง (%)</div>
       <div style="height:200px"><canvas id="prog-ap-c"></canvas></div>
-      <div class="cleg"><div class="cl"><div class="cld"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:var(--success)"></div>จริง (%)</div></div>
+      <div class="cleg"><div class="cl"><div class="cld" style="border-color:#6ee7b7"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#2bc48a"></div>จริง (%)</div></div>
     </div>
   </div>
 
@@ -467,7 +877,7 @@ tr:hover td{background:#f8faff}
 </main>
 
 <script>
-const API = window.location.hostname==='localhost'?'http://localhost:3000':'https://YOUR-RENDER-API-URL.onrender.com';
+const API = window.location.hostname==='localhost'?'http://localhost:3000':'https://sda-migr-api.onrender.com';
 
 // ── WEEKLY DATA ───────────────────────────────────────────────────────────────
 const WK = ["10/02","17/02","24/02","3/03","10/03","17/03","24/03","31/03","7/04","14/04","21/04","28/04","5/05","12/05","19/05","26/05","2/06","9/06","16/06","23/06"];
@@ -584,8 +994,8 @@ function buildHeatmap(){
 function buildProgressCharts(){
   // Overall 3
   makeLineChart('prog-all-c', PLAN_ALL, ACT_ALL, '#94a3c4','#4361ee','แผนรวม (%)','จริงรวม (%)');
-  makeLineChart('prog-sw-c',  PLAN_SW,  ACT_SW,  '#94a3c4','#4361ee','แผน Switch (%)','จริง Switch (%)');
-  makeLineChart('prog-ap-c',  PLAN_AP,  ACT_AP,  '#94a3c4','#2bc48a','แผน AP (%)','จริง AP (%)');
+  makeLineChart('prog-sw-c',  PLAN_SW,  ACT_SW,  '#a5b4fc','#4361ee','แผน Switch (%)','จริง Switch (%)');
+  makeLineChart('prog-ap-c',  PLAN_AP,  ACT_AP,  '#6ee7b7','#2bc48a','แผน AP (%)','จริง AP (%)');
 
   // Per fabric cards
   const wrap = document.getElementById('fab-prog-charts');
@@ -603,10 +1013,10 @@ function buildProgressCharts(){
       </div>
       <div style="height:190px"><canvas id="fab-${f.n.replace('-','')}-c"></canvas></div>
       <div class="cleg" style="margin-top:6px">
-        <div class="cl"><div class="cld"></div>Switch แผน</div>
-        <div class="cl"><div class="cll" style="background:${f.c}"></div>Switch จริง</div>
-        <div class="cl"><div class="cld" style="border-color:${f.c};opacity:.5"></div>AP แผน</div>
-        <div class="cl"><div class="cll" style="background:${f.c};opacity:.5"></div>AP จริง</div>
+        <div class="cl"><div class="cld" style="border-color:#a5b4fc"></div>Switch แผน</div>
+        <div class="cl"><div class="cll" style="background:#4361ee"></div>Switch จริง</div>
+        <div class="cl"><div class="cld" style="border-color:#6ee7b7"></div>AP แผน</div>
+        <div class="cl"><div class="cll" style="background:#2bc48a"></div>AP จริง</div>
       </div>`;
     wrap.appendChild(div);
 
@@ -619,11 +1029,10 @@ function buildProgressCharts(){
         data:{
           labels: WK,
           datasets:[
-            {label:'Switch แผน',data:fd.sw_plan,borderColor:'#94a3c4',borderWidth:1.5,borderDash:[5,3],pointRadius:2,pointBackgroundColor:'#94a3c4',tension:0.3,fill:false,spanGaps:false},
-            {label:'Switch จริง',data:fd.sw_act, borderColor:f.c,borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?3:0,pointBackgroundColor:f.c,tension:0.3,fill:false,spanGaps:false},
-            {label:'AP แผน',data:fd.ap_plan,borderColor:f.c,borderWidth:1.5,borderDash:[3,3],borderOpacity:.4,pointRadius:2,pointBackgroundColor:f.c+'88',tension:0.3,fill:false,spanGaps:false,
-             segment:{borderColor:()=>f.c+'66'}},
-            {label:'AP จริง',data:fd.ap_act,borderColor:f.c+'99',borderWidth:2,pointRadius:(c)=>c.parsed.y!=null?3:0,pointBackgroundColor:f.c+'88',tension:0.3,fill:false,spanGaps:false},
+            {label:'Switch แผน',data:fd.sw_plan,borderColor:'#a5b4fc',borderWidth:1.5,borderDash:[5,3],pointRadius:2,pointBackgroundColor:'#a5b4fc',tension:0.3,fill:false,spanGaps:false},
+            {label:'Switch จริง',data:fd.sw_act,borderColor:'#4361ee',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?3:0,pointBackgroundColor:'#4361ee',tension:0.3,fill:false,spanGaps:false},
+            {label:'AP แผน',data:fd.ap_plan,borderColor:'#6ee7b7',borderWidth:1.5,borderDash:[5,3],pointRadius:2,pointBackgroundColor:'#6ee7b7',tension:0.3,fill:false,spanGaps:false},
+            {label:'AP จริง',data:fd.ap_act,borderColor:'#2bc48a',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?3:0,pointBackgroundColor:'#2bc48a',tension:0.3,fill:false,spanGaps:false},
           ]
         },
         options:{
