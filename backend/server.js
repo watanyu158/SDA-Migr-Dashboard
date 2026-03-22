@@ -29,7 +29,7 @@ app.get('/api/summary', (req, res) => {
     pending:       rows[5][9],
     progress_pct:  Math.round(rows[6][1] * 10000) / 100,
     actual_installed: rows[6][3],
-    overdue_items: rows[6][7],
+    overdue_items: rows[6][8],
   };
 
   // Fabric rows: index 10-16 (D1-041 … PPW)
