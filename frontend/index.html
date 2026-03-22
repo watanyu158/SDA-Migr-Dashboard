@@ -696,8 +696,14 @@ main { padding: 12px 10px; }
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="tb-l">
-    <div class="tb-logo">📡</div>
-    <div><div class="tb-title">SDA Installation Dashboard — สุวรรณภูมิ</div><div class="tb-sub">อัพเดท <span id="ts-time">22/3/2569</span></div></div>
+    <div class="tb-logo" style="font-size:20px;background:rgba(255,255,255,.15)">✈</div>
+    <div>
+      <div class="tb-title" style="font-size:15px;letter-spacing:.3px">
+        SDA Migration Dashboard —
+        <span style="background:linear-gradient(90deg,#ffd700,#ffaa00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:17px;letter-spacing:.5px"> SVB</span>
+      </div>
+      <div class="tb-sub">อัพเดท <span id="ts-time">22/3/2569</span></div>
+    </div>
     <div class="sdot-wrap"><div class="sdot"></div>ตรงแผน</div>
   </div>
   <div class="tb-stats">
@@ -1801,23 +1807,20 @@ async function exportPDF() {
     if(btn){ btn.textContent='⬇ PDF'; btn.disabled=false; }
     return;
   }
-  printWin.document.write('<html><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f0f4ff"><div style="text-align:center"><div style="font-size:32px">⏳</div><div style="margin-top:12px;color:#4361ee;font-size:16px">กำลังเตรียมข้อมูล...</div></div></body></html>');
+  printWin.document.write('<html><body style="display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f0f4ff;font-family:sans-serif"><div style="text-align:center"><div style="font-size:40px">✈</div><div style="color:#4361ee;font-size:16px;margin-top:12px">กำลังเตรียมข้อมูล...</div></div></body></html>');
   printWin.document.close();
 
   try {
-    // 1. Show ALL tabs so canvases have real dimensions
+    // 1. Show all tabs + containers so canvas has real layout
     ['overview','progress','graphs','location','plan'].forEach(t=>{
       const el=document.getElementById('tab-'+t);
-      if(el){ el.style.display='block'; el.style.visibility='visible'; }
+      if(el){ el.style.display='block'; }
     });
-    // Show hidden chart containers
     const fabWrap = document.getElementById('fab-daily-charts-wrap');
-    if(fabWrap){ fabWrap.style.display='block'; fabWrap.style.visibility='visible'; }
-    document.querySelectorAll('.prog-fab-grid').forEach(el=>{
-      el.style.display='block'; el.style.visibility='visible';
-    });
+    if(fabWrap) fabWrap.style.display='block';
+    document.querySelectorAll('.prog-fab-grid').forEach(el=>el.style.display='block');
 
-    // 2. Destroy all charts & rebuild
+    // 2. Destroy and rebuild ALL charts fresh
     if(typeof Chart !== 'undefined'){
       Object.values(Chart.instances||{}).forEach(ch=>{ try{ch.destroy();}catch(e){} });
     }
@@ -1825,59 +1828,53 @@ async function exportPDF() {
     if(typeof buildBurndown==='function') buildBurndown();
     if(typeof buildDonut==='function') buildDonut();
     if(typeof buildProgressCharts==='function') buildProgressCharts();
-
-    // Build non-fab graphs (lazy, resets gblt)
     if(typeof buildGraphs==='function') buildGraphs();
-
-    // 3. Wait for buildGraphs to append fab divs (it's sync for div append, async for charts)
     await new Promise(r=>setTimeout(r,200));
-
-    // 4. Now build ALL per-fabric charts SYNCHRONOUSLY — canvas exists in DOM now
     if(typeof buildOneFabChart==='function'){
       Object.keys(FAB_DAILY).forEach(fab => buildOneFabChart(fab));
     }
 
-    // 5. Force resize + wait for paint
-    if(typeof Chart !== 'undefined'){
-      Object.values(Chart.instances||{}).forEach(ch=>{ try{ch.resize();}catch(e){} });
-    }
-    await new Promise(r=>setTimeout(r,600));
+    // 3. Wait for ALL charts to finish rendering
+    await new Promise(r=>setTimeout(r,1500));
 
-    // 5. Capture all canvas as images
+    // 4. Use Chart.toBase64Image() — works regardless of visibility
     const chartImgs = {};
-    document.querySelectorAll('canvas').forEach(cv=>{
-      try{
-        const w = cv.offsetWidth  || cv.width  || 0;
-        const h = cv.offsetHeight || cv.height || 0;
-        if(w < 10 || h < 10) return;
-        const url = cv.toDataURL('image/png', 1.0);
-        if(!url || url==='data:,') return;
-        chartImgs[cv.id] = {url, w, h};
-      }catch(e){}
-    });
+    if(typeof Chart !== 'undefined'){
+      Object.values(Chart.instances||{}).forEach(ch=>{
+        try{
+          const canvasId = ch.canvas?.id;
+          if(!canvasId) return;
+          // Get natural size from canvas
+          const w = ch.canvas.offsetWidth  || ch.canvas.width  || 600;
+          const h = ch.canvas.offsetHeight || ch.canvas.height || 300;
+          const img = ch.toBase64Image('image/png', 1.0);
+          chartImgs[canvasId] = {url: img, w, h};
+        }catch(e){}
+      });
+    }
+    console.log('Charts captured:', Object.keys(chartImgs));
 
-    // 6. Get CSS
+    // 5. Get CSS
     const styles = Array.from(document.styleSheets).map(ss=>{
       try{ return Array.from(ss.cssRules).map(r=>r.cssText).join('\n'); }
       catch(e){ return ''; }
     }).join('\n');
 
-    // 7. Clone content and replace canvas with img
+    // 6. Clone and replace canvas with img
     const main   = document.querySelector('main').cloneNode(true);
     const insBox = document.querySelector('.insights-box').cloneNode(true);
 
-    main.querySelectorAll('.tab-body').forEach(t=>{ t.style.display='block'; });
-    main.querySelectorAll('.tabs,.actions').forEach(t=>{ t.style.display='none'; });
+    main.querySelectorAll('.tab-body').forEach(t=>t.style.display='block');
+    main.querySelectorAll('.tabs,.actions').forEach(t=>t.style.display='none');
 
     main.querySelectorAll('canvas').forEach(cv=>{
       const data = chartImgs[cv.id];
-      if(data && data.w > 10 && data.h > 10){
+      if(data){
         const img = document.createElement('img');
         img.src = data.url;
         img.style.cssText = `display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
         cv.parentNode.replaceChild(img, cv);
       } else {
-        // Remove empty canvas placeholder
         cv.style.display='none';
       }
     });
@@ -1886,7 +1883,7 @@ async function exportPDF() {
     const html = `<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
-<title>SDA Dashboard ${date}</title>
+<title>SDA Migration Dashboard SVB — ${date}</title>
 <style>
 @page{size:A4 landscape;margin:8mm 10mm}
 *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
@@ -1897,13 +1894,17 @@ ${styles}
 .tabs-wrap{box-shadow:none!important;border:none!important}
 .card{break-inside:avoid}
 canvas{display:none!important}
-.ph{background:linear-gradient(135deg,#3a56e4,#6c4de4);color:#fff;padding:8px 16px;margin-bottom:10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600}
+.ph{background:linear-gradient(135deg,#3a56e4,#6c4de4);color:#fff;padding:8px 16px;margin-bottom:10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700}
+.ph-svb{color:#ffd700;font-size:16px;font-weight:800}
 </style>
 </head><body>
-<div class="ph"><span>📡 SDA Installation Dashboard — สุวรรณภูมิ</span><span>${date}</span></div>
+<div class="ph">
+  <span>✈ SDA Migration Dashboard — <span class="ph-svb">SVB</span></span>
+  <span style="font-size:12px;font-weight:400">${date}</span>
+</div>
 ${insBox.outerHTML}
 ${main.outerHTML}
-<script>window.onload=function(){setTimeout(function(){window.print();},600)};<\/script>
+<script>window.onload=function(){setTimeout(function(){window.print();},800)};<\/script>
 </body></html>`;
 
     printWin.document.open();
