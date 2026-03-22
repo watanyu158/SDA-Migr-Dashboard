@@ -1758,7 +1758,9 @@ async function loadData(){
     if(el('ts-done'))el('ts-done').textContent=`${overall.actual_installed}/${overall.total_devices}`;
     if(el('pill-rem'))el('pill-rem').textContent=(overall.total_devices-overall.actual_installed).toLocaleString();
     if(el('pill-hold'))el('pill-hold').textContent=overall.hold;
-    if(el('pill-over'))el('pill-over').textContent=overall.overdue_items;
+    // Guard: overdue_items might be a string label from old server version
+    const overdue = (typeof overall.overdue_items === 'number') ? overall.overdue_items : 0;
+    if(el('pill-over'))el('pill-over').textContent=overdue;
     if(el('hold-cnt'))el('hold-cnt').textContent=overall.hold+' รายการ';
   }catch{
     // API unavailable - static values already in HTML
