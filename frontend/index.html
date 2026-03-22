@@ -372,6 +372,9 @@ main { padding: 12px 10px; }
   .fab-bd-name { font-size: 11px; }
   .fab-bd-total strong { font-size: 12px; }
 
+  /* Burndown row: stack on mobile */
+  .burndown-row { grid-template-columns: 1fr !important; }
+
   /* Summary cards */
   .g4 { grid-template-columns: 1fr 1fr; gap: 8px; }
   .scard { padding: 12px; }
@@ -858,16 +861,65 @@ main { padding: 12px 10px; }
     <div class="fab-bd-grid" id="fab-bd-grid"></div>
   </div>
 
-  <div class="g2" style="margin-bottom:14px">
-    <div class="card"><div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">📉</div>Burn-down Chart</div><div class="cwrap"><canvas id="burndown-c"></canvas></div><div class="cleg"><div class="cl"><div class="cld"></div>แผน</div><div class="cl"><div class="cll" style="background:var(--success)"></div>จริง</div><div class="cl" style="color:var(--danger);font-size:11px">| วันนี้</div></div></div>
-    <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
-      <div class="ch" style="margin-bottom:4px"><div class="chi" style="background:var(--success-l);color:var(--success)">⏱</div>ความตรงต่อเวลา</div>
-      <div class="dwrap"><canvas id="donut-c"></canvas><div class="dc"><div class="dp">99%</div><div class="dl">ตรงเวลา</div></div></div>
-      <div style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:190px;font-size:12px;color:var(--text2)">
-        <div style="display:flex;justify-content:space-between"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--success);display:inline-block"></span>ตรงเวลา</span><span>435</span></div>
-        <div style="display:flex;justify-content:space-between"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--primary);display:inline-block"></span>เร็วกว่าแผน</span><span>23</span></div>
-        <div style="display:flex;justify-content:space-between"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--danger);display:inline-block"></span>ช้ากว่าแผน</span><span>2</span></div>
-        <div style="display:flex;justify-content:space-between"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#e2e8f0;display:inline-block"></span>รอดำเนินการ</span><span>1132</span></div>
+  <div style="display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:14px" class="burndown-row">
+
+    <!-- Burndown: 60% width, taller chart -->
+    <div class="card">
+      <div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">📉</div>Burn-down Chart</div>
+      <div style="position:relative;height:260px"><canvas id="burndown-c"></canvas></div>
+      <div class="cleg" style="margin-top:8px">
+        <div class="cl"><div class="cld"></div>แผน</div>
+        <div class="cl"><div class="cll" style="background:var(--success)"></div>จริง</div>
+        <div class="cl" style="color:var(--danger);font-size:11px">| วันนี้</div>
+      </div>
+    </div>
+
+    <!-- Donut: 40% width, fills height -->
+    <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;gap:14px">
+      <div class="ch" style="margin-bottom:0"><div class="chi" style="background:var(--success-l);color:var(--success)">⏱</div>ความตรงต่อเวลา</div>
+
+      <!-- Donut bigger -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;justify-content:center">
+        <div style="position:relative;width:150px;height:150px">
+          <canvas id="donut-c" style="width:150px!important;height:150px!important"></canvas>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div style="font-size:24px;font-weight:700;color:var(--success)">99%</div>
+            <div style="font-size:11px;color:var(--text2)">ตรงเวลา</div>
+            <div style="font-size:10px;color:var(--text2)">459/1592</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legend with counts -->
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;border-top:1px solid var(--border);padding-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="display:flex;align-items:center;gap:7px">
+            <span style="width:12px;height:12px;border-radius:3px;background:var(--success);display:inline-block;flex-shrink:0"></span>
+            ตรงเวลา
+          </span>
+          <span style="font-weight:600;font-size:14px">435</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="display:flex;align-items:center;gap:7px">
+            <span style="width:12px;height:12px;border-radius:3px;background:var(--primary);display:inline-block;flex-shrink:0"></span>
+            เร็วกว่าแผน
+          </span>
+          <span style="font-weight:600;font-size:14px">23</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="display:flex;align-items:center;gap:7px">
+            <span style="width:12px;height:12px;border-radius:3px;background:var(--danger);display:inline-block;flex-shrink:0"></span>
+            ช้ากว่าแผน
+          </span>
+          <span style="font-weight:600;font-size:14px">2</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="display:flex;align-items:center;gap:7px">
+            <span style="width:12px;height:12px;border-radius:3px;background:#e2e8f0;display:inline-block;flex-shrink:0"></span>
+            รอดำเนินการ
+          </span>
+          <span style="font-weight:600;font-size:14px">1,132</span>
+        </div>
       </div>
     </div>
   </div>
@@ -1180,7 +1232,7 @@ function buildBurndown(){
 }
 
 function buildDonut(){
-  new Chart(document.getElementById('donut-c'),{type:'doughnut',data:{datasets:[{data:[435,23,2,1132],backgroundColor:['#2bc48a','#4361ee','#ee4b4b','#e2e8f0'],borderWidth:2,borderColor:'#fff'}]},options:{cutout:'72%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}}}});
+  new Chart(document.getElementById('donut-c'),{type:'doughnut',data:{datasets:[{data:[435,23,2,1132],backgroundColor:['#2bc48a','#4361ee','#ee4b4b','#e2e8f0'],borderWidth:3,borderColor:'#fff'}]},options:{cutout:'70%',responsive:false,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:8,cornerRadius:8}}}});
 }
 
 function buildTimeline(){
