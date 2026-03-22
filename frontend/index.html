@@ -708,7 +708,7 @@ main { padding: 12px 10px; }
     <div class="tb-div"></div>
     <div class="tb-stat"><div class="v">94</div><div class="l">วันเหลือ</div></div>
     <div class="tb-div"></div>
-    <div class="tb-stat"><div class="v" style="color:#ff9f43">4</div><div class="l">เกินกำหนด</div></div>
+    <div class="tb-stat"><div class="v" id="tb-over" style="color:#ff9f43">0</div><div class="l">เกินกำหนด</div></div>
   </div>
   <div style="display:flex;gap:6px">
     <button class="tbtn" id="auto-sync-btn" onclick="toggleAutoSync()">🔄 ซิงค์อัตโนมัติ</button>
@@ -1731,6 +1731,7 @@ async function loadData(){
     // Guard: overdue_items might be a string label from old server version
     const overdue = (typeof overall.overdue_items === 'number') ? overall.overdue_items : 0;
     if(el('pill-over'))el('pill-over').textContent=overdue;
+    if(el('tb-over'))el('tb-over').textContent=overdue;
     if(el('hold-cnt'))el('hold-cnt').textContent=overall.hold+' รายการ';
   }catch{
     // API unavailable - static values already in HTML
@@ -1739,6 +1740,7 @@ async function loadData(){
     if(el('pill-rem'))el('pill-rem').textContent='1,132';
     if(el('pill-hold'))el('pill-hold').textContent='8';
     if(el('pill-over'))el('pill-over').textContent='0';
+    if(el('tb-over'))el('tb-over').textContent='0';
     if(el('hold-cnt'))el('hold-cnt').textContent='8 รายการ';
   }
 }
@@ -1780,22 +1782,24 @@ async function exportPDF() {
     }catch(e){}
   });
 
-  // 5. Print
-  window.print();
-
-  // 6. Restore everything
-  setTimeout(()=>{
+  // 5. Print — use both afterprint event AND timeout fallback
+  function restoreAll(){
     swapped.forEach(cv=>{ cv.style.display=''; });
     document.querySelectorAll('img[data-pp]').forEach(i=>i.remove());
-    // Restore to current active tab
     const active=document.querySelector('.tab.on');
-    const name=active?.getAttribute('onclick')?.match(/'([\w]+)'/)?.[1]||'overview';
+    const name=active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
     ['overview','progress','graphs','location','plan'].forEach(t=>{
       const el=document.getElementById('tab-'+t);
       if(el) el.style.display=t===name?'block':'none';
     });
     if(btn){ btn.textContent='⬇ PDF'; btn.disabled=false; }
-  },800);
+    window.removeEventListener('afterprint', restoreAll);
+  }
+  window.addEventListener('afterprint', restoreAll);
+  // Fallback: restore after 30s if user cancels print dialog
+  setTimeout(restoreAll, 30000);
+
+  window.print();
 }
 
 
