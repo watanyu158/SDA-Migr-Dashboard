@@ -1782,94 +1782,95 @@ async function exportPDF() {
   const btn = document.getElementById('pdf-btn');
   if(btn){ btn.textContent='⏳ กำลัง export...'; btn.disabled=true; }
 
-  // เปิด window ทันทีก่อน await (ต้องอยู่ใน user gesture ไม่งั้น browser block)
   const printWin = window.open('','_blank','width=1280,height=900');
   if(!printWin){
     alert('กรุณาอนุญาต popup จาก site นี้ใน browser แล้วลองใหม่');
     if(btn){ btn.textContent='⬇ PDF'; btn.disabled=false; }
     return;
   }
-  // แสดง loading ใน popup ก่อน
   printWin.document.write('<html><body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f0f4ff"><div style="text-align:center"><div style="font-size:32px">⏳</div><div style="margin-top:12px;color:#4361ee;font-size:16px">กำลังเตรียมข้อมูล...</div></div></body></html>');
   printWin.document.close();
 
   try {
-    // เปิดทุก tab ให้ chart render
+    // 1. Show ALL tabs so canvases have real dimensions
     ['overview','progress','graphs','location','plan'].forEach(t=>{
       const el=document.getElementById('tab-'+t);
-      if(el) el.style.display='block';
+      if(el){ el.style.display='block'; el.style.visibility='visible'; }
     });
-    // Destroy ALL existing charts then rebuild
+    // Show hidden chart containers
+    const fabWrap = document.getElementById('fab-daily-charts-wrap');
+    if(fabWrap){ fabWrap.style.display='block'; fabWrap.style.visibility='visible'; }
+    document.querySelectorAll('.prog-fab-grid').forEach(el=>{
+      el.style.display='block'; el.style.visibility='visible';
+    });
+
+    // 2. Destroy all existing charts & rebuild fresh
     if(typeof Chart !== 'undefined'){
-      Chart.instances && Object.values(Chart.instances).forEach(ch=>{ try{ch.destroy();}catch(e){} });
+      Object.values(Chart.instances||{}).forEach(ch=>{ try{ch.destroy();}catch(e){} });
     }
-    window._fabChartPromises = []; // MUST be before buildGraphs (fab charts push here)
-    gblt = false; // reset so buildGraphs runs fresh
-    if(typeof buildProgressCharts==='function') buildProgressCharts();
-    if(typeof buildGraphs==='function') buildGraphs();
+    window._fabChartPromises = []; // MUST be before buildGraphs
+    gblt = false;
     if(typeof buildBurndown==='function') buildBurndown();
     if(typeof buildDonut==='function') buildDonut();
+    if(typeof buildProgressCharts==='function') buildProgressCharts();
+    if(typeof buildGraphs==='function') buildGraphs();
 
-    // รอ chart render
-    // per-fabric: 7 fabrics × 150ms + 200ms base = 1250ms, add 1s buffer
-    await new Promise(r=>setTimeout(r,200)); // let buildGraphs register its setTimeouts
+    // 3. Wait for all per-fabric chart promises
+    await new Promise(r=>setTimeout(r,300));
     if(window._fabChartPromises.length > 0){
-      await Promise.all(window._fabChartPromises); // wait for all fab charts
+      await Promise.all(window._fabChartPromises);
     } else {
-      await new Promise(r=>setTimeout(r,2000)); // fallback wait
+      await new Promise(r=>setTimeout(r,2000));
     }
-    await new Promise(r=>setTimeout(r,500)); // paint buffer
 
-    // Ensure per-fabric canvases are visible before capture
-    document.querySelectorAll('#fab-daily-charts-wrap canvas, .prog-fab-grid canvas').forEach(cv=>{
-      cv.style.display='';
-    });
-    document.getElementById('fab-daily-charts-wrap') && (document.getElementById('fab-daily-charts-wrap').style.display='block');
-    document.querySelectorAll('.prog-fab-grid').forEach(el=>el.style.display='block');
-    await new Promise(r=>setTimeout(r,200));
+    // 4. Force resize ALL Chart.js instances so they fill their containers
+    if(typeof Chart !== 'undefined'){
+      Object.values(Chart.instances||{}).forEach(ch=>{
+        try{ ch.resize(); }catch(e){}
+      });
+    }
+    await new Promise(r=>setTimeout(r,800)); // wait for resize repaint
 
-    // จับภาพ canvas ทุกตัว
+    // 5. Capture all canvas as images
     const chartImgs = {};
     document.querySelectorAll('canvas').forEach(cv=>{
       try{
-        const w=cv.offsetWidth||cv.width;
-        const h=cv.offsetHeight||cv.height;
-        if(w>10 && h>10){
-          chartImgs[cv.id]={url:cv.toDataURL('image/png',1.0),w,h};
-        }
+        const w = cv.offsetWidth  || cv.width  || 0;
+        const h = cv.offsetHeight || cv.height || 0;
+        if(w < 10 || h < 10) return;
+        const url = cv.toDataURL('image/png', 1.0);
+        if(!url || url==='data:,') return;
+        chartImgs[cv.id] = {url, w, h};
       }catch(e){}
     });
 
-    // ดึง CSS
+    // 6. Get CSS
     const styles = Array.from(document.styleSheets).map(ss=>{
       try{ return Array.from(ss.cssRules).map(r=>r.cssText).join('\n'); }
       catch(e){ return ''; }
     }).join('\n');
 
-    // Clone content
+    // 7. Clone content and replace canvas with img
     const main   = document.querySelector('main').cloneNode(true);
     const insBox = document.querySelector('.insights-box').cloneNode(true);
 
-    // ซ่อน/แสดงใน clone
-    main.querySelectorAll('.tab-body').forEach(t=>t.style.display='block');
-    main.querySelectorAll('.tabs,.actions').forEach(t=>t.style.display='none');
-    // Show per-fabric charts and progress charts in PDF
-    main.querySelectorAll('#fab-daily-charts-wrap,.prog-fab-grid').forEach(t=>t.style.display='block');
+    main.querySelectorAll('.tab-body').forEach(t=>{ t.style.display='block'; });
+    main.querySelectorAll('.tabs,.actions').forEach(t=>{ t.style.display='none'; });
 
-    // แทน canvas ด้วย img
     main.querySelectorAll('canvas').forEach(cv=>{
-      const data=chartImgs[cv.id];
-      if(data){
-        const img=document.createElement('img');
-        img.src=data.url;
-        img.style.cssText=`display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
-        cv.parentNode.replaceChild(img,cv);
-      } else cv.remove();
+      const data = chartImgs[cv.id];
+      if(data && data.w > 10 && data.h > 10){
+        const img = document.createElement('img');
+        img.src = data.url;
+        img.style.cssText = `display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
+        cv.parentNode.replaceChild(img, cv);
+      } else {
+        // Remove empty canvas placeholder
+        cv.style.display='none';
+      }
     });
 
     const date = new Date().toLocaleDateString('th-TH');
-
-    // เขียน HTML ใน popup
     const html = `<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
@@ -1893,22 +1894,20 @@ ${main.outerHTML}
 <script>window.onload=function(){setTimeout(function(){window.print();},600)};<\/script>
 </body></html>`;
 
-    // เขียน popup ใหม่ด้วย content จริง
     printWin.document.open();
     printWin.document.write(html);
     printWin.document.close();
 
   } catch(err) {
     console.error(err);
-    printWin.close();
+    try{ printWin.close(); }catch(e){}
     alert('Export ไม่สำเร็จ: '+err.message);
   } finally {
-    // Restore tabs
-    const active=document.querySelector('.tab.on');
-    const name=active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
+    const active = document.querySelector('.tab.on');
+    const name = active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
     ['overview','progress','graphs','location','plan'].forEach(t=>{
       const el=document.getElementById('tab-'+t);
-      if(el) el.style.display=t===name?'block':'none';
+      if(el) el.style.display = t===name?'block':'none';
     });
     if(btn){ btn.textContent='⬇ PDF'; btn.disabled=false; }
   }
