@@ -39,39 +39,58 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 .tbtn:hover{background:rgba(255,255,255,.28)}
 .tbtn.sync-on{background:rgba(43,196,138,.3);border-color:rgba(43,196,138,.5)}
 
-/* ── INSIGHTS (รูปใหญ่ตาม PDF) ─────────────────────────────────── */
-.insights-box{background:linear-gradient(135deg,#fffbeb 0%,#fff7e0 60%,#fff3cd 100%);border-bottom:2px solid #fcd34d;padding:16px 24px}
-.ins-inner{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.ins-left{display:flex;align-items:flex-start;gap:14px;flex:2;min-width:260px}
-.ins-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#ff9f43,#ff6b35);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 4px 14px rgba(255,159,67,.4)}
-.ins-text{}
-.ins-big{font-size:14px;font-weight:700;color:#b45309;line-height:1.4}
-.ins-big em{font-size:22px;font-style:normal;color:#d97706}
-.ins-detail{font-size:12px;color:#92400e;margin-top:4px}
-.ins-warn{font-size:12px;color:var(--danger);margin-top:5px;display:flex;align-items:center;gap:5px;font-weight:500}
-.ins-gauge-wrap{position:relative;width:90px;height:90px;flex-shrink:0}
+/* ── INSIGHTS BOX ── base styles (mobile-first, desktop scales up) ──────── */
+.insights-box{background:linear-gradient(135deg,#fffbeb,#fff7e0);border-bottom:2px solid #fcd34d;padding:14px 20px}
+
+/* Panel row: alert card + gauge card side by side */
+.ins-panels{display:flex;flex-direction:row;align-items:stretch;gap:14px;margin-bottom:12px}
+
+/* LEFT: alert card */
+.ins-alert-card{flex:1;min-width:0;background:#fff;border:1px solid #fed7aa;border-left:4px solid var(--danger);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.ins-alert-head{display:flex;align-items:flex-start;gap:10px}
+.ins-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#ff9f43,#ff6b35);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:0 3px 10px rgba(255,159,67,.35)}
+.ins-big{font-size:15px;font-weight:700;color:#b45309;line-height:1.3}
+.ins-big em{font-size:22px;font-style:normal;color:#d97706;margin-right:2px}
+.ins-pct-tag{font-size:11px;font-weight:500;color:#92400e;background:#fff7ed;padding:2px 8px;border-radius:99px;margin-left:4px;white-space:nowrap}
+.ins-rate-row{display:flex;align-items:center;gap:8px;background:#f8faff;border-radius:8px;padding:8px 12px;flex-wrap:wrap}
+.ins-rate-lbl{font-size:12px;color:var(--text2)}
+.ins-rate-val{font-size:18px;font-weight:700;color:var(--text)}
+.ins-rate-target{color:var(--danger)}
+.ins-rate-arrow{font-size:14px;color:var(--text3)}
+.ins-rate-unit{font-size:12px;color:var(--text2)}
+.ins-warn{font-size:12px;color:var(--danger);font-weight:500;display:flex;align-items:center;gap:4px}
+
+/* RIGHT: gauge card */
+.ins-gauge-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:20px;flex-shrink:0;min-width:230px}
+.ins-gauge-section{flex-shrink:0}
+.ins-gauge-wrap{position:relative;width:90px;height:90px}
 .ins-gauge-wrap canvas{position:absolute;inset:0;width:90px!important;height:90px!important}
 .ins-gc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ins-gc .gp{font-size:17px;font-weight:700;color:var(--warning)}
-.ins-gc .gl{font-size:9px;color:#92400e}
-.ins-kpis{display:flex;gap:20px;padding-left:4px}
-.ikpi{text-align:center}
-.ikpi .kv{font-size:20px;font-weight:700;color:#1e2d4d}
-.ikpi .kl{font-size:10px;color:#92400e;margin-top:2px}
-.ikpi .kv.red{color:var(--danger)}
+.ins-gc .gp{font-size:20px;font-weight:700;color:var(--warning)}
+.ins-kpi-table{display:flex;flex-direction:column;gap:6px;flex:1}
+.ins-kpi-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+.ins-kpi-row{display:flex;align-items:baseline;gap:6px}
+.ins-kpi-lbl{font-size:12px;color:var(--text2);flex:1}
+.ins-kpi-val{font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:right}
+.ins-kpi-unit{font-size:11px;color:var(--text2);min-width:28px}
+.ins-kpi-gap .ins-kpi-val,.ins-kpi-gap .ins-kpi-unit{color:var(--danger)!important}
 
-/* PILLS */
-.pills{background:rgba(255,255,255,.7);margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;padding-top:12px;border-top:1px solid rgba(253,211,77,.5);overflow-x:auto;-webkit-overflow-scrolling:touch}
-.pill{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;border:1px solid rgba(253,211,77,.7);background:rgba(255,255,255,.8);white-space:nowrap;font-size:13px}
-.pill .pi{font-size:14px}
-.pill .pv{font-weight:700;color:var(--text)}
-.pill .pl{color:var(--text2)}
-.p-date .pv{color:var(--danger)}
-.p-rem  .pv{color:var(--warning)}
-.p-days .pv{color:var(--info)}
-.p-ot   .pv{color:var(--success)}
-.p-over .pv{color:var(--danger)}
-.p-hold .pv{color:var(--hold)}
+/* PILLS: 6-col grid row */
+.ins-pills{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;border-top:1px solid rgba(253,211,77,.5);padding-top:10px}
+.ins-pill{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px;transition:.2s;cursor:default}
+.ins-pill:hover{border-color:var(--primary-m);box-shadow:0 2px 8px rgba(67,97,238,.1)}
+.ip-icon{font-size:16px;flex-shrink:0;width:24px;text-align:center;line-height:1}
+.ip-body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.ip-val{font-size:18px;font-weight:700;line-height:1;color:var(--text)}
+.ip-lbl{font-size:11px;color:var(--text2)}
+.ip-sub{font-size:10px;color:var(--text3)}
+.p-date .ip-val{color:var(--danger)}
+.p-date .ip-sub{color:var(--danger);font-size:9px}
+.p-rem  .ip-val{color:var(--warning)}
+.p-days .ip-val{color:var(--success)}
+.p-ot   .ip-val{color:var(--success)}
+.p-over .ip-val{color:var(--danger)}
+.p-hold .ip-val{color:var(--hold)}
 
 /* MAIN */
 main{max-width:1360px;margin:0 auto;padding:18px 14px}
@@ -271,34 +290,30 @@ main { padding: 12px 10px; }
   .tbtn { padding: 4px 8px; font-size: 11px; gap: 3px; }
   .tbtn:nth-child(2) { display: none; } /* ซ่อนปุ่ม refresh — ใช้ sync แทน */
 
-  /* ══ INSIGHTS BOX mobile ════════════════════════════════════════════════ */
+  /* ══ INSIGHTS mobile: stack panels vertically, pills 3×2 ═══════════════ */
   .insights-box { padding: 10px 12px; }
   .ins-panels { flex-direction: column; gap: 8px; margin-bottom: 10px; }
-
-  /* Alert card */
-  .ins-alert-card { padding: 11px 13px; }
-  .ins-icon { width: 34px; height: 34px; font-size: 15px; }
+  .ins-alert-card { padding: 10px 12px; gap: 8px; }
+  .ins-icon { width: 34px; height: 34px; font-size: 14px; }
   .ins-big { font-size: 13px; }
   .ins-big em { font-size: 19px; }
   .ins-pct-tag { display: none; }
-  .ins-rate-row { gap: 6px; padding: 6px 10px; }
-  .ins-rate-val { font-size: 16px; }
+  .ins-rate-row { padding: 6px 10px; gap: 6px; }
+  .ins-rate-val { font-size: 15px; }
+  .ins-rate-unit { font-size: 11px; }
   .ins-warn { font-size: 11px; }
-
-  /* Gauge card: horizontal on mobile */
-  .ins-gauge-card { min-width: 0; padding: 11px 13px; gap: 14px; }
-  .ins-gauge-wrap { width: 72px; height: 72px; }
-  .ins-gauge-wrap canvas { width: 72px !important; height: 72px !important; }
-  .ins-gc .gp { font-size: 16px; }
+  .ins-gauge-card { min-width: 0; padding: 10px 12px; gap: 12px; }
+  .ins-gauge-wrap { width: 70px; height: 70px; }
+  .ins-gauge-wrap canvas { width: 70px !important; height: 70px !important; }
+  .ins-gc .gp { font-size: 15px; }
   .ins-kpi-title { font-size: 10px; }
-  .ins-kpi-val { font-size: 14px; }
-  .ins-kpi-lbl { font-size: 11px; min-width: 60px; }
-
-  /* ══ PILLS 3×2 grid mobile ════════════════════════════════════════════════ */
-  .ins-pills { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .ins-kpi-lbl { font-size: 11px; }
+  .ins-kpi-val { font-size: 13px; }
+  .ins-kpi-unit { font-size: 10px; }
+  .ins-pills { grid-template-columns: repeat(3,1fr); gap: 6px; }
   .ins-pill { padding: 8px 8px; gap: 6px; border-radius: 9px; }
-  .ip-icon { font-size: 15px; width: 22px; }
-  .ip-val { font-size: 16px; }
+  .ip-icon { font-size: 14px; width: 20px; }
+  .ip-val { font-size: 15px; }
   .ip-lbl { font-size: 10px; }
   .ip-sub { font-size: 9px; }
 
@@ -381,10 +396,10 @@ main { padding: 12px 10px; }
 
   .ins-kpis { gap: 14px; }
   .ins-panels { flex-direction: column; gap: 8px; }
-  .ins-gauge-card { min-width: 0; }
-  .ins-pills { grid-template-columns: repeat(3, 1fr); }
+  .ins-gauge-card { min-width: 0; padding: 10px 14px; }
   .ins-gauge-wrap { width: 76px; height: 76px; }
   .ins-gauge-wrap canvas { width: 76px !important; height: 76px !important; }
+  .ins-pills { grid-template-columns: repeat(3,1fr); }
 
   .pills { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
   .pill { flex-shrink: 0; }
@@ -408,13 +423,11 @@ main { padding: 12px 10px; }
   .tb-stats { display: none; }
   .tb-title { font-size: 13px; }
 
-  .ins-panels { flex-direction: row; }
+  .ins-panels { flex-direction: row; gap: 12px; }
   .ins-gauge-card { min-width: 200px; }
-  .ins-pills { grid-template-columns: repeat(6, 1fr); }
+  .ins-pills { grid-template-columns: repeat(6,1fr); gap: 7px; }
   .ins-gauge-wrap { width: 80px; height: 80px; }
   .ins-gauge-wrap canvas { width: 80px !important; height: 80px !important; }
-
-  .pills { flex-wrap: wrap; }
 
   main { padding: 14px 12px; }
   .tab-body { padding: 14px; }
