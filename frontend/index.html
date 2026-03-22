@@ -1381,6 +1381,80 @@ function buildProgressCharts(){
 }
 
 // ── GRAPHS (lazy) ─────────────────────────────────────────────────────────────
+
+// ── Synchronous per-fabric chart builder (used by both buildGraphs and exportPDF) ──
+function buildOneFabChart(fab) {
+  const fd = FAB_DAILY[fab];
+  if(!fd) return;
+  const fabColor = FAB_COLORS[fab] || '#4361ee';
+  const hasData = fd.sw.some(v=>v>0) || fd.ap.some(v=>v>0) || fd.inf.some(v=>v>0);
+  if(!hasData) return;
+  const ctx = document.getElementById('fd-' + fab.replace(/-/g,'') + '-c');
+  if (!ctx) return;
+  const existingCh = Chart.getChart(ctx);
+  if (existingCh) existingCh.destroy();
+  const planData = FAB_DAILY_PLAN[fab] || DAILY_L.map(()=>0);
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: DAILY_L,
+      datasets: [
+    {label:'Switch', data:fd.sw,  backgroundColor:'#4361ee', borderRadius:3, stack:'s', order:2},
+    {label:'AP',     data:fd.ap,  backgroundColor:'#2bc48a', borderRadius:3, stack:'s', order:2},
+    {label:'Infra',  data:fd.inf, backgroundColor:'#ff9f43', borderRadius:3, stack:'s', order:2},
+    {
+      label:'เป้าตามแผน',
+      data: planData,
+      type:'line',
+      borderColor: fabColor,
+      borderWidth: 1.5,
+      borderDash: [4,3],
+      pointRadius: 3,
+      pointBackgroundColor: '#fff',
+      pointBorderColor: fabColor,
+      pointBorderWidth: 1.5,
+      fill: false,
+      tension: 0,
+      order: 1,
+      stack: undefined,
+    }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+    legend:{display:false},
+    tooltip:{
+      backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',
+      bodyColor:'rgba(255,255,255,.8)',padding:8,cornerRadius:8,
+      callbacks:{
+        title:(items)=>items[0].label,
+        label:(c)=>{
+      if(c.dataset.label==='เป้าตามแผน') return c.parsed.y>0?` เป้าแผน: ${c.parsed.y} เครื่อง`:'';
+      return c.parsed.y>0?` ${c.dataset.label}: ${c.parsed.y} เครื่อง`:'';
+        },
+        afterBody:(items)=>{
+      const actual = items.filter(i=>i.dataset.label!=='เป้าตามแผน').reduce((a,i)=>a+i.parsed.y,0);
+      const plan   = items.find(i=>i.dataset.label==='เป้าตามแผน')?.parsed.y||0;
+      const lines = [];
+      if(actual>0) lines.push(`ทำได้: ${actual} เครื่อง`);
+      if(plan>0)   lines.push(`เป้า:  ${plan} เครื่อง`);
+      if(actual>0&&plan>0) lines.push(`${actual>=plan?'✓ ตามแผน':'▼ ต่ำกว่าแผน'} (${Math.round(actual/plan*100)}%)`);
+      return lines;
+        }
+      }
+    }
+      },
+      scales:{
+    x:{stacked:true,ticks:{font:{size:9},maxRotation:45,color:'#94a3c4'},grid:{display:false}},
+    y:{stacked:true,ticks:{font:{size:9},color:'#94a3c4',callback:v=>v>0?v:''},grid:{color:'#f0f4ff'},min:0}
+      }
+    }
+  });
+
+}
+
 let gblt=false;
 function destroyChart(id){
   const cv=document.getElementById(id);
@@ -1545,72 +1619,11 @@ function buildGraphs(){
 
     if (!hasData) return;
     const fabIdx = Object.keys(FAB_DAILY).indexOf(fab);
+    // Use setTimeout only to yield to browser so div is in DOM, then build chart sync
     const _p = new Promise(res => setTimeout(() => {
-      const ctx = document.getElementById('fd-' + fab.replace(/-/g,'') + '-c');
-      if (!ctx) return;
-      const existingCh = Chart.getChart(ctx);
-      if (existingCh) existingCh.destroy();
-      const planData = FAB_DAILY_PLAN[fab] || DAILY_L.map(()=>0);
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: DAILY_L,
-          datasets: [
-            {label:'Switch', data:fd.sw,  backgroundColor:'#4361ee', borderRadius:3, stack:'s', order:2},
-            {label:'AP',     data:fd.ap,  backgroundColor:'#2bc48a', borderRadius:3, stack:'s', order:2},
-            {label:'Infra',  data:fd.inf, backgroundColor:'#ff9f43', borderRadius:3, stack:'s', order:2},
-            {
-              label:'เป้าตามแผน',
-              data: planData,
-              type:'line',
-              borderColor: fabColor,
-              borderWidth: 1.5,
-              borderDash: [4,3],
-              pointRadius: 3,
-              pointBackgroundColor: '#fff',
-              pointBorderColor: fabColor,
-              pointBorderWidth: 1.5,
-              fill: false,
-              tension: 0,
-              order: 1,
-              stack: undefined,
-            }
-          ]
-        },
-        options: {
-          responsive:true, maintainAspectRatio:false,
-          interaction:{mode:'index',intersect:false},
-          plugins:{
-            legend:{display:false},
-            tooltip:{
-              backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',
-              bodyColor:'rgba(255,255,255,.8)',padding:8,cornerRadius:8,
-              callbacks:{
-                title:(items)=>items[0].label,
-                label:(c)=>{
-                  if(c.dataset.label==='เป้าตามแผน') return c.parsed.y>0?` เป้าแผน: ${c.parsed.y} เครื่อง`:'';
-                  return c.parsed.y>0?` ${c.dataset.label}: ${c.parsed.y} เครื่อง`:'';
-                },
-                afterBody:(items)=>{
-                  const actual = items.filter(i=>i.dataset.label!=='เป้าตามแผน').reduce((a,i)=>a+i.parsed.y,0);
-                  const plan   = items.find(i=>i.dataset.label==='เป้าตามแผน')?.parsed.y||0;
-                  const lines = [];
-                  if(actual>0) lines.push(`ทำได้: ${actual} เครื่อง`);
-                  if(plan>0)   lines.push(`เป้า:  ${plan} เครื่อง`);
-                  if(actual>0&&plan>0) lines.push(`${actual>=plan?'✓ ตามแผน':'▼ ต่ำกว่าแผน'} (${Math.round(actual/plan*100)}%)`);
-                  return lines;
-                }
-              }
-            }
-          },
-          scales:{
-            x:{stacked:true,ticks:{font:{size:9},maxRotation:45,color:'#94a3c4'},grid:{display:false}},
-            y:{stacked:true,ticks:{font:{size:9},color:'#94a3c4',callback:v=>v>0?v:''},grid:{color:'#f0f4ff'},min:0}
-          }
-        }
-      });
+      buildOneFabChart(fab);
       res();
-    }, fabIdx * 150 + 200));
+    }, fabIdx * 80 + 50));
     if(window._fabChartPromises) window._fabChartPromises.push(_p);
   });
 }
@@ -1804,32 +1817,31 @@ async function exportPDF() {
       el.style.display='block'; el.style.visibility='visible';
     });
 
-    // 2. Destroy all existing charts & rebuild fresh
+    // 2. Destroy all charts & rebuild
     if(typeof Chart !== 'undefined'){
       Object.values(Chart.instances||{}).forEach(ch=>{ try{ch.destroy();}catch(e){} });
     }
-    window._fabChartPromises = []; // MUST be before buildGraphs
     gblt = false;
     if(typeof buildBurndown==='function') buildBurndown();
     if(typeof buildDonut==='function') buildDonut();
     if(typeof buildProgressCharts==='function') buildProgressCharts();
+
+    // Build non-fab graphs (lazy, resets gblt)
     if(typeof buildGraphs==='function') buildGraphs();
 
-    // 3. Wait for all per-fabric chart promises
-    await new Promise(r=>setTimeout(r,300));
-    if(window._fabChartPromises.length > 0){
-      await Promise.all(window._fabChartPromises);
-    } else {
-      await new Promise(r=>setTimeout(r,2000));
+    // 3. Wait for buildGraphs to append fab divs (it's sync for div append, async for charts)
+    await new Promise(r=>setTimeout(r,200));
+
+    // 4. Now build ALL per-fabric charts SYNCHRONOUSLY — canvas exists in DOM now
+    if(typeof buildOneFabChart==='function'){
+      Object.keys(FAB_DAILY).forEach(fab => buildOneFabChart(fab));
     }
 
-    // 4. Force resize ALL Chart.js instances so they fill their containers
+    // 5. Force resize + wait for paint
     if(typeof Chart !== 'undefined'){
-      Object.values(Chart.instances||{}).forEach(ch=>{
-        try{ ch.resize(); }catch(e){}
-      });
+      Object.values(Chart.instances||{}).forEach(ch=>{ try{ch.resize();}catch(e){} });
     }
-    await new Promise(r=>setTimeout(r,800)); // wait for resize repaint
+    await new Promise(r=>setTimeout(r,600));
 
     // 5. Capture all canvas as images
     const chartImgs = {};
