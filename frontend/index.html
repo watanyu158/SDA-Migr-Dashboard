@@ -1803,19 +1803,22 @@ async function exportPDF() {
     if(typeof Chart !== 'undefined'){
       Chart.instances && Object.values(Chart.instances).forEach(ch=>{ try{ch.destroy();}catch(e){} });
     }
+    window._fabChartPromises = []; // MUST be before buildGraphs (fab charts push here)
     gblt = false; // reset so buildGraphs runs fresh
     if(typeof buildProgressCharts==='function') buildProgressCharts();
     if(typeof buildGraphs==='function') buildGraphs();
     if(typeof buildBurndown==='function') buildBurndown();
     if(typeof buildDonut==='function') buildDonut();
 
-    // รอ chart render — wait for all per-fabric charts via their promises
-    window._fabChartPromises = [];
-    await new Promise(r=>setTimeout(r,500)); // base charts
-    if(window._fabChartPromises && window._fabChartPromises.length > 0){
-      await Promise.all(window._fabChartPromises);
+    // รอ chart render
+    // per-fabric: 7 fabrics × 150ms + 200ms base = 1250ms, add 1s buffer
+    await new Promise(r=>setTimeout(r,200)); // let buildGraphs register its setTimeouts
+    if(window._fabChartPromises.length > 0){
+      await Promise.all(window._fabChartPromises); // wait for all fab charts
+    } else {
+      await new Promise(r=>setTimeout(r,2000)); // fallback wait
     }
-    await new Promise(r=>setTimeout(r,800)); // extra buffer for fabric charts to paint
+    await new Promise(r=>setTimeout(r,500)); // paint buffer
 
     // Ensure per-fabric canvases are visible before capture
     document.querySelectorAll('#fab-daily-charts-wrap canvas, .prog-fab-grid canvas').forEach(cv=>{
