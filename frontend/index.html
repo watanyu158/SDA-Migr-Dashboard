@@ -1811,76 +1811,75 @@ async function exportPDF() {
   printWin.document.close();
 
   try {
-    // 1. Show all tabs + containers so canvas has real layout
+    // 1. Show hidden tabs/containers (NO rebuild — use existing charts)
     ['overview','progress','graphs','location','plan'].forEach(t=>{
       const el=document.getElementById('tab-'+t);
-      if(el){ el.style.display='block'; }
+      if(el) el.style.display='block';
     });
-    const fabWrap = document.getElementById('fab-daily-charts-wrap');
+    const fabWrap=document.getElementById('fab-daily-charts-wrap');
     if(fabWrap) fabWrap.style.display='block';
     document.querySelectorAll('.prog-fab-grid').forEach(el=>el.style.display='block');
 
-    // 2. Destroy and rebuild ALL charts fresh
-    if(typeof Chart !== 'undefined'){
-      Object.values(Chart.instances||{}).forEach(ch=>{ try{ch.destroy();}catch(e){} });
+    // 2. Build missing charts only (ones that haven't been opened yet)
+    // Use showTab to trigger lazy builds properly
+    if(!gblt){
+      gblt=false;
+      if(typeof buildGraphs==='function') buildGraphs();
     }
-    gblt = false;
-    if(typeof buildBurndown==='function') buildBurndown();
-    if(typeof buildDonut==='function') buildDonut();
-    if(typeof buildProgressCharts==='function') buildProgressCharts();
-    if(typeof buildGraphs==='function') buildGraphs();
-    await new Promise(r=>setTimeout(r,200));
+    // Build per-fabric charts that don't exist yet
     if(typeof buildOneFabChart==='function'){
-      Object.keys(FAB_DAILY).forEach(fab => buildOneFabChart(fab));
+      Object.keys(FAB_DAILY).forEach(fab=>{
+        const cid='fd-'+fab.replace(/-/g,'')+'-c';
+        const cv=document.getElementById(cid);
+        if(cv && !Chart.getChart(cv)){
+          buildOneFabChart(fab);
+        }
+      });
     }
 
-    // 3. Wait for ALL charts to finish rendering
-    await new Promise(r=>setTimeout(r,1500));
+    // 3. Wait for charts to paint
+    await new Promise(r=>setTimeout(r,1000));
 
-    // 4. Use Chart.toBase64Image() — works regardless of visibility
-    const chartImgs = {};
-    if(typeof Chart !== 'undefined'){
+    // 4. Capture ALL Chart.js instances via toBase64Image (works regardless of visibility)
+    const chartImgs={};
+    if(typeof Chart!=='undefined'){
       Object.values(Chart.instances||{}).forEach(ch=>{
         try{
-          const canvasId = ch.canvas?.id;
-          if(!canvasId) return;
-          // Get natural size from canvas
-          const w = ch.canvas.offsetWidth  || ch.canvas.width  || 600;
-          const h = ch.canvas.offsetHeight || ch.canvas.height || 300;
-          const img = ch.toBase64Image('image/png', 1.0);
-          chartImgs[canvasId] = {url: img, w, h};
+          const id=ch.canvas?.id;
+          if(!id) return;
+          const w=ch.canvas.offsetWidth||ch.canvas.width||600;
+          const h=ch.canvas.offsetHeight||ch.canvas.height||300;
+          chartImgs[id]={url:ch.toBase64Image('image/png',1.0),w,h};
         }catch(e){}
       });
     }
-    console.log('Charts captured:', Object.keys(chartImgs));
+    console.log('Captured charts:', Object.keys(chartImgs).length, Object.keys(chartImgs));
 
     // 5. Get CSS
-    const styles = Array.from(document.styleSheets).map(ss=>{
-      try{ return Array.from(ss.cssRules).map(r=>r.cssText).join('\n'); }
-      catch(e){ return ''; }
+    const styles=Array.from(document.styleSheets).map(ss=>{
+      try{return Array.from(ss.cssRules).map(r=>r.cssText).join('\n');}
+      catch(e){return '';}
     }).join('\n');
 
-    // 6. Clone and replace canvas with img
-    const main   = document.querySelector('main').cloneNode(true);
-    const insBox = document.querySelector('.insights-box').cloneNode(true);
-
+    // 6. Clone and replace canvas→img
+    const main=document.querySelector('main').cloneNode(true);
+    const insBox=document.querySelector('.insights-box').cloneNode(true);
     main.querySelectorAll('.tab-body').forEach(t=>t.style.display='block');
     main.querySelectorAll('.tabs,.actions').forEach(t=>t.style.display='none');
-
     main.querySelectorAll('canvas').forEach(cv=>{
-      const data = chartImgs[cv.id];
+      const data=chartImgs[cv.id];
       if(data){
-        const img = document.createElement('img');
-        img.src = data.url;
-        img.style.cssText = `display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
-        cv.parentNode.replaceChild(img, cv);
+        const img=document.createElement('img');
+        img.src=data.url;
+        img.style.cssText=`display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
+        cv.parentNode.replaceChild(img,cv);
       } else {
         cv.style.display='none';
       }
     });
 
-    const date = new Date().toLocaleDateString('th-TH');
-    const html = `<!DOCTYPE html>
+    const date=new Date().toLocaleDateString('th-TH');
+    const html=`<!DOCTYPE html>
 <html><head>
 <meta charset="UTF-8">
 <title>SDA Migration Dashboard SVB — ${date}</title>
@@ -1895,11 +1894,10 @@ ${styles}
 .card{break-inside:avoid}
 canvas{display:none!important}
 .ph{background:linear-gradient(135deg,#3a56e4,#6c4de4);color:#fff;padding:8px 16px;margin-bottom:10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700}
-.ph-svb{color:#ffd700;font-size:16px;font-weight:800}
 </style>
 </head><body>
 <div class="ph">
-  <span>✈ SDA Migration Dashboard — <span class="ph-svb">SVB</span></span>
+  <span>✈ SDA Migration Dashboard — <span style="color:#ffd700;font-size:16px;font-weight:800">SVB</span></span>
   <span style="font-size:12px;font-weight:400">${date}</span>
 </div>
 ${insBox.outerHTML}
@@ -1913,16 +1911,17 @@ ${main.outerHTML}
 
   } catch(err) {
     console.error(err);
-    try{ printWin.close(); }catch(e){}
+    try{printWin.close();}catch(e){}
     alert('Export ไม่สำเร็จ: '+err.message);
   } finally {
-    const active = document.querySelector('.tab.on');
-    const name = active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
+    // Restore active tab only
+    const active=document.querySelector('.tab.on');
+    const name=active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
     ['overview','progress','graphs','location','plan'].forEach(t=>{
       const el=document.getElementById('tab-'+t);
-      if(el) el.style.display = t===name?'block':'none';
+      if(el) el.style.display=t===name?'block':'none';
     });
-    if(btn){ btn.textContent='⬇ PDF'; btn.disabled=false; }
+    if(btn){btn.textContent='⬇ PDF';btn.disabled=false;}
   }
 }
 
