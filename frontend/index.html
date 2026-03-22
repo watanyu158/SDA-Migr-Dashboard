@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>SDA Installation Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{
   --bg:#f0f4ff;--card:#fff;--border:#e8edf5;
@@ -695,15 +696,14 @@ main { padding: 12px 10px; }
      1. Canvas has explicit width/height
      2. -webkit-print-color-adjust: exact is set
   */
-  canvas { -webkit-print-color-adjust: exact; print-color-adjust: exact;
-    max-width: 100% !important; }
-  .cwrap, [style*="height:200px"], [style*="height:175px"],
-  [style*="height:260px"], [style*="height:180px"] {
-    height: 180px !important;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  /* Canvas hidden — replaced by img proxies via exportPDF() */
+  canvas { display: none !important; }
+  img[data-print-proxy] {
+    display: block !important;
+    max-width: 100% !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  /* Force chart containers to have explicit dimensions */
-  .cwrap canvas { width: 100% !important; }
 
   /* ── Colors must print ── */
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -743,7 +743,7 @@ main { padding: 12px 10px; }
   <div style="display:flex;gap:6px">
     <button class="tbtn" id="auto-sync-btn" onclick="toggleAutoSync()">🔄 ซิงค์อัตโนมัติ</button>
     <button class="tbtn" onclick="manualRefresh()">↺ รีเฟรช</button>
-    <button class="tbtn" onclick="window.print()">⬇ PDF</button>
+    <button class="tbtn" id="pdf-btn" onclick="exportPDF()">⬇ PDF</button>
   </div>
 </div>
 
@@ -868,7 +868,7 @@ main { padding: 12px 10px; }
   <div class="actions">
     <button class="btn" id="desk-sync-btn" onclick="toggleAutoSync()">🔄 เปิดซิงค์อัตโนมัติ</button>
     <button class="btn" onclick="manualRefresh()">↺ รีเฟรชข้อมูล</button>
-    <button class="btn" style="background:#fff5f5;border-color:#ffd0d0;color:var(--danger)" onclick="window.print()">⬇ PDF</button>
+    <button class="btn" style="background:#fff5f5;border-color:#ffd0d0;color:var(--danger)" onclick="exportPDF()">⬇ PDF</button>
   </div>
 </div>
 
@@ -1773,34 +1773,64 @@ async function loadData(){
   }
 }
 
-// ── Print: convert canvas to static images so they render in PDF ─────────────
-window.addEventListener('beforeprint', () => {
-  document.querySelectorAll('canvas').forEach(canvas => {
-    if (canvas.dataset.printDone) return;
+// ── PDF Export: use html2canvas to capture charts properly ──────────────────
+async function exportPDF() {
+  const btn = document.getElementById('pdf-btn');
+  if(btn){ btn.textContent = '⏳ กำลัง export...'; btn.disabled = true; }
+
+  // 1. Show all tabs temporarily
+  const TABS = ['overview','progress','graphs','location','plan'];
+  const hiddenTabs = [];
+  TABS.forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el && el.style.display === 'none'){
+      el.style.display = 'block';
+      hiddenTabs.push(t);
+    }
+  });
+
+  // 2. Build graphs if not built yet
+  if(typeof buildGraphs === 'function') buildGraphs();
+
+  // 3. Wait for charts to render
+  await new Promise(r => setTimeout(r, 600));
+
+  // 4. Convert all canvas to img
+  const canvases = document.querySelectorAll('canvas');
+  const restored = [];
+  for(const canvas of canvases){
     try {
-      const dataUrl = canvas.toDataURL('image/png');
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
+      if(dataUrl === 'data:,') continue;
       const img = document.createElement('img');
       img.src = dataUrl;
-      img.style.cssText = canvas.style.cssText;
-      img.style.width = canvas.offsetWidth + 'px';
+      img.style.width  = canvas.offsetWidth  + 'px';
       img.style.height = canvas.offsetHeight + 'px';
       img.style.maxWidth = '100%';
       img.style.display = 'block';
       img.dataset.printProxy = 'true';
       canvas.parentNode.insertBefore(img, canvas.nextSibling);
-      canvas.dataset.printDone = 'true';
       canvas.style.display = 'none';
-    } catch(e) {}
-  });
-});
+      restored.push(canvas);
+    } catch(e){}
+  }
 
-window.addEventListener('afterprint', () => {
-  document.querySelectorAll('canvas[data-print-done]').forEach(canvas => {
-    canvas.style.display = '';
-    canvas.removeAttribute('data-print-done');
-  });
-  document.querySelectorAll('img[data-print-proxy]').forEach(img => img.remove());
-});
+  // 5. Print
+  window.print();
+
+  // 6. Restore after a short delay
+  setTimeout(() => {
+    restored.forEach(canvas => {
+      canvas.style.display = '';
+    });
+    document.querySelectorAll('img[data-print-proxy]').forEach(img => img.remove());
+    hiddenTabs.forEach(t => {
+      const el = document.getElementById('tab-'+t);
+      if(el) el.style.display = 'none';
+    });
+    if(btn){ btn.textContent = '⬇ PDF'; btn.disabled = false; }
+  }, 1000);
+}
 
 async function submitUpdate(){
   const $=id=>document.getElementById(id),al=$('form-alert');al.innerHTML='';
