@@ -1745,47 +1745,106 @@ async function loadData(){
   }
 }
 
-// ── PDF Export: canvas→img then browser print ────────────────────────────────
+// ── PDF Export: open print window ────────────────────────────────────────────
 async function exportPDF() {
   const btn = document.getElementById('pdf-btn');
   if(btn){ btn.textContent='⏳ กำลัง export...'; btn.disabled=true; }
 
-  // 1. Open every tab so charts exist in DOM
-  ['overview','progress','graphs','location','plan'].forEach(t=>{
-    const el=document.getElementById('tab-'+t);
-    if(el) el.style.display='block';
-  });
+  try {
+    // 1. Make all tabs visible to capture charts
+    ['overview','progress','graphs','location','plan'].forEach(t=>{
+      const el=document.getElementById('tab-'+t);
+      if(el) el.style.display='block';
+    });
+    if(typeof buildGraphs==='function') buildGraphs();
+    if(typeof buildProgressCharts==='function') buildProgressCharts();
 
-  // 2. Build any lazy-loaded charts
-  if(typeof buildGraphs==='function') buildGraphs();
-  if(typeof buildProgressCharts==='function') buildProgressCharts();
+    // 2. Wait for charts to render
+    await new Promise(r=>setTimeout(r,1500));
 
-  // 3. Wait for Chart.js to finish rendering
-  await new Promise(r=>setTimeout(r,1500));
+    // 3. Collect all chart canvas images
+    const chartImgs = {};
+    document.querySelectorAll('canvas').forEach(cv=>{
+      try{
+        const w=cv.offsetWidth||cv.width;
+        const h=cv.offsetHeight||cv.height;
+        if(w>10 && h>10){
+          chartImgs[cv.id] = {url:cv.toDataURL('image/png',1.0), w, h};
+        }
+      }catch(e){}
+    });
 
-  // 4. Convert every canvas → <img> at full resolution
-  const swapped=[];
-  document.querySelectorAll('canvas').forEach(cv=>{
-    try{
-      const w=cv.offsetWidth||cv.width||400;
-      const h=cv.offsetHeight||cv.height||200;
-      if(w<10||h<10) return;
-      const url=cv.toDataURL('image/png',1.0);
-      if(!url||url==='data:,') return;
-      const img=document.createElement('img');
-      img.src=url;
-      img.style.cssText=`display:block;width:${w}px;height:${h}px;max-width:100%`;
-      img.setAttribute('data-pp','1');
-      cv.parentNode.insertBefore(img,cv.nextSibling);
-      cv.style.display='none';
-      swapped.push(cv);
-    }catch(e){}
-  });
+    // 4. Clone the document body into a print window
+    const printWin = window.open('','_blank','width=1200,height=800');
+    if(!printWin){ alert('กรุณาอนุญาต popup เพื่อ export PDF'); return; }
 
-  // 5. Print — use both afterprint event AND timeout fallback
-  function restoreAll(){
-    swapped.forEach(cv=>{ cv.style.display=''; });
-    document.querySelectorAll('img[data-pp]').forEach(i=>i.remove());
+    // 5. Build print HTML
+    const styles = Array.from(document.styleSheets).map(ss=>{
+      try{ return Array.from(ss.cssRules).map(r=>r.cssText).join('\n'); }
+      catch(e){ return ''; }
+    }).join('\n');
+
+    // Clone main content
+    const main = document.querySelector('main').cloneNode(true);
+    const insBox = document.querySelector('.insights-box').cloneNode(true);
+    const topInfo = document.querySelector('.topbar .tb-l').cloneNode(true);
+
+    // Show all tab bodies in clone
+    main.querySelectorAll('.tab-body').forEach(t=>t.style.display='block');
+    main.querySelectorAll('.tabs').forEach(t=>t.style.display='none');
+    main.querySelectorAll('.actions').forEach(t=>t.style.display='none');
+    main.querySelectorAll('#fab-daily-charts-wrap').forEach(t=>t.style.display='none');
+    main.querySelectorAll('.prog-fab-grid').forEach(t=>t.style.display='none');
+
+    // Replace canvas with captured images
+    main.querySelectorAll('canvas').forEach(cv=>{
+      const data = chartImgs[cv.id];
+      if(data){
+        const img=document.createElement('img');
+        img.src=data.url;
+        img.style.cssText=`display:block;width:${data.w}px;height:${data.h}px;max-width:100%`;
+        cv.parentNode.replaceChild(img,cv);
+      } else {
+        cv.remove();
+      }
+    });
+
+    const date = new Date().toLocaleDateString('th-TH');
+    printWin.document.write(`<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>SDA Dashboard ${date}</title>
+<style>
+@page { size: A4 landscape; margin: 8mm 10mm; }
+* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 13px; background: #fff; margin: 0; padding: 0; }
+${styles}
+.topbar, .tabs-wrap > .tabs, .actions, .tbtn, .hold-tog, #hold-body { display: none !important; }
+.tab-body { display: block !important; page-break-after: always; padding: 12px 0 !important; }
+.tabs-wrap { box-shadow: none !important; border: none !important; }
+.card { break-inside: avoid; }
+canvas { display: none !important; }
+.print-header { background: linear-gradient(135deg,#3a56e4,#6c4de4); color: #fff; padding: 8px 16px; margin-bottom: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; }
+</style>
+</head><body>
+<div class="print-header">
+  <span>📡 SDA Installation Dashboard — สุวรรณภูมิ</span>
+  <span>${date}</span>
+</div>
+<div style="padding:0 4px">
+${insBox.outerHTML}
+${main.outerHTML}
+</div>
+<script>
+window.onload = function(){
+  setTimeout(function(){ window.print(); window.close(); }, 800);
+};
+<\/script>
+</body></html>`);
+    printWin.document.close();
+
+  } finally {
+    // Restore original tabs
     const active=document.querySelector('.tab.on');
     const name=active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
     ['overview','progress','graphs','location','plan'].forEach(t=>{
@@ -1793,13 +1852,7 @@ async function exportPDF() {
       if(el) el.style.display=t===name?'block':'none';
     });
     if(btn){ btn.textContent='⬇ PDF'; btn.disabled=false; }
-    window.removeEventListener('afterprint', restoreAll);
   }
-  window.addEventListener('afterprint', restoreAll);
-  // Fallback: restore after 30s if user cancels print dialog
-  setTimeout(restoreAll, 30000);
-
-  window.print();
 }
 
 
