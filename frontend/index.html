@@ -1502,6 +1502,8 @@ function buildGraphs(){
 
   // ── Per-fabric daily stacked bar charts ──
   const wrap = document.getElementById('fab-daily-charts-wrap');
+  // Track all chart builds for export
+  window._fabChartPromises = [];
   Object.keys(FAB_DAILY).forEach(fab => {
     const fd = FAB_DAILY[fab];
     const fabColor = FAB_COLORS[fab];
@@ -1543,7 +1545,8 @@ function buildGraphs(){
     wrap.appendChild(div);
 
     if (!hasData) return;
-    setTimeout(() => {
+    const fabIdx = Object.keys(FAB_DAILY).indexOf(fab);
+    const _p = new Promise(res => setTimeout(() => {
       const ctx = document.getElementById('fd-' + fab.replace(/-/g,'') + '-c');
       if (!ctx) return;
       const existingCh = Chart.getChart(ctx);
@@ -1607,7 +1610,9 @@ function buildGraphs(){
           }
         }
       });
-    }, 100);
+      res();
+    }, fabIdx * 150 + 200));
+    if(window._fabChartPromises) window._fabChartPromises.push(_p);
   });
 }
 
@@ -1805,8 +1810,13 @@ async function exportPDF() {
     if(typeof buildBurndown==='function') buildBurndown();
     if(typeof buildDonut==='function') buildDonut();
 
-    // รอ chart render
-    await new Promise(r=>setTimeout(r,1500));
+    // รอ chart render — wait for all per-fabric charts via their promises
+    window._fabChartPromises = [];
+    await new Promise(r=>setTimeout(r,500)); // base charts
+    if(window._fabChartPromises && window._fabChartPromises.length > 0){
+      await Promise.all(window._fabChartPromises);
+    }
+    await new Promise(r=>setTimeout(r,300)); // extra buffer
 
     // จับภาพ canvas ทุกตัว
     const chartImgs = {};
