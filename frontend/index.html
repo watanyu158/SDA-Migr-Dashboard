@@ -1712,7 +1712,9 @@ function toggleAutoSync(){
     [b1,b2].forEach(b=>{if(b){b.textContent='🔄 ซิงค์อัตโนมัติ';b.classList.remove('sync-on');}});
   }
 }
-function manualRefresh(){
+async function manualRefresh(){
+  // Force backend to re-fetch from SharePoint
+  try{ await fetch(API+'/api/cache/refresh',{method:'POST'}); }catch(e){}
   loadData();
   const now=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const el=document.getElementById('last-sync-lbl');
