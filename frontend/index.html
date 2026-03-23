@@ -1905,18 +1905,18 @@ async function exportPDF() {
     const insBox=document.querySelector('.insights-box').cloneNode(true);
     const main=document.querySelector('main').cloneNode(true);
 
-    // Replace gauge canvas with img (toBase64Image), remove duplicate % label
+    // Replace gauge canvas with img — keep position:absolute so ins-gc % overlay works
     insBox.querySelectorAll('canvas').forEach(cv=>{
       const d=chartImgs[cv.id];
       if(d){
         const img=document.createElement('img');
         img.src=d.url;
-        img.style.cssText=`display:block;width:${d.w}px;height:${d.h}px;max-width:100%`;
+        // Match canvas CSS: position absolute, same size
+        img.style.cssText='position:absolute;inset:0;width:90px;height:90px;display:block';
         cv.parentNode.replaceChild(img,cv);
       }
     });
-    // Remove duplicate % text overlay (.ins-gc) — % is already drawn inside canvas image
-    insBox.querySelectorAll('.ins-gc').forEach(el=>el.remove());
+    // ins-gc (.gp text) stays — it overlays the img showing the % number
 
     // Process main clone
     main.querySelectorAll('.tab-body').forEach(t=>t.style.display='block');
