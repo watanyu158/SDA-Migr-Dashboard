@@ -1156,7 +1156,8 @@ async function loadChartData(){
     let cs=0,ca=0,ci=0,cd=0;
     CUM_SW=[];CUM_AP=[];CUM_INF=[];CUM_D=[];
     DAILY_SW.forEach((v,i)=>{cs+=v;ca+=DAILY_AP[i];ci+=DAILY_INF[i];cd+=v+DAILY_AP[i]+DAILY_INF[i];CUM_SW.push(cs);CUM_AP.push(ca);CUM_INF.push(ci);CUM_D.push(cd);});
-    FAB_DAILY=d.fab_daily; FAB_COLORS=d.fab_colors; FABRICS=Object.keys(d.fab_colors);
+    FAB_DAILY=d.fab_daily;
+    // FAB_COLORS and FABRICS are set by loadData() from /api/summary
     // Rebuild charts
     ['burndown-c','prog-all-c','prog-sw-c','prog-ap-c'].forEach(id=>{const cv=document.getElementById(id);if(cv){const ch=Chart.getChart(cv);if(ch)ch.destroy();}});
     if(typeof buildBurndown==='function') buildBurndown();
@@ -1695,25 +1696,74 @@ async function manualRefresh(){
 async function loadData(){
   try{
     const r=await fetch(`${API}/api/summary`);
-    const{overall}=await r.json();
+    const data=await r.json();
+    const overall=data.overall;
     const el=id=>document.getElementById(id);
+
+    // ── Update summary pills ──────────────────────────────────────────────────
     if(el('ts-done'))el('ts-done').textContent=`${overall.actual_installed}/${overall.total_devices}`;
     if(el('pill-rem'))el('pill-rem').textContent=(overall.total_devices-overall.actual_installed).toLocaleString();
     if(el('pill-hold'))el('pill-hold').textContent=overall.hold;
-    // Guard: overdue_items might be a string label from old server version
-    const overdue = (typeof overall.overdue_items === 'number') ? overall.overdue_items : 0;
+    const overdue=(typeof overall.overdue_items==='number')?overall.overdue_items:0;
     if(el('pill-over'))el('pill-over').textContent=overdue;
     if(el('tb-over'))el('tb-over').textContent=overdue;
     if(el('hold-cnt'))el('hold-cnt').textContent=overall.hold+' รายการ';
-  }catch{
-    // API unavailable - static values already in HTML
-    const el=id=>document.getElementById(id);
-    if(el('ts-done'))el('ts-done').textContent='460/1592';
-    if(el('pill-rem'))el('pill-rem').textContent='1,132';
-    if(el('pill-hold'))el('pill-hold').textContent='8';
-    if(el('pill-over'))el('pill-over').textContent='0';
-    if(el('tb-over'))el('tb-over').textContent='0';
-    if(el('hold-cnt'))el('hold-cnt').textContent='8 รายการ';
+
+    // ── Populate FABRICS objects from fabric_detail ───────────────────────────
+    const FAB_COLOR_MAP={'D1-041':'#4361ee','CFZ':'#2bc48a','T1-015':'#ff9f43','D1-091':'#9b59b6','RFF':'#1abc9c','AMF':'#e74c3c','PPW':'#3498db'};
+    if(data.fabric_detail && data.fabric_detail.length){
+      // Build FABRICS array with full object shape needed by buildTimeline, buildHeatmap etc.
+      FABRICS = data.fabric_detail.map(fd=>{
+        const f = data.fabrics.find(x=>x.fabric===fd.fabric)||{};
+        const col = FAB_COLOR_MAP[fd.fabric]||'#4361ee';
+        return {
+          n: fd.fabric,                          // name
+          c: col,                                // color
+          d: f.done||0,                          // total done
+          t: f.total||0,                         // total target
+          p: f.pct_done||0,                      // % done
+          h: f.hold||0,                          // hold
+          r: f.remaining||0,                     // remaining
+          s: f.start_date||null,                 // start
+          e: f.end_date||null,                   // end
+          sw:  {d: fd.sw_done||0,  t: fd.sw_total||0,  p: fd.sw_pct||0},
+          ap:  {d: fd.ap_done||0,  t: fd.ap_total||0,  p: fd.ap_pct||0},
+          inf: {d: fd.inf_done||0, t: fd.inf_total||0, p: fd.inf_pct||0},
+        };
+      });
+      FAB_COLORS={};
+      FABRICS.forEach(f=>{ FAB_COLORS[f.n]=f.c; });
+      FAB_TOTALS={};
+      FABRICS.forEach(f=>{ FAB_TOTALS[f.n]={sw:f.sw.d, ap:f.ap.d, inf:f.inf.d}; });
+      FAB_PLAN_TOTALS={};
+      FABRICS.forEach(f=>{ FAB_PLAN_TOTALS[f.n]=f.t; });
+    }
+
+    // ── Update category cards ─────────────────────────────────────────────────
+    if(data.categories){
+      const sw=data.categories.find(c=>c.category==='Switch')||{};
+      const ap=data.categories.find(c=>c.category==='AP')||{};
+      const inf=data.categories.find(c=>c.category==='Infra')||{};
+      if(el('sw-done'))el('sw-done').textContent=sw.done||0;
+      if(el('sw-total'))el('sw-total').textContent=sw.total||0;
+      if(el('sw-pct'))el('sw-pct').textContent=(sw.pct_done||0)+'%';
+      if(el('ap-done'))el('ap-done').textContent=ap.done||0;
+      if(el('ap-total'))el('ap-total').textContent=ap.total||0;
+      if(el('ap-pct'))el('ap-pct').textContent=(ap.pct_done||0)+'%';
+      if(el('inf-done'))el('inf-done').textContent=inf.done||0;
+      if(el('inf-total'))el('inf-total').textContent=inf.total||0;
+      if(el('inf-pct'))el('inf-pct').textContent=(inf.pct_done||0)+'%';
+    }
+
+    // ── Rebuild visual components that depend on FABRICS ─────────────────────
+    buildTimeline();
+    buildHeatmap();
+    buildLocList();
+    buildFabCards();
+    buildFabBreakdown();
+
+  }catch(e){
+    console.error('loadData error:',e);
   }
 }
 
@@ -1955,15 +2005,10 @@ async function submitUpdate(){
 }
 
 // ── STARTUP ─────────────────────────────────────────────────────────────────
-loadChartData();
-loadData();
 buildGauge();
 buildDonut();
-buildTimeline();
-buildHeatmap();
-buildLocList();
-buildFabCards();
-buildFabBreakdown();
+loadChartData();  // chart line data
+loadData();       // summary + FABRICS + rebuilds Timeline/Heatmap/FabCards
 
 </script>
 </body>
