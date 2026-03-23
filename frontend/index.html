@@ -1027,6 +1027,12 @@ main { padding: 12px 10px; }
     </div>
     <div class="card"><div class="ch"><div class="chi" style="background:var(--success-l);color:var(--success)">📊</div>แผนภูมิ Fabric</div><div style="height:175px"><canvas id="fab-bar-c"></canvas></div></div>
   </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">📊</div>แยกตามประเภทอุปกรณ์ — แผน vs ติดตั้งแล้ว</div>
+    <div style="height:420px;overflow-y:auto"><canvas id="type-bar-c"></canvas></div>
+  </div>
+
+
   <div class="card" style="margin-bottom:14px"><div class="ch"><div class="chi" style="background:var(--info-l);color:var(--info)">📆</div>อุปกรณ์ที่ติดตั้งตามวันที่</div><div style="height:175px"><canvas id="daily-c"></canvas></div></div>
   <div class="card" style="margin-bottom:14px"><div class="ch"><div class="chi" style="background:var(--warning-l);color:var(--warning)">📈</div>ความคืบหน้าสะสม (Switch / AP / Infra)</div><div style="height:175px"><canvas id="cum-c"></canvas></div></div>
   <div class="g2">
@@ -1174,14 +1180,37 @@ const DAILY_PLAN = [0,50,11,35,27,24,6,14,38,17,13,12,24,3,12,15,11,14,8,5,41,27
 
 // Per-fabric plan on those same dates
 const FAB_DAILY_PLAN = {
-  'D1-041': [36,11,35,27,24,6,0,0,0,0,0,0,0,12,15,11,14,8,5,0,27,15,18],
-  'CFZ':    [4,0,0,0,0,0,14,38,17,13,12,24,3,0,0,0,0,0,0,41,0,0,0],
-  'T1-015': [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  'D1-091': [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  'RFF':    [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  'AMF':    [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-  'PPW':    [2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  'D1-041': [0,36,11,35,27,24,6,0,0,0,0,0,0,0,12,15,11,14,8,5,0,27,15,18,0],
+  'CFZ':    [0,4,0,0,0,0,0,14,38,17,13,12,24,3,0,0,0,0,0,0,41,0,0,0,0],
+  'T1-015': [0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  'D1-091': [0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  'RFF':    [0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  'AMF':    [0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  'PPW':    [0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 };
+// ── Device type breakdown ──────────────────────────────────────────────────────
+const TYPE_DATA = [
+  {n:'Access Switch Type 2',     plan:584, done:188},
+  {n:'Access Point',             plan:445, done:67},
+  {n:'Access Switch Type 4',     plan:320, done:84},
+  {n:'Aggregation Switch Type 3',plan:62,  done:21},
+  {n:'Aggregation Switch Type 2',plan:47,  done:14},
+  {n:'Access Switch Type 1',     plan:45,  done:23},
+  {n:'Access Switch Type 3',     plan:37,  done:21},
+  {n:'Wireless Controller',      plan:14,  done:14},
+  {n:'Distribute Switch Type 1', plan:10,  done:4},
+  {n:'Core Switch Type 1',       plan:4,   done:4},
+  {n:'Access Control Type 1',    plan:4,   done:4},
+  {n:'Router',                   plan:4,   done:2},
+  {n:'Distribute Switch Type 2', plan:4,   done:2},
+  {n:'SDN Controller',           plan:3,   done:3},
+  {n:'Next Gen Firewall Type 2', plan:2,   done:2},
+  {n:'Next Gen Firewall Type 1', plan:2,   done:2},
+  {n:'Extranet Switch Type 1',   plan:2,   done:2},
+  {n:'Aggregation Switch Type 1',plan:2,   done:2},
+  {n:'SDN Witness',              plan:1,   done:1},
+];
+
 // Plan totals per fabric (total scheduled devices)
 const FAB_PLAN_TOTALS = {'D1-041':710,'CFZ':187,'T1-015':327,'D1-091':147,'RFF':99,'AMF':114,'PPW':8};
 
@@ -1244,13 +1273,13 @@ function buildFabBreakdown() {
   if (!wrap) return;
 
   const data = [
-    {n:'D1-041',c:'#4361ee',tot:{d:262,t:710}, sw:{d:209,t:410}, ap:{d:43,t:290},  inf:{d:10,t:10}},
+    {n:'D1-041',c:'#4361ee',tot:{d:281,t:710}, sw:{d:228,t:410}, ap:{d:43,t:290},  inf:{d:10,t:10}},
     {n:'CFZ',   c:'#2bc48a',tot:{d:169,t:187}, sw:{d:141,t:156}, ap:{d:24,t:25},   inf:{d:4,t:6}},
     {n:'T1-015',c:'#ff9f43',tot:{d:2,  t:327}, sw:{d:0,  t:281}, ap:{d:0,  t:44},  inf:{d:2,t:2}},
-    {n:'D1-091',c:'#a855f7',tot:{d:2,  t:147}, sw:{d:0,  t:134}, ap:{d:0,  t:11},  inf:{d:2,t:2}},
-    {n:'RFF',   c:'#22b8cf',tot:{d:2,  t:99},  sw:{d:0,  t:65},  ap:{d:0,  t:32},  inf:{d:2,t:2}},
-    {n:'AMF',   c:'#f76707',tot:{d:2,  t:114}, sw:{d:0,  t:69},  ap:{d:0,  t:43},  inf:{d:2,t:2}},
-    {n:'PPW',   c:'#74c0fc',tot:{d:2,  t:8},   sw:{d:0,  t:6},   ap:{d:0,  t:0},   inf:{d:2,t:2}},
+    {n:'D1-091',c:'#9b59b6',tot:{d:2,  t:147}, sw:{d:0,  t:134}, ap:{d:0,  t:11},  inf:{d:2,t:2}},
+    {n:'RFF',   c:'#1abc9c',tot:{d:2,  t:99},  sw:{d:0,  t:65},  ap:{d:0,  t:32},  inf:{d:2,t:2}},
+    {n:'AMF',   c:'#e74c3c',tot:{d:2,  t:114}, sw:{d:0,  t:69},  ap:{d:0,  t:43},  inf:{d:2,t:2}},
+    {n:'PPW',   c:'#3498db',tot:{d:2,  t:8},   sw:{d:0,  t:6},   ap:{d:0,  t:0},   inf:{d:2,t:2}},
   ];
 
   wrap.innerHTML = data.map(f => {
@@ -1294,11 +1323,82 @@ function buildFabBreakdown() {
   }).join('');
 }
 
+
+// ── Device type horizontal bar chart ─────────────────────────────────────────
+function buildTypeBarChart(){
+  const cv = document.getElementById('type-bar-c');
+  if(!cv) return;
+  const ex = Chart.getChart(cv); if(ex) ex.destroy();
+
+  // Sort by plan descending
+  const sorted = [...TYPE_DATA].sort((a,b)=>b.plan-a.plan);
+  const labels = sorted.map(d=>d.n);
+  const plans  = sorted.map(d=>d.plan);
+  const dones  = sorted.map(d=>d.done);
+
+  // Dynamic height based on items
+  cv.parentElement.style.height = Math.max(300, sorted.length * 42) + 'px';
+
+  new Chart(cv, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'แผน (TOR)',
+          data: plans,
+          backgroundColor: 'rgba(148,163,184,0.35)',
+          borderColor: 'rgba(148,163,184,0.6)',
+          borderWidth: 1,
+          borderRadius: 3,
+        },
+        {
+          label: 'ติดตั้งแล้ว',
+          data: dones,
+          backgroundColor: 'rgba(67,97,238,0.75)',
+          borderColor: '#4361ee',
+          borderWidth: 1,
+          borderRadius: 3,
+        },
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const d = sorted[ctx.dataIndex];
+              if(ctx.datasetIndex === 0) return ` แผน: ${d.plan} เครื่อง`;
+              const pct = d.plan > 0 ? Math.round(d.done/d.plan*100) : 0;
+              return ` ติดตั้งแล้ว: ${d.done} เครื่อง (${pct}%)`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#f0f4ff' },
+          ticks: { font: { size: 10 } },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { size: 10 } },
+        }
+      }
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded',()=>{
   buildGauge(); buildBurndown(); buildDonut();
   buildTimeline(); buildHeatmap(); buildLocList(); buildFabCards();
   buildProgressCharts();
   buildFabBreakdown();
+  buildTypeBarChart();
   document.getElementById('update-ts')?.remove?.();
   manualRefresh();
 });
