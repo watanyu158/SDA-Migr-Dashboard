@@ -154,11 +154,11 @@ main{max-width:1360px;margin:0 auto;padding:18px 14px}
 .dc .dl{font-size:10px;color:var(--text2)}
 
 /* TIMELINE */
-.tlr{margin-bottom:11px}
+.tlr{margin-bottom:20px}
 .tlt{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;align-items:center}
 .tln{font-weight:600}
 .tlpct{font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px}
-.tltrack{height:17px;background:#eef1ff;border-radius:5px;overflow:hidden;position:relative}
+.tltrack{height:17px;background:#eef1ff;border-radius:5px;position:relative}
 .tlfill{height:100%;border-radius:5px 0 0 5px;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;transition:width 1.2s cubic-bezier(.23,1,.32,1)}
 .tltd{position:absolute;top:0;bottom:0;width:2px;border-radius:1px}
 
@@ -1362,7 +1362,7 @@ function buildTimeline(){
   const tdp=Math.max(0,Math.min(100,Math.round(_elapsed/_projDays*100)));
   const _todayLabel=_todayGMT7.getDate()+'/'+(String(_todayGMT7.getMonth()+1).padStart(2,'0'));
   w.innerHTML=FABRICS.map(f=>{const p=Math.round(f.p),bg=p>=80?'#ecfdf5;color:#065f46':p>=30?'#fff5e6;color:#92400e':'#eef1ff;color:var(--primary)';return `<div class="tlr"><div class="tlt"><div class="tln">${f.n}</div><div style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2)"><span>${f.d}/${f.t}</span><span class="tlpct" style="background:${bg}">${p}%</span></div></div><div class="tltrack"><div style="display:flex;height:100%"><div class="tlfill" style="width:${p}%;background:${f.c}">${p>10?p+'%':''}</div><div style="flex:1;background:#eef1ff"></div></div><div class="tltd" style="left:${tdp}%;background:var(--danger)">
-          <span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;white-space:nowrap">${_todayLabel}</span>
+          <span style="position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;white-space:nowrap;pointer-events:none">${_todayLabel}</span>
         </div></div></div>`;}).join('');
 }
 
