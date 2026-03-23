@@ -1905,35 +1905,18 @@ async function exportPDF() {
     const insBox=document.querySelector('.insights-box').cloneNode(true);
     const main=document.querySelector('main').cloneNode(true);
 
-    // Replace gauge canvas with SVG (looks better in PDF)
+    // Replace gauge canvas with img (toBase64Image), remove duplicate % label
     insBox.querySelectorAll('canvas').forEach(cv=>{
-      if(cv.id==='gauge-c'){
-        const svgGauge = document.createElementNS('http://www.w3.org/2000/svg','svg');
-        svgGauge.setAttribute('width','90'); svgGauge.setAttribute('height','55');
-        svgGauge.setAttribute('viewBox','0 0 90 55');
-        // Background arc
-        const bg=document.createElementNS('http://www.w3.org/2000/svg','path');
-        bg.setAttribute('d','M 10 45 A 35 35 0 0 1 80 45');
-        bg.setAttribute('fill','none'); bg.setAttribute('stroke','#e8edf5'); bg.setAttribute('stroke-width','8'); bg.setAttribute('stroke-linecap','round');
-        svgGauge.appendChild(bg);
-        // Foreground arc (85% of 180deg = 153deg)
-        const fg=document.createElementNS('http://www.w3.org/2000/svg','path');
-        const angle=0.85*Math.PI; const ex=45-35*Math.cos(angle); const ey=45-35*Math.sin(angle);
-        fg.setAttribute('d',`M 10 45 A 35 35 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}`);
-        fg.setAttribute('fill','none'); fg.setAttribute('stroke','#ff9f43'); fg.setAttribute('stroke-width','8'); fg.setAttribute('stroke-linecap','round');
-        svgGauge.appendChild(fg);
-        // Text
-        const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
-        txt.setAttribute('x','45'); txt.setAttribute('y','42'); txt.setAttribute('text-anchor','middle');
-        txt.setAttribute('font-size','14'); txt.setAttribute('font-weight','bold'); txt.setAttribute('fill','#ff9f43');
-        txt.textContent='85%';
-        svgGauge.appendChild(txt);
-        cv.parentNode.replaceChild(svgGauge,cv);
-      } else {
-        const d=chartImgs[cv.id];
-        if(d){ const img=document.createElement('img'); img.src=d.url; img.style.cssText=`display:block;width:${d.w}px;height:${d.h}px;max-width:100%`; cv.parentNode.replaceChild(img,cv); }
+      const d=chartImgs[cv.id];
+      if(d){
+        const img=document.createElement('img');
+        img.src=d.url;
+        img.style.cssText=`display:block;width:${d.w}px;height:${d.h}px;max-width:100%`;
+        cv.parentNode.replaceChild(img,cv);
       }
     });
+    // Remove duplicate % text overlay (.ins-gc) — % is already drawn inside canvas image
+    insBox.querySelectorAll('.ins-gc').forEach(el=>el.remove());
 
     // Process main clone
     main.querySelectorAll('.tab-body').forEach(t=>t.style.display='block');
