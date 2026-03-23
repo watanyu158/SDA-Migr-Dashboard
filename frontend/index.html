@@ -1029,7 +1029,7 @@ main { padding: 12px 10px; }
   </div>
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">📊</div>แยกตามประเภทอุปกรณ์ — แผน vs ติดตั้งแล้ว</div>
-    <div style="height:500px"><canvas id="type-bar-c"></canvas></div>
+    <div style="height:460px"><canvas id="type-bar-c"></canvas></div>
   </div>
 
 
@@ -1344,8 +1344,8 @@ function buildTypeBarChart(){
   const plans  = sorted.map(d=>d.plan);
   const dones  = sorted.map(d=>d.done);
 
-  // Dynamic height based on items
-  cv.parentElement.style.height = Math.max(300, sorted.length * 42) + 'px';
+  // Fixed height — พอดีหน้า A4 landscape
+  cv.parentElement.style.height = '460px';
 
   // Label plugin
   const typeLabelsPlugin = {
@@ -1426,11 +1426,11 @@ function buildTypeBarChart(){
       scales: {
         x: {
           grid: { color: '#f0f4ff' },
-          ticks: { font: { size: 10 } },
+          ticks: { font: { size: 9 }, maxTicksLimit: 8 },
         },
         y: {
           grid: { display: false },
-          ticks: { font: { size: 10 } },
+          ticks: { font: { size: 9 } },
         }
       }
     },
@@ -2126,7 +2126,17 @@ async function exportPDF() {
     main.querySelectorAll('#tab-graphs > *').forEach((el,i,arr)=>{
       if(el.textContent.includes('อุปกรณ์ที่ติดตั้งตามวันที่') && el.textContent.includes('แยกแต่ละ Fabric')){
         el.style.pageBreakBefore = 'always';
-        el.style.pageBreakAfter = 'avoid'; // keep with next card
+        el.style.pageBreakAfter = 'avoid';
+      }
+      // type-bar chart card — ขึ้นหน้าใหม่เสมอ
+      if(el.querySelector && el.querySelector('#type-bar-c')){
+        el.style.pageBreakBefore = 'always';
+        el.style.breakBefore = 'page';
+        el.style.pageBreakInside = 'avoid';
+        el.style.breakInside = 'avoid';
+        // ลดความสูงให้พอดี A4 landscape
+        const wrapper = el.querySelector('div[style*="height"]');
+        if(wrapper) wrapper.style.height = '460px';
       }
     });
     // "สรุป Switch/AP/Infra" header — must NOT be alone on a page
@@ -2181,6 +2191,18 @@ canvas { display:none!important; }
 #tab-graphs .g2 { display:grid!important; grid-template-columns:1fr 1fr!important; gap:12px!important; }
 #tab-graphs #fab-daily-charts-wrap { display:block!important; }
 #tab-graphs #fab-daily-charts-wrap { display:grid!important; grid-template-columns:1fr 1fr!important; gap:10px!important; }
+
+/* ── Type bar chart: อยู่หน้าใหม่ ไม่ตก ── */
+#tab-graphs .card:has(#type-bar-c) {
+  page-break-before: always !important;
+  page-break-inside: avoid !important;
+  break-before: page !important;
+  break-inside: avoid !important;
+}
+#tab-graphs .card:has(#type-bar-c) div[style*="height"] {
+  height: 460px !important;
+  overflow: visible !important;
+}
 
 /* ── Plan tab ── */
 #tab-plan .g3 { display:grid!important; grid-template-columns:1fr 1fr 1fr!important; gap:12px!important; }
