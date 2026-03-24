@@ -1032,6 +1032,22 @@ main { padding: 12px 10px; }
     <div style="height:460px"><canvas id="type-bar-c"></canvas></div>
   </div>
 
+  <!-- ความเร็วการติดตั้งรายสัปดาห์ -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><div class="chi" style="background:var(--success-l);color:var(--success)">⚡</div>ความเร็วการติดตั้งรายสัปดาห์ — เครื่อง/สัปดาห์
+      <span style="font-size:11px;font-weight:400;color:var(--text2);margin-left:auto">ไล่เฉดสีตามปริมาณ: น้อย→มาก</span>
+    </div>
+    <div style="height:220px"><canvas id="velocity-c"></canvas></div>
+  </div>
+
+  <!-- ผลผลิตรายวัน แยกตามวันในสัปดาห์ -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><div class="chi" style="background:var(--warning-l);color:var(--warning)">📅</div>ผลผลิตรายวัน — แยกตามวันในสัปดาห์
+      <span style="font-size:11px;font-weight:400;color:var(--text2);margin-left:auto">จันทร์–ศุกร์ | ไล่เฉดสีตามปริมาณ</span>
+    </div>
+    <div style="height:220px"><canvas id="weekday-c"></canvas></div>
+  </div>
+
 
   <div class="card" style="margin-bottom:14px"><div class="ch"><div class="chi" style="background:var(--info-l);color:var(--info)">📆</div>อุปกรณ์ที่ติดตั้งตามวันที่</div><div style="height:175px"><canvas id="daily-c"></canvas></div></div>
   <div class="card" style="margin-bottom:14px"><div class="ch"><div class="chi" style="background:var(--warning-l);color:var(--warning)">📈</div>ความคืบหน้าสะสม (Switch / AP / Infra)</div><div style="height:175px"><canvas id="cum-c"></canvas></div></div>
@@ -1134,12 +1150,12 @@ main { padding: 12px 10px; }
 const API = window.location.hostname==='localhost'?'http://localhost:3000':'https://sda-migr-api.onrender.com';
 
 // ── WEEKLY DATA ───────────────────────────────────────────────────────────────
-const WK = ["09 Feb","16 Feb","23 Feb","02 Mar","09 Mar","16 Mar","23 Mar","30 Mar","06 Apr","13 Apr","20 Apr","27 Apr","04 May","11 May","18 May","25 May","01 Jun"];
+const WK = ["09 Feb","16 Feb","23 Feb","02 Mar","09 Mar","16 Mar","23 Mar","30 Mar","06 Apr","13 Apr","20 Apr","27 Apr","04 May","11 May","18 May","25 May","01 Jun","09 Jun","16 Jun","23 Jun"];
 // TODAY_WK: คำนวณจากวันปัจจุบัน GMT+7 นับจาก 9 ก.พ. 2569 (W7=09Feb=index 0)
 const _todayGMT7 = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Bangkok'}));
 const _wkStart   = new Date(2026, 1, 9);
 const _totalDays = Math.floor((_todayGMT7 - _wkStart) / (24*60*60*1000));
-const TODAY_WK   = Math.max(0, Math.min(16, Math.floor(_totalDays / 7)));
+const TODAY_WK   = Math.max(0, Math.min(19, Math.floor(_totalDays / 7)));
 const TODAY_FRAC = (_totalDays % 7) / 7;
 const PLAN_ALL = [3.64, 11.14, 17.99, 20.98, 27.82, 32.19, 49.75, 53.31, 56.95, 59.65, 65.48, 72.25, 79.32, 82.96, 87.04, 92.79, 100.0];
 const ACT_ALL_RAW = [5.83, 13.04, 18.14, 20.98, 27.75, 33.43, null, null, null, null, null, null, null, null, null, null, null];
@@ -1215,13 +1231,13 @@ const TYPE_DATA = [
 const FAB_PLAN_TOTALS = {'D1-041':710,'CFZ':187,'T1-015':327,'D1-091':147,'RFF':99,'AMF':114,'PPW':8};
 
 const FAB_WEEKLY = {
-"D1-041":{sw_plan:[6.3,21.0,21.0,23.9,36.8,51.5,63.2,70.5,79.0,86.6,98.5,98.5,98.5,98.5,98.5,98.5,100.0],sw_act:[6.3,20.5,20.5,23.4,35.9,55.6,55.6,55.6,55.6,55.6,55.6,55.6,55.6,55.6,55.6,55.6,55.6],ap_plan:[0.0,14.8,14.8,14.8,14.8,14.8,75.5,82.1,87.2,87.2,100.0,100.0,100.0,100.0,100.0,100.0,100.0],ap_act:[null,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8,14.8]},
-"CFZ":{sw_plan:[1.3,1.3,46.2,63.5,89.7,89.7,98.7,98.7,98.7,98.7,98.7,98.7,98.7,98.7,98.7,98.7,100.0],sw_act:[1.3,1.3,46.2,63.5,90.4,90.4,90.4,90.4,90.4,90.4,90.4,90.4,90.4,90.4,90.4,90.4,90.4],ap_plan:[0.0,0.0,96.0,96.0,96.0,96.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0,100.0],ap_act:[null,null,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0,96.0]},
-"T1-015":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,17.4,52.0,69.8,90.4,100.0,100.0],sw_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0,100.0,100.0,100.0,100.0,100.0],ap_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},
-"D1-091":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,37.3,97.0],sw_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,100.0],ap_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},
-"RFF":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],sw_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],ap_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},
-"AMF":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],sw_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],ap_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},
-"PPW":{sw_plan:[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],sw_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],ap_plan:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],ap_act:[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},
+"D1-041":{sw_plan:[6.3, 21.0, 21.0, 23.9, 36.8, 51.5, 63.2, 70.5, 79.0, 86.6, 98.5, 98.5, 98.5, 98.5, 98.5, 98.5, 100.0, 100.0, 100.0, 100.0],sw_act:[7.3, 21.0, 21.0, 23.9, 36.3, 55.4, 55.4, null, null, null, null, null, null, null, null, null, null, null, null, null],ap_plan:[0.0, 14.8, 14.8, 14.8, 14.8, 14.8, 75.5, 82.1, 87.2, 87.2, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0],ap_act:[null, 14.8, 14.8, 14.8, 14.8, 14.8, 14.8, null, null, null, null, null, null, null, null, null, null, null, null, null]},
+"CFZ":{sw_plan:[1.3, 1.3, 46.2, 63.5, 89.7, 89.7, 98.7, 98.7, 98.7, 98.7, 98.7, 98.7, 98.7, 98.7, 98.7, 98.7, 100.0, 100.0, 100.0, 100.0],sw_act:[1.3, 1.3, 46.2, 63.5, 90.4, 90.4, 90.4, null, null, null, null, null, null, null, null, null, null, null, null, null],ap_plan:[0.0, 0.0, 96.0, 96.0, 96.0, 96.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0],ap_act:[96.0, 96.0, 96.0, 96.0, 96.0, 96.0, 96.0, null, null, null, null, null, null, null, null, null, null, null, null, null]},
+"T1-015":{sw_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 17.4, 52.0, 69.8, 90.4, 100.0, 100.0, 100.0, 100.0, 100.0],sw_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],ap_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0],ap_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]},
+"D1-091":{sw_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 37.3, 100.0, 100.0, 100.0, 100.0],sw_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],ap_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0],ap_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]},
+"RFF":{sw_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 100.0],sw_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],ap_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0, 100.0],ap_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]},
+"AMF":{sw_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0],sw_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],ap_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0, 100.0],ap_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]},
+"PPW":{sw_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100.0],sw_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],ap_plan:[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],ap_act:[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]}
 };
 
 const FABRICS=[
@@ -1262,13 +1278,22 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
   if (!ctx) return null;
   const existing = Chart.getChart(ctx);
   if (existing) existing.destroy();
+
+  // carry-forward ค่าสุดท้ายของ actual ถึง TODAY_WK
+  // ทำให้เส้นต่อเนื่องถึงวันนี้แทนที่จะหยุดที่สัปดาห์สุดท้ายที่มีข้อมูล
+  let _last = null;
+  const actFull = WK.map((_,i) => {
+    if(i < actData.length && actData[i] !== null) _last = actData[i];
+    return (i <= TODAY_WK) ? _last : null;
+  });
+
   return new Chart(ctx, {
     type:'line',
     data:{
       labels: WK,
       datasets:[
         {label:planLabel||'แผน',data:planData,borderColor:planColor||'#94a3c4',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:planColor||'#94a3c4',tension:0.3,fill:false,spanGaps:false},
-        {label:actLabel||'จริง',data:actData,borderColor:actColor||'#4361ee',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?4:0,pointBackgroundColor:actColor||'#4361ee',tension:0.3,fill:false,spanGaps:false}
+        {label:actLabel||'จริง',data:actFull,borderColor:actColor||'#4361ee',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?4:0,pointBackgroundColor:actColor||'#4361ee',tension:0.3,fill:false,spanGaps:false}
       ]
     },
     options: lineOpts(actColor)
@@ -1363,7 +1388,7 @@ function buildTypeBarChart(){
           const d = sorted[i];
           if(di === 0){
             // plan bar — show total at end
-            ctx.font = '10px Segoe UI';
+            ctx.font = '8px Segoe UI';
             ctx.fillStyle = '#94a3b8';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
@@ -1371,7 +1396,7 @@ function buildTypeBarChart(){
           } else if(di === 1){
             // done bar — show done (pct%)
             const pct = d.plan > 0 ? Math.round(d.done/d.plan*100) : 0;
-            ctx.font = 'bold 10px Segoe UI';
+            ctx.font = 'bold 8px Segoe UI';
             ctx.fillStyle = '#4361ee';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
@@ -1438,12 +1463,192 @@ function buildTypeBarChart(){
   });
 }
 
+
+// ── ความเร็วการติดตั้งรายสัปดาห์ ────────────────────────────────────────────
+function buildVelocityChart(){
+  const cv = document.getElementById('velocity-c');
+  if(!cv) return;
+  const ex = Chart.getChart(cv); if(ex) ex.destroy();
+
+  // คำนวณ SW+AP ติดตั้งต่อสัปดาห์จาก WK (17 สัปดาห์แรก)
+  const wkSW = [30,56,0,12,51,78,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; // from install dates
+  const wkAP = [0,43,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  const wkTot= wkSW.map((v,i)=>v+(wkAP[i]||0));
+
+  // เฉพาะ week ที่มีข้อมูล (ไม่เกิน TODAY_WK+1)
+  const activeWks  = WK.slice(0, TODAY_WK+1);
+  const activeTot  = wkTot.slice(0, TODAY_WK+1);
+
+  // ไล่เฉดสีตามปริมาณ: 0=เทา, น้อย=ฟ้าอ่อน, มาก=น้ำเงินเข้ม
+  const maxV = Math.max(...activeTot, 1);
+  const colors = activeTot.map(v => {
+    if(v === 0) return 'rgba(148,163,196,0.3)';
+    const t = v / maxV;  // 0→1
+    // interpolate: #bfdbfe (light) → #1d4ed8 (dark)
+    const r = Math.round(191 + (29-191)*t);
+    const g = Math.round(219 + (78-219)*t);
+    const b = Math.round(254 + (216-254)*t);
+    return `rgba(${r},${g},${b},0.85)`;
+  });
+  const borders = activeTot.map(v => {
+    if(v===0) return 'rgba(148,163,196,0.5)';
+    const t = v/maxV;
+    const r=Math.round(191+(29-191)*t), g=Math.round(219+(78-219)*t), b=Math.round(254+(216-254)*t);
+    return `rgb(${r},${g},${b})`;
+  });
+
+  // plugin: label บน bar
+  const velLabelPlugin = {
+    id:'velLabels',
+    afterDatasetsDraw(chart){
+      const ctx=chart.ctx;
+      chart.data.datasets[0].data.forEach((v,i)=>{
+        if(!v||v<1) return;
+        const bar=chart.getDatasetMeta(0).data[i];
+        ctx.save();
+        ctx.font='bold 10px Segoe UI';
+        ctx.fillStyle='#1e2d4d';
+        ctx.textAlign='center';
+        ctx.textBaseline='bottom';
+        ctx.fillText(v, bar.x, bar.y-2);
+        ctx.restore();
+      });
+    }
+  };
+
+  new Chart(cv, {
+    type:'bar', plugins:[velLabelPlugin],
+    data:{
+      labels: activeWks,
+      datasets:[{
+        label:'ติดตั้ง (SW+AP)',
+        data: activeTot,
+        backgroundColor: colors,
+        borderColor: borders,
+        borderWidth:1, borderRadius:4,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:20}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>{
+          const i=c.dataIndex;
+          return [` SW: ${wkSW[i]} เครื่อง`, ` AP: ${wkAP[i]} เครื่อง`, ` รวม: ${activeTot[i]} เครื่อง`];
+        }}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
+        y:{grid:{color:'#f0f4ff'},ticks:{font:{size:10}},min:0}
+      }
+    }
+  });
+}
+
+// ── ผลผลิตรายวัน แยกตามวันในสัปดาห์ ────────────────────────────────────────
+function buildWeekdayChart(){
+  const cv = document.getElementById('weekday-c');
+  if(!cv) return;
+  const ex = Chart.getChart(cv); if(ex) ex.destroy();
+
+  // map DAILY_L → วันในสัปดาห์ (0=อา, 1=จ, 2=อ, 3=พ, 4=พฤ, 5=ศ, 6=ส)
+  const dayNames = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+  const dayTH    = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+  const daySums  = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  const dayCounts= {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+
+  DAILY_L.forEach((lbl,i)=>{
+    const tot = (DAILY_SW[i]||0)+(DAILY_AP[i]||0)+(DAILY_INF[i]||0);
+    if(tot===0) return;
+    // parse date from label "9/02" → day/month
+    const parts = lbl.split('/');
+    const d = parseInt(parts[0]), mo = parseInt(parts[1]);
+    const dt = new Date(2026, mo-1, d);
+    const dow = dt.getDay();
+    daySums[dow]  += tot;
+    dayCounts[dow]+= 1;
+  });
+
+  // เฉพาะ จ-ศ (1-5) ที่มีข้อมูล
+  const activeDays  = [1,2,3,4,5].filter(d=>dayCounts[d]>0);
+  const avgVals     = activeDays.map(d=>dayCounts[d]>0?Math.round(daySums[d]/dayCounts[d]*10)/10:0);
+  const totalVals   = activeDays.map(d=>daySums[d]);
+  const labels      = activeDays.map(d=>dayTH[d]);
+
+  // ไล่เฉดสีตามค่าเฉลี่ย: น้อย=เหลืองอ่อน, มาก=ส้มเข้ม
+  const maxA = Math.max(...avgVals, 1);
+  const colors = avgVals.map(v=>{
+    const t = v/maxA;
+    const r=Math.round(254+(234-254)*t*0+254);  // stay warm
+    const ri=Math.round(251+(130-251)*t);
+    const gi=Math.round(191+(51-191)*t);
+    const bi=Math.round(36+(11-36)*t);
+    return `rgba(${ri},${gi},${bi},0.82)`;
+  });
+
+  // plugin: label บน bar (avg + total)
+  const wdLabelPlugin={
+    id:'wdLabels',
+    afterDatasetsDraw(chart){
+      const ctx=chart.ctx;
+      chart.data.datasets[0].data.forEach((v,i)=>{
+        if(!v) return;
+        const bar=chart.getDatasetMeta(0).data[i];
+        ctx.save();
+        ctx.font='bold 10px Segoe UI'; ctx.textAlign='center';
+        ctx.fillStyle='#1e2d4d'; ctx.textBaseline='bottom';
+        ctx.fillText(`${v}`, bar.x, bar.y-2);
+        ctx.font='9px Segoe UI'; ctx.fillStyle='#5a6a8a'; ctx.textBaseline='top';
+        ctx.fillText(`รวม ${totalVals[i]}`, bar.x, bar.y+bar.height+2);
+        ctx.restore();
+      });
+    }
+  };
+
+  new Chart(cv,{
+    type:'bar', plugins:[wdLabelPlugin],
+    data:{
+      labels,
+      datasets:[{
+        label:'เฉลี่ยต่อวัน (SW+AP+Infra)',
+        data: avgVals,
+        backgroundColor: colors,
+        borderColor: colors.map(c=>c.replace('0.82','1')),
+        borderWidth:1, borderRadius:5,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      layout:{padding:{top:20,bottom:20}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:ctx=>`${dayNames[activeDays[ctx[0].dataIndex]]}`,
+          label:ctx=>[
+            ` เฉลี่ย: ${avgVals[ctx.dataIndex]} เครื่อง/วัน`,
+            ` รวม: ${totalVals[ctx.dataIndex]} เครื่อง`,
+            ` จำนวนวัน: ${dayCounts[activeDays[ctx.dataIndex]]} วัน`
+          ]
+        }}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:12},color:'#1e2d4d'}},
+        y:{grid:{color:'#f0f4ff'},ticks:{font:{size:10}},min:0,
+           title:{display:true,text:'เครื่อง/วัน (เฉลี่ย)',font:{size:10},color:'#94a3c4'}}
+      }
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded',()=>{
   buildGauge(); buildBurndown(); buildDonut();
   buildTimeline(); buildHeatmap(); buildLocList(); buildFabCards();
   buildProgressCharts();
   buildFabBreakdown();
   buildTypeBarChart();
+  buildVelocityChart();
+  buildWeekdayChart();
   document.getElementById('update-ts')?.remove?.();
   manualRefresh();
 });
@@ -1569,9 +1774,9 @@ function buildProgressCharts(){
           labels: WK,
           datasets:[
             {label:'Switch แผน',data:fd.sw_plan,borderColor:'#a5b4fc',borderWidth:1.5,borderDash:[5,3],pointRadius:2,pointBackgroundColor:'#a5b4fc',tension:0.3,fill:false,spanGaps:false},
-            {label:'Switch จริง',data:fd.sw_act,borderColor:'#4361ee',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?3:0,pointBackgroundColor:'#4361ee',tension:0.3,fill:false,spanGaps:false},
+            {label:'Switch จริง',data:(()=>{let l=null;return WK.map((_,i)=>{if(i<fd.sw_act.length&&fd.sw_act[i]!==null)l=fd.sw_act[i];return i<=TODAY_WK?l:null;});})(),borderColor:'#4361ee',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?3:0,pointBackgroundColor:'#4361ee',tension:0.3,fill:false,spanGaps:false},
             {label:'AP แผน',data:fd.ap_plan,borderColor:'#6ee7b7',borderWidth:1.5,borderDash:[5,3],pointRadius:2,pointBackgroundColor:'#6ee7b7',tension:0.3,fill:false,spanGaps:false},
-            {label:'AP จริง',data:fd.ap_act,borderColor:'#2bc48a',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?3:0,pointBackgroundColor:'#2bc48a',tension:0.3,fill:false,spanGaps:false},
+            {label:'AP จริง',data:(()=>{let l=null;return WK.map((_,i)=>{if(i<fd.ap_act.length&&fd.ap_act[i]!==null)l=fd.ap_act[i];return i<=TODAY_WK?l:null;});})(),borderColor:'#2bc48a',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?3:0,pointBackgroundColor:'#2bc48a',tension:0.3,fill:false,spanGaps:false},
           ]
         },
         options:{
