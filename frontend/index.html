@@ -1174,12 +1174,12 @@ const PLAN_ALL = [3.14, 9.61, 15.52, 18.09, 23.99, 27.76, 42.9, 45.98, 49.12, 51
 const ACT_ALL_RAW = [5.03, 11.24, 15.64, 18.09, 23.93, 28.83, null, null, null, null, null, null, null, null, null, null, null];
 // carry-forward ACT_ALL ถึง TODAY_WK
 const ACT_ALL = (()=>{let _l=null;return WK.map((_,i)=>{if(i<ACT_ALL_RAW.length&&ACT_ALL_RAW[i]!==null)_l=ACT_ALL_RAW[i];return i<=TODAY_WK?_l:null;});})();
-const PLAN_SW  = [2.5, 7.85, 14.09, 17.57, 25.96, 31.31, 36.84, 39.52, 42.64, 45.41, 49.78, 54.15, 62.8, 67.26, 72.44, 79.3, 87.15];
-const ACT_SW_RAW = [2.85, 7.85, 14.09, 17.57, 25.87, 32.83, null, null, null, null, null, null, null, null, null, null, null];
+const PLAN_SW  = [2.5, 7.85, 14.09, 17.57, 25.96, 31.31, 36.84, 39.52, 42.64, 45.41, 49.78, 54.15, 62.8, 67.26, 72.44, 79.3, 87.51, 93.31, 99.46, 100.0];
+const ACT_SW_RAW = [2.85, 7.85, 14.09, 17.57, 25.87, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83, 32.83];
 // carry-forward ACT_SW ถึง TODAY_WK
 const ACT_SW = (()=>{let _l=null;return WK.map((_,i)=>{if(i<ACT_SW_RAW.length&&ACT_SW_RAW[i]!==null)_l=ACT_SW_RAW[i];return i<=TODAY_WK?_l:null;});})();
-const PLAN_AP  = [0.0, 9.66, 15.06, 15.06, 15.06, 15.06, 54.83, 59.1, 62.47, 62.47, 70.79, 80.67, 80.67, 80.67, 80.67, 80.67, 83.15];
-const ACT_AP_RAW = [5.39, 15.06, 15.06, 15.06, 15.06, 15.06, null, null, null, null, null, null, null, null, null, null, null];
+const PLAN_AP  = [0.0, 9.66, 15.06, 15.06, 15.06, 15.06, 54.83, 59.1, 62.47, 62.47, 70.79, 80.67, 80.67, 80.67, 80.67, 80.67, 83.15, 90.34, 100.0, 100.0];
+const ACT_AP_RAW = [5.39, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06];
 // carry-forward ACT_AP ถึง TODAY_WK
 const ACT_AP = (()=>{let _l=null;return WK.map((_,i)=>{if(i<ACT_AP_RAW.length&&ACT_AP_RAW[i]!==null)_l=ACT_AP_RAW[i];return i<=TODAY_WK?_l:null;});})();
 const BD_PLAN  = [1542, 1439, 1345, 1304, 1210, 1150, 909, 860, 810, 779, 693, 600, 503, 453, 395, 318, 219];
@@ -1295,16 +1295,49 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
   const existing = Chart.getChart(ctx);
   if (existing) existing.destroy();
 
-  // carry-forward ค่าสุดท้ายของ actual ถึง TODAY_WK
-  // ทำให้เส้นต่อเนื่องถึงวันนี้แทนที่จะหยุดที่สัปดาห์สุดท้ายที่มีข้อมูล
   let _last = null;
   const actFull = WK.map((_,i) => {
     if(i < actData.length && actData[i] !== null) _last = actData[i];
     return (i <= TODAY_WK) ? _last : null;
   });
 
+  // today line plugin
+  const _tdPlg={id:'td_'+canvasId,afterDraw(chart){
+    const m=chart.getDatasetMeta(0);
+    if(!m.data[TODAY_WK]) return;
+    const {top,bottom}=chart.chartArea;
+    const x0=m.data[TODAY_WK].x,x1=m.data[TODAY_WK+1]?m.data[TODAY_WK+1].x:x0;
+    const x=x0+(x1-x0)*TODAY_FRAC;
+    const cv=chart.ctx; cv.save();
+    cv.beginPath();cv.moveTo(x,top);cv.lineTo(x,bottom);
+    cv.strokeStyle='#ee4b4b';cv.lineWidth=1.2;cv.setLineDash([4,3]);cv.stroke();
+    cv.setLineDash([]);cv.restore();
+  }};
+
+  // datalabels plugin
+  const _lblPlg={id:'lbl_'+canvasId,afterDatasetsDraw(chart){
+    const ctx2=chart.ctx;
+    chart.data.datasets.forEach((ds,di)=>{
+      const meta=chart.getDatasetMeta(di); if(meta.hidden) return;
+      const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
+      meta.data.forEach((pt,i)=>{
+        const v=ds.data[i]; if(v==null) return;
+        if(i!==lastIdx && i%3!==0) return;  // แสดงทุก 3 จุด + จุดสุดท้าย
+        const isPlan=di===0;
+        ctx2.save();
+        ctx2.font=isPlan?'9px Segoe UI':'bold 9px Segoe UI';
+        ctx2.fillStyle=isPlan?'#94a3b8':(actColor||'#4361ee');
+        ctx2.textAlign='center';
+        ctx2.textBaseline=isPlan?'bottom':'top';
+        ctx2.fillText(v.toFixed(1)+'%', pt.x, isPlan?pt.y-4:pt.y+4);
+        ctx2.restore();
+      });
+    });
+  }};
+
   return new Chart(ctx, {
     type:'line',
+    plugins:[_tdPlg,_lblPlg],
     data:{
       labels: WK,
       datasets:[
@@ -1312,7 +1345,7 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
         {label:actLabel||'จริง',data:actFull,borderColor:actColor||'#4361ee',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?4:0,pointBackgroundColor:actColor||'#4361ee',tension:0.3,fill:false,spanGaps:false}
       ]
     },
-    options: lineOpts(actColor)
+    options:{...lineOpts(actColor),layout:{padding:{top:18,bottom:12}}}
   });
 }
 
