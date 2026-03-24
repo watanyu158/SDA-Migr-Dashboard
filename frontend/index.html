@@ -1003,12 +1003,24 @@ main { padding: 12px 10px; }
   <!-- SW + AP: เล็กคู่กัน -->
   <div class="g2" style="margin-bottom:14px">
     <div class="card">
-      <div class="ch"><div class="chi" style="background:#eef1ff;color:#4361ee">🔀</div>Switch รวม — แผน vs จริง (%)</div>
+      <div class="ch">
+        <div class="chi" style="background:#eef1ff;color:#4361ee">🔀</div>Switch รวม — แผน vs จริง (%)
+        <div style="display:flex;gap:10px;margin-left:auto;font-size:11px;font-weight:400">
+          <span id="prog-sw-plan-lbl" style="color:var(--text3)">แผน: –%</span>
+          <span id="prog-sw-act-lbl" style="color:#4361ee;font-weight:600">จริง: –%</span>
+        </div>
+      </div>
       <div style="height:180px"><canvas id="prog-sw-c"></canvas></div>
       <div class="cleg"><div class="cl"><div class="cld" style="border-color:#a5b4fc"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#4361ee"></div>จริง (%)</div></div>
     </div>
     <div class="card">
-      <div class="ch"><div class="chi" style="background:var(--success-l);color:var(--success)">📶</div>AP รวม — แผน vs จริง (%)</div>
+      <div class="ch">
+        <div class="chi" style="background:var(--success-l);color:var(--success)">📶</div>AP รวม — แผน vs จริง (%)
+        <div style="display:flex;gap:10px;margin-left:auto;font-size:11px;font-weight:400">
+          <span id="prog-ap-plan-lbl" style="color:var(--text3)">แผน: –%</span>
+          <span id="prog-ap-act-lbl" style="color:var(--success);font-weight:600">จริง: –%</span>
+        </div>
+      </div>
       <div style="height:180px"><canvas id="prog-ap-c"></canvas></div>
       <div class="cleg"><div class="cl"><div class="cld" style="border-color:#6ee7b7"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#2bc48a"></div>จริง (%)</div></div>
     </div>
@@ -1335,7 +1347,7 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
     });
   }};
 
-  return new Chart(ctx, {
+  const _ch = new Chart(ctx, {
     type:'line',
     plugins:[_tdPlg,_lblPlg],
     data:{
@@ -1347,6 +1359,17 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
     },
     options:{...lineOpts(actColor),layout:{padding:{top:18,bottom:12}}}
   });
+
+  // อัพเดท header label (plan=TODAY_WK, act=carry-forward ถึง TODAY_WK)
+  const _planNow = planData[Math.min(TODAY_WK, planData.length-1)];
+  const _actNow  = actFull[TODAY_WK];
+  const _base    = canvasId.replace('-c','').replace('prog-','');  // 'sw', 'ap'
+  const _pEl = document.getElementById('prog-'+_base+'-plan-lbl');
+  const _aEl = document.getElementById('prog-'+_base+'-act-lbl');
+  if(_pEl && _planNow != null) _pEl.textContent = 'แผน: '+_planNow.toFixed(1)+'%';
+  if(_aEl && _actNow  != null) _aEl.textContent = 'จริง: '+_actNow.toFixed(1)+'%';
+
+  return _ch;
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
@@ -1833,7 +1856,7 @@ function buildProgressCharts(){
           const isPlan=di===0;
           // แสดงเฉพาะทุก 2 จุด หรือจุดสุดท้ายที่มีข้อมูล
           const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
-          if(i!==lastIdx && i%2!==0) return;
+          if(i!==lastIdx && i%3!==0) return;
           ctx.save();
           ctx.font=isPlan?'9px Segoe UI':'bold 10px Segoe UI';
           ctx.fillStyle=isPlan?'#94a3c4':'#4361ee';
