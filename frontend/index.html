@@ -1182,8 +1182,8 @@ const _wkStart   = new Date(2026, 1, 9);
 const _totalDays = Math.floor((_todayGMT7 - _wkStart) / (24*60*60*1000));
 const TODAY_WK   = Math.max(0, Math.min(19, Math.floor(_totalDays / 7)));
 const TODAY_FRAC = (_totalDays % 7) / 7;
-const PLAN_ALL = [3.14, 9.61, 15.52, 18.09, 23.99, 27.76, 42.9, 45.98, 49.12, 51.07, 56.47, 62.31, 68.4, 71.55, 75.19, 80.03, 86.24];
-const ACT_ALL_RAW = [5.03, 11.24, 15.64, 18.09, 23.93, 28.83, null, null, null, null, null, null, null, null, null, null, null];
+const PLAN_ALL = [3.14, 9.61, 15.52, 18.09, 23.99, 27.76, 42.9, 45.98, 49.12, 51.07, 56.47, 62.31, 68.4, 71.55, 75.19, 80.03, 86.49, 92.59, 99.62, 100.0];
+const ACT_ALL_RAW = [5.03, 11.24, 15.64, 18.09, 23.93, 28.83, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 // carry-forward ACT_ALL ถึง TODAY_WK
 const ACT_ALL = (()=>{let _l=null;return WK.map((_,i)=>{if(i<ACT_ALL_RAW.length&&ACT_ALL_RAW[i]!==null)_l=ACT_ALL_RAW[i];return i<=TODAY_WK?_l:null;});})();
 const PLAN_SW  = [2.5, 7.85, 14.09, 17.57, 25.96, 31.31, 36.84, 39.52, 42.64, 45.41, 49.78, 54.15, 62.8, 67.26, 72.44, 79.3, 87.51, 93.31, 99.46, 100.0];
@@ -1194,8 +1194,8 @@ const PLAN_AP  = [0.0, 9.66, 15.06, 15.06, 15.06, 15.06, 54.83, 59.1, 62.47, 62.
 const ACT_AP_RAW = [5.39, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06, 15.06];
 // carry-forward ACT_AP ถึง TODAY_WK
 const ACT_AP = (()=>{let _l=null;return WK.map((_,i)=>{if(i<ACT_AP_RAW.length&&ACT_AP_RAW[i]!==null)_l=ACT_AP_RAW[i];return i<=TODAY_WK?_l:null;});})();
-const BD_PLAN  = [1542, 1439, 1345, 1304, 1210, 1150, 909, 860, 810, 779, 693, 600, 503, 453, 395, 318, 219];
-const BD_ACT   = [1512, 1413, 1343, 1304, 1211, 1133, null, null, null, null, null, null, null, null, null, null, null];
+const BD_PLAN  = [1542, 1439, 1339, 1298, 1202, 1142, 903, 854, 804, 773, 687, 594, 497, 447, 389, 312, 207, 80, 12, 0];
+const BD_ACT   = [1512, 1413, 1343, 1304, 1211, 1133, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
 const CUM_D=[1, 80, 86, 122, 149, 173, 179, 193, 207, 224, 237, 249, 273, 276, 288, 301, 312, 326, 334, 339, 381, 410, 425, 443, 459];
 const CUM_SW=[1, 32, 38, 59, 70, 82, 88, 102, 116, 133, 146, 158, 182, 185, 197, 210, 221, 235, 243, 248, 290, 319, 334, 352, 368];
 const CUM_AP=[0, 24, 24, 39, 55, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67, 67];
