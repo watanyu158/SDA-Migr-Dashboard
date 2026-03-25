@@ -1635,89 +1635,74 @@ function buildFabGap(){
   if(!cv) return;
   const ex=Chart.getChart(cv); if(ex) ex.destroy();
 
-  // อัพเดท title
+  const wkIdx=Math.max(0,TODAY_WK-1);
+  const WK_BOUNDS_ARR=[
+    ['2026-02-09','2026-02-15'],['2026-02-16','2026-02-22'],['2026-02-23','2026-03-01'],
+    ['2026-03-02','2026-03-08'],['2026-03-09','2026-03-15'],['2026-03-16','2026-03-22'],
+    ['2026-03-23','2026-03-29'],['2026-03-30','2026-04-05'],['2026-04-06','2026-04-12'],
+    ['2026-04-13','2026-04-19'],['2026-04-20','2026-04-26'],['2026-04-27','2026-05-03'],
+    ['2026-05-04','2026-05-10'],['2026-05-11','2026-05-17'],['2026-05-18','2026-05-24'],
+    ['2026-05-25','2026-05-31'],['2026-06-01','2026-06-08'],['2026-06-09','2026-06-15'],
+    ['2026-06-16','2026-06-22'],['2026-06-23','2026-06-29'],
+  ];
+  const [wkS,wkE]=WK_BOUNDS_ARR[wkIdx]||WK_BOUNDS_ARR[0];
+  const wkStart=new Date(wkS+'T00:00:00'), wkEnd=new Date(wkE+'T00:00:00');
+  const fmtD=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
   const titleEl=document.getElementById('fab-gap-title');
-  if(titleEl) titleEl.textContent='แผน vs จริง ณ ปัจจุบัน';
+  if(titleEl) titleEl.textContent=`W${wkIdx+7}: ${fmtD(wkStart)} – ${fmtD(wkEnd)}`;
 
-  // plan % ณ วันนี้ = sum FAB_DAILY_PLAN ที่ date <= today / FAB_PLAN_TOTALS
-  const todayDT=new Date(); todayDT.setHours(0,0,0,0);
-
-  const rows=FABRICS.map(f=>{
-    const actPct=Math.round(f.p*10)/10;
-    let planCum=0;
-    const planTotal=FAB_PLAN_TOTALS[f.n]||f.t||1;
-    if(FAB_DAILY_PLAN[f.n]){
-      DAILY_L.forEach((lbl,di)=>{
-        const [day,mo]=lbl.split('/').map(Number);
-        const dt=new Date(2026,mo-1,day); dt.setHours(0,0,0,0);
-        if(dt<=todayDT) planCum+=(FAB_DAILY_PLAN[f.n][di]||0);
-      });
-    }
-    const planPct=Math.round(planCum/planTotal*1000)/10;
-    const gap=Math.round((actPct-planPct)*10)/10;
-    return {n:f.n, c:f.c, actPct, planPct, gap};
+  const fabWkData=FABRICS.map(f=>{
+    let tot=0;
+    DAILY_L.forEach((lbl,di)=>{
+      const [day,mo]=lbl.split('/').map(Number);
+      const dt=new Date(2026,mo-1,day);
+      if(dt>=wkStart&&dt<=wkEnd) tot+=(FAB_DAILY[f.n]&&FAB_DAILY[f.n][di])||0;
+    });
+    return {n:f.n, c:f.c, tot, t:f.t, d:f.d};
   });
+  const sorted=fabWkData.filter(f=>f.tot>0).sort((a,b)=>b.tot-a.tot);
+  const totalWk=sorted.reduce((s,f)=>s+f.tot,0);
 
-  const fabGapPlugin={
-    id:'fabGapLbl',
-    afterDatasetsDraw(chart){
-      const ctx2=chart.ctx;
-      // วาด label ด้านขวาของ actual bar
-      chart.getDatasetMeta(0).data.forEach((bar,i)=>{
-        const row=rows[i];
-        const isAhead=row.gap>=0;
-        const gapStr=(isAhead?'+':'')+row.gap+'%';
-        ctx2.save();
-        // actual %
-        ctx2.font='bold 10px Segoe UI';
-        ctx2.textAlign='left'; ctx2.textBaseline='middle';
-        ctx2.fillStyle='#1e2d4d';
-        ctx2.fillText(row.actPct+'%', bar.x+5, bar.y-6);
-        // แผน → ±gap%
-        ctx2.font='9px Segoe UI';
-        ctx2.fillStyle=isAhead?'#16a34a':'#dc2626';
-        ctx2.fillText(`แผน ${row.planPct}% → ${gapStr}`, bar.x+5, bar.y+5);
-        ctx2.restore();
-      });
-    }
-  };
+  const fabLabelPlugin={id:'fabWkLbl',afterDatasetsDraw(chart){
+    const ctx2=chart.ctx;
+    chart.getDatasetMeta(0).data.forEach((bar,i)=>{
+      const f=sorted[i]; if(!f||!f.tot) return;
+      const actPct=Math.round(f.d/Math.max(f.t,1)*100);
+      ctx2.save();
+      ctx2.font='bold 10px Segoe UI'; ctx2.textAlign='left';
+      ctx2.textBaseline='middle'; ctx2.fillStyle='#1e2d4d';
+      ctx2.fillText(`${f.tot} เครื่อง`, bar.x+5, bar.y-5);
+      ctx2.font='9px Segoe UI'; ctx2.fillStyle='#64748b';
+      ctx2.fillText(`รวม ${actPct}%`, bar.x+5, bar.y+5);
+      ctx2.restore();
+    });
+  }};
 
   new Chart(cv,{
-    type:'bar', plugins:[fabGapPlugin],
+    type:'bar', plugins:[fabLabelPlugin],
     data:{
-      labels:rows.map(r=>r.n),
-      datasets:[
-        {label:'จริง %', data:rows.map(r=>r.actPct),
-         backgroundColor:rows.map(r=>r.c+'cc'), borderColor:rows.map(r=>r.c),
-         borderWidth:1.5, borderRadius:3, barPercentage:0.5},
-        {label:'แผน %', data:rows.map(r=>r.planPct),
-         backgroundColor:'rgba(148,163,196,0.15)', borderColor:'rgba(148,163,196,0.6)',
-         borderWidth:1.5, borderRadius:3, barPercentage:0.5},
-      ]
+      labels:sorted.map(f=>f.n),
+      datasets:[{label:'ติดตั้งสัปดาห์นี้',
+        data:sorted.map(f=>f.tot),
+        backgroundColor:sorted.map(f=>f.c+'cc'),
+        borderColor:sorted.map(f=>f.c),
+        borderWidth:1.5, borderRadius:4}]
     },
-    options:{
-      indexAxis:'y',
-      responsive:true, maintainAspectRatio:false,
-      layout:{padding:{right:150, top:4, bottom:4}},
-      plugins:{
-        legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:10}},
-        tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,callbacks:{
-          title:ctx=>`${rows[ctx[0].dataIndex].n}`,
-          label:ctx=>{
-            const r=rows[ctx[0].dataIndex];
-            const isAhead=r.gap>=0;
-            return [
-              ` จริง: ${r.actPct}%`,
-              ` แผน: ${r.planPct}%`,
-              ` ${isAhead?'✅ เร็วกว่า':'⚠ ช้ากว่า'}: ${Math.abs(r.gap)}%`
-            ];
+    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      layout:{padding:{right:110,top:4}},
+      plugins:{legend:{display:false},
+        tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,
+          callbacks:{title:ctx=>`${sorted[ctx[0].dataIndex].n}`,
+            label:ctx=>{const f=sorted[ctx[0].dataIndex];
+              const pct=totalWk>0?Math.round(f.tot/totalWk*100):0;
+              const actPct=Math.round(f.d/Math.max(f.t,1)*100);
+              return [` สัปดาห์นี้: ${f.tot} เครื่อง (${pct}%)`,` รวม: ${f.d}/${f.t} = ${actPct}%`];
+            }
           }
-        }}
+        }
       },
-      scales:{
-        x:{max:100, ticks:{callback:v=>v+'%',font:{size:10}}, grid:{color:'#f0f4ff'}, min:0},
-        y:{ticks:{font:{size:11},color:'#1e2d4d'}, grid:{display:false}}
-      }
+      scales:{x:{ticks:{font:{size:10}},grid:{color:'#f0f4ff'},min:0},
+        y:{ticks:{font:{size:11},color:'#1e2d4d'},grid:{display:false}}}
     }
   });
 }
@@ -1898,7 +1883,6 @@ function buildDonut(){
 
 function buildTimeline(){
   const w=document.getElementById('tl-wrap');
-  // Today's position: days elapsed / total project days (133)
   const _projStart=new Date(2026,1,10);
   const _projEnd=new Date(2026,5,23);
   const _projDays=Math.round((_projEnd-_projStart)/(24*60*60*1000));
@@ -1906,9 +1890,57 @@ function buildTimeline(){
   const tdp=Math.max(0,Math.min(100,Math.round(_elapsed/_projDays*100)));
   const _todayLabel=_todayGMT7.getDate()+'/'+(String(_todayGMT7.getMonth()+1).padStart(2,'0'));
   const _fabLen=FABRICS.length;
-w.innerHTML=FABRICS.map((f,_fi)=>{const p=Math.round(f.p),bg=p>=80?'#ecfdf5;color:#065f46':p>=30?'#fff5e6;color:#92400e':'#eef1ff;color:var(--primary)';return `<div class="tlr"><div class="tlt"><div class="tln">${f.n}</div><div style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2)"><span>${f.d}/${f.t}</span><span class="tlpct" style="background:${bg}">${p}%</span></div></div><div class="tltrack"><div style="display:flex;height:100%"><div class="tlfill" style="width:${p}%;background:${f.c}">${p>10?p+'%':''}</div><div style="flex:1;background:#eef1ff"></div></div><div class="tltd" style="left:${tdp}%;background:var(--danger)">
+
+  // plan % ณ วันนี้ per Fabric จาก FAB_DAILY_PLAN
+  const todayDT=new Date(); todayDT.setHours(0,0,0,0);
+  const planPcts={};
+  FABRICS.forEach(f=>{
+    let planCum=0;
+    const planTotal=FAB_PLAN_TOTALS[f.n]||f.t||1;
+    if(FAB_DAILY_PLAN[f.n]){
+      DAILY_L.forEach((lbl,di)=>{
+        const [day,mo]=lbl.split('/').map(Number);
+        const dt=new Date(2026,mo-1,day); dt.setHours(0,0,0,0);
+        if(dt<=todayDT) planCum+=(FAB_DAILY_PLAN[f.n][di]||0);
+      });
+    }
+    planPcts[f.n]=Math.round(planCum/planTotal*100);
+  });
+
+  w.innerHTML=FABRICS.map((f,_fi)=>{
+    const p=Math.round(f.p);
+    const pp=planPcts[f.n]||0;
+    const gap=p-pp;
+    const gapStr=(gap>=0?'+':'')+gap+'%';
+    const gapColor=gap>=0?'#16a34a':'#dc2626';
+    const bg=p>=80?'#ecfdf5;color:#065f46':p>=30?'#fff5e6;color:#92400e':'#eef1ff;color:var(--primary)';
+
+    return `<div class="tlr">
+      <div class="tlt">
+        <div class="tln">${f.n}</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;flex-wrap:wrap">
+          <span style="color:var(--text2)">${f.d}/${f.t}</span>
+          <span class="tlpct" style="background:${bg}">${p}%</span>
+          <span style="font-size:10px;font-weight:700;color:${gapColor}">(แผน${pp}% ${gapStr})</span>
+        </div>
+      </div>
+      <div class="tltrack">
+        <div style="position:relative;height:100%">
+          <!-- plan bar (เทา) -->
+          <div style="position:absolute;top:0;left:0;width:${pp}%;height:100%;background:rgba(148,163,196,0.25);border-right:2px dashed rgba(148,163,196,0.8)"></div>
+          <!-- actual bar (สี Fabric) -->
+          <div style="position:absolute;top:0;left:0;width:${p}%;height:100%;background:${f.c};display:flex;align-items:center;justify-content:flex-end">
+            ${p>8?`<span style="font-size:10px;font-weight:700;color:#fff;padding-right:4px">${p}%</span>`:''}
+          </div>
+          <!-- remaining -->
+          <div style="position:absolute;top:0;left:${p}%;right:0;height:100%;background:#eef1ff"></div>
+        </div>
+        <div class="tltd" style="left:${tdp}%;background:var(--danger)">
           ${_fi===_fabLen-1?`<span style="position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);background:var(--danger);color:#fff;font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;white-space:nowrap;pointer-events:none">${_todayLabel}</span>`:""}
-        </div></div></div>`;}).join('');
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function buildHeatmap(){
