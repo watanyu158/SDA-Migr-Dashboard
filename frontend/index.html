@@ -208,13 +208,13 @@ tr:hover td{background:#f8faff}
 .fgh{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--primary-l);border-radius:var(--rsm);cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);border:1px solid #c7d2fe;user-select:none}
 .fgb{display:none;margin-top:3px;background:#fff;border-radius:var(--rsm);border:1px solid var(--border);overflow:hidden}
 .fgb.open{display:block}
-.locrow{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--border);gap:10px;transition:.15s}
+.locrow{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);gap:10px;transition:.2s;border-radius:6px;margin:2px 4px}
 .locrow:last-child{border-bottom:none}
 .locrow:hover{background:#f8faff}
-.locname{font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.locname{font-size:14px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
 .loci{text-align:right;flex-shrink:0}
-.locc{font-size:11px;color:var(--text2)}
-.locbar{width:75px;height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin:3px 0 0 auto}
+.locc{font-size:12px;font-weight:700;color:var(--text)}
+.locbar{width:90px;height:7px;background:var(--border);border-radius:99px;overflow:hidden;margin:4px 0 0 auto}
 .locfill{height:100%;border-radius:99px}
 
 /* PLAN */
@@ -2272,9 +2272,57 @@ function buildLocList(){
   const w=document.getElementById('loc-list');
   w.innerHTML=Object.entries(LOC_DATA).map(([fab,locs])=>{
     const f=FABRICS.find(x=>x.n===fab)||{c:'var(--primary)'};
-    const td=locs.reduce((a,l)=>a+l.d,0),tt=locs.reduce((a,l)=>a+l.t,0),tp=tt>0?Math.round(td/tt*100):0;
-    const _pageBreak=['T1-015','AMF'].includes(fab)?'page-break-before:always;break-before:page;':'';
-    return `<div class="fg" style="${_pageBreak}"><div class="fgh" onclick="togFab(this)"><div style="display:flex;align-items:center;gap:7px"><div style="width:9px;height:9px;border-radius:50%;background:${f.c}"></div>${fab}</div><div style="display:flex;align-items:center;gap:7px;font-size:12px"><span style="color:var(--text2)">${td}/${tt} (${tp}%)</span><span>›</span></div></div><div class="fgb">${locs.map(l=>{const pc=Math.min(l.p,100),bc=pc>=80?'var(--success)':pc>=30?'var(--warning)':'var(--danger)';return `<div class="locrow"><div style="display:flex;align-items:center;gap:5px;flex:1;min-width:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="${f.c}" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span class="locname">${l.l}</span></div><div class="loci"><div class="locc">${l.d}/${l.t} (${pc}%)</div><div class="locbar"><div class="locfill" style="width:${pc}%;background:${bc}"></div></div></div></div>`;}).join('')}</div></div>`;
+    const td=locs.reduce((a,l)=>a+l.d,0), tt=locs.reduce((a,l)=>a+l.t,0);
+    const tp=tt>0?Math.round(td/tt*100):0;
+    const _pb=['T1-015','AMF'].includes(fab)?'page-break-before:always;break-before:page;':'';
+
+    const sorted=[...locs].sort((a,b)=>{
+      const pa=Math.min(a.p,100), pb=Math.min(b.p,100);
+      if(pa===100&&pb!==100) return -1;
+      if(pb===100&&pa!==100) return 1;
+      return pb-pa;
+    });
+
+    const rows=sorted.map(l=>{
+      const pc=Math.min(l.p,100);
+      const done=(pc>=100);
+      const bc=done?'#22c55e':pc>=80?'var(--success)':pc>=30?'var(--warning)':'var(--danger)';
+      const pctC=done?'#16a34a':pc>=80?'var(--success)':pc>=30?'var(--warning)':'var(--danger)';
+      const rowBg=done?'background:#f0fdf4;border-left:3px solid #22c55e;':'border-left:3px solid transparent;';
+      const badge=done?'<span style="font-size:10px;font-weight:700;background:#bbf7d0;color:#166534;padding:1px 7px;border-radius:99px;margin-left:6px;flex-shrink:0">✓ 100%</span>':'';
+      return '<div class="locrow" style="'+rowBg+'">'
+        +'<div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">'
+          +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+(done?'#22c55e':f.c)+'" stroke-width="2.5">'
+            +'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>'
+            +'<circle cx="12" cy="10" r="3"/>'
+          +'</svg>'
+          +'<span class="locname" style="'+(done?'color:#166534;':'')+'">'+l.l+'</span>'
+          +badge
+        +'</div>'
+        +'<div class="loci">'
+          +'<div class="locc">'
+            +'<span style="font-weight:700;color:var(--text)">'+l.d+'/'+l.t+'</span>'
+            +' <span style="font-weight:800;color:'+pctC+'">('+pc+'%)</span>'
+          +'</div>'
+          +'<div class="locbar"><div class="locfill" style="width:'+pc+'%;background:'+bc+'"></div></div>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+
+    return '<div class="fg" style="'+_pb+'">'
+      +'<div class="fgh" onclick="togFab(this)">'
+        +'<div style="display:flex;align-items:center;gap:7px">'
+          +'<div style="width:10px;height:10px;border-radius:50%;background:'+f.c+'"></div>'
+          +'<span style="font-size:14px;font-weight:700">'+fab+'</span>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:7px">'
+          +'<span style="font-size:12px;color:var(--text2);font-weight:600">'+td+'/'+tt+'</span>'
+          +'<span style="font-size:13px;font-weight:800;color:'+(tp>=80?'var(--success)':tp>=30?'var(--warning)':'var(--danger)')+'">'+tp+'%</span>'
+          +'<span>›</span>'
+        +'</div>'
+      +'</div>'
+      +'<div class="fgb">'+rows+'</div>'
+    +'</div>';
   }).join('');
 }
 
