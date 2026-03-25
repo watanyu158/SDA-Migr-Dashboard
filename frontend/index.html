@@ -1077,7 +1077,7 @@ main { padding: 12px 10px; }
   <div class="card" style="margin-bottom:14px"><div class="ch"><div class="chi" style="background:var(--info-l);color:var(--info)">📆</div>อุปกรณ์ที่ติดตั้งตามวันที่</div><div style="height:175px"><canvas id="daily-c"></canvas></div></div>
   <div class="card" style="margin-bottom:14px"><div class="ch"><div class="chi" style="background:var(--warning-l);color:var(--warning)">📈</div>ความคืบหน้าสะสม (Switch / AP / Infra)</div><div style="height:175px"><canvas id="cum-c"></canvas></div></div>
   <div class="g2">
-    <div class="card"><div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">📊</div>Fabric รายสัปดาห์ — <span id="fab-gap-title">สัปดาห์ที่ผ่านมา</span></div><div style="height:210px"><canvas id="fab-gap-c"></canvas></div></div>
+    <div class="card"><div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">📊</div>Fabric Progress Gap — <span id="fab-gap-title" style="color:var(--text2);font-weight:400;font-size:11px">แผน vs จริง ณ ปัจจุบัน</span></div><div style="height:230px"><canvas id="fab-gap-c"></canvas></div></div>
     <div class="card"><div class="ch"><div class="chi" style="background:var(--success-l);color:var(--success)">📅</div>ผลต่อวัน (แต่ละวันในสัปดาห์)</div><div id="wd-cells" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px"></div></div>
   </div>
 
@@ -1635,84 +1635,106 @@ function buildFabGap(){
   if(!cv) return;
   const ex=Chart.getChart(cv); if(ex) ex.destroy();
 
-  const wkIdx=Math.max(0,TODAY_WK-1);
-  const WK_BOUNDS_ARR=[
-    ['2026-02-09','2026-02-15'],['2026-02-16','2026-02-22'],['2026-02-23','2026-03-01'],
-    ['2026-03-02','2026-03-08'],['2026-03-09','2026-03-15'],['2026-03-16','2026-03-22'],
-    ['2026-03-23','2026-03-29'],['2026-03-30','2026-04-05'],['2026-04-06','2026-04-12'],
-    ['2026-04-13','2026-04-19'],['2026-04-20','2026-04-26'],['2026-04-27','2026-05-03'],
-    ['2026-05-04','2026-05-10'],['2026-05-11','2026-05-17'],['2026-05-18','2026-05-24'],
-    ['2026-05-25','2026-05-31'],['2026-06-01','2026-06-08'],['2026-06-09','2026-06-15'],
-    ['2026-06-16','2026-06-22'],['2026-06-23','2026-06-29'],
-  ];
-  const [wkS,wkE]=WK_BOUNDS_ARR[wkIdx]||WK_BOUNDS_ARR[0];
-  const wkStart=new Date(wkS+'T00:00:00'), wkEnd=new Date(wkE+'T00:00:00');
-  const fmtD=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  // คำนวณ plan % ณ วันนี้ = sum qty ที่ scheduled_date <= today / total
+  // ใช้ FAB_DAILY_PLAN ซึ่ง backend คำนวณมาแล้ว
+  // plan_by_today = sum DAILY ที่ผ่านมาแล้ว (index <= today)
+  // หา today index ใน DAILY_L
+  const todayDT=new Date(); todayDT.setHours(0,0,0,0);
+  const fmtD2=d=>`${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  const todayKey=fmtD2(todayDT);
 
-  // อัพเดท title
-  const titleEl=document.getElementById('fab-gap-title');
-  if(titleEl) titleEl.textContent=`W${wkIdx+7}: ${fmtD(wkStart)} – ${fmtD(wkEnd)}`;
+  const labels=[], actVals=[], planVals=[], colors=[];
 
-  // รวมจำนวนติดตั้งแต่ละ Fabric ในสัปดาห์นี้
-  const fabWkTotals=FABRICS.map(f=>{
-    let tot=0;
-    DAILY_L.forEach((lbl,di)=>{
-      const [day,mo]=lbl.split('/').map(Number);
-      const dt=new Date(2026,mo-1,day);
-      if(dt>=wkStart&&dt<=wkEnd){
-        tot+=(FAB_DAILY[f.n]&&FAB_DAILY[f.n][di])||0;
-      }
-    });
-    return {n:f.n, c:f.c, tot};
-  }).filter(f=>f.tot>0||FABRICS.find(x=>x.n===f.n).d>0);
+  FABRICS.forEach(f=>{
+    // actual % = f.p
+    const actPct=Math.round(f.p*10)/10;
 
-  const totalWk=fabWkTotals.reduce((s,f)=>s+f.tot,0);
+    // plan % = sum FAB_DAILY_PLAN ที่วันที่ <= today / FAB_PLAN_TOTALS
+    let planCum=0;
+    const planTotal=FAB_PLAN_TOTALS[f.n]||f.t||1;
+    if(FAB_DAILY_PLAN[f.n]){
+      DAILY_L.forEach((lbl,di)=>{
+        const [day,mo]=lbl.split('/').map(Number);
+        const dt=new Date(2026,mo-1,day); dt.setHours(0,0,0,0);
+        if(dt<=todayDT) planCum+=(FAB_DAILY_PLAN[f.n][di]||0);
+      });
+    }
+    const planPct=Math.round(planCum/planTotal*1000)/10;
 
-  const fabLabelPlugin={
+    labels.push(f.n);
+    actVals.push(actPct);
+    planVals.push(planPct);
+    colors.push(f.c);
+  });
+
+  const fabGapPlugin={
     id:'fabGapLbl',
     afterDatasetsDraw(chart){
       const ctx2=chart.ctx;
+      // dataset 0 = actual bars
       chart.getDatasetMeta(0).data.forEach((bar,i)=>{
-        const v=fabWkTotals[i]?.tot||0;
-        if(!v) return;
+        const act=actVals[i], plan=planVals[i];
+        const gap=Math.round((act-plan)*10)/10;
+        const gapStr=(gap>=0?'+':'')+gap+'%';
+        const planStr='แผน '+plan+'%';
+        const isAhead=gap>=0;
         ctx2.save();
-        ctx2.font='bold 10px Segoe UI'; ctx2.textAlign='left';
-        ctx2.fillStyle='#1e2d4d'; ctx2.textBaseline='middle';
-        ctx2.fillText(v+' เครื่อง', bar.x+4, bar.y);
+        // แสดง "จริง% (แผน X% → +/-Y%)" ด้านขวา bar
+        ctx2.font='bold 10px Segoe UI';
+        ctx2.textAlign='left';
+        ctx2.textBaseline='middle';
+        ctx2.fillStyle='#1e2d4d';
+        ctx2.fillText(act+'%', bar.x+5, bar.y);
+        ctx2.font='9px Segoe UI';
+        ctx2.fillStyle=isAhead?'#16a34a':'#dc2626';
+        ctx2.fillText(`(${planStr} → ${gapStr})`, bar.x+5, bar.y+11);
         ctx2.restore();
       });
     }
   };
 
   new Chart(cv,{
-    type:'bar', plugins:[fabLabelPlugin],
+    type:'bar', plugins:[fabGapPlugin],
     data:{
-      labels:fabWkTotals.map(f=>f.n),
-      datasets:[{
-        label:'ติดตั้งในสัปดาห์นี้',
-        data:fabWkTotals.map(f=>f.tot),
-        backgroundColor:fabWkTotals.map(f=>f.c+'cc'),
-        borderColor:fabWkTotals.map(f=>f.c),
-        borderWidth:1.5, borderRadius:4,
-      }]
+      labels,
+      datasets:[
+        {
+          label:'จริง %', data:actVals,
+          backgroundColor:colors.map(c=>c+'cc'),
+          borderColor:colors, borderWidth:1.5, borderRadius:3,
+          barPercentage:0.55, categoryPercentage:0.8,
+        },
+        {
+          label:'แผน %', data:planVals,
+          backgroundColor:'rgba(148,163,196,0.15)',
+          borderColor:'rgba(148,163,196,0.7)',
+          borderWidth:1.5, borderRadius:3,
+          barPercentage:0.55, categoryPercentage:0.8,
+        }
+      ]
     },
     options:{
       indexAxis:'y',
       responsive:true, maintainAspectRatio:false,
-      layout:{padding:{right:90, top:4}},
+      layout:{padding:{right:160, top:4, bottom:4}},
       plugins:{
-        legend:{display:false},
+        legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:10}},
         tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,callbacks:{
-          title:ctx=>`${fabWkTotals[ctx[0].dataIndex].n}`,
+          title:ctx=>`${labels[ctx[0].dataIndex]}`,
           label:ctx=>{
-            const f=fabWkTotals[ctx[0].dataIndex];
-            const pct=totalWk>0?Math.round(f.tot/totalWk*100):0;
-            return [` ติดตั้ง: ${f.tot} เครื่อง`, ` สัดส่วน: ${pct}% ของสัปดาห์`];
+            const i=ctx[0].dataIndex;
+            const gap=Math.round((actVals[i]-planVals[i])*10)/10;
+            const isAhead=gap>=0;
+            return [
+              ` จริง: ${actVals[i]}%`,
+              ` แผน: ${planVals[i]}%`,
+              ` ${isAhead?'เร็วกว่า':'ช้ากว่า'}: ${Math.abs(gap)}%`
+            ];
           }
         }}
       },
       scales:{
-        x:{ticks:{font:{size:10}}, grid:{color:'#f0f4ff'}, min:0},
+        x:{max:100, ticks:{callback:v=>v+'%',font:{size:10}}, grid:{color:'#f0f4ff'}, min:0},
         y:{ticks:{font:{size:11},color:'#1e2d4d'}, grid:{display:false}}
       }
     }
