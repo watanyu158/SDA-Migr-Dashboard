@@ -1684,9 +1684,12 @@ function buildFabGap(){
   const [wkS,wkE]=WK_BOUNDS_ARR[wkIdx]||WK_BOUNDS_ARR[0];
   const wkStart=new Date(wkS+'T00:00:00'), wkEnd=new Date(wkE+'T00:00:00');
   const fmtD=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-  const titleEl=document.getElementById('fab-gap-title');
-  if(titleEl) titleEl.textContent=`W${wkIdx+7}: ${fmtD(wkStart)} – ${fmtD(wkEnd)}`;
 
+  // subtitle แสดง W + ช่วงวันที่
+  const titleEl=document.getElementById('fab-gap-title');
+  if(titleEl) titleEl.textContent=`— W${wkIdx+7}: ${fmtD(wkStart)} – ${fmtD(wkEnd)}`;
+
+  // รวม activity ทุก Fabric โดยคงลำดับ FABRICS เดิม (ไม่ sort)
   const fabWkData=FABRICS.map(f=>{
     let tot=0;
     DAILY_L.forEach((lbl,di)=>{
@@ -1696,20 +1699,25 @@ function buildFabGap(){
     });
     return {n:f.n, c:f.c, tot, t:f.t, d:f.d};
   });
-  const sorted=fabWkData.filter(f=>f.tot>0).sort((a,b)=>b.tot-a.tot);
-  const totalWk=sorted.reduce((s,f)=>s+f.tot,0);
+  const totalWk=fabWkData.reduce((s,f)=>s+f.tot,0);
 
   const fabLabelPlugin={id:'fabWkLbl',afterDatasetsDraw(chart){
     const ctx2=chart.ctx;
     chart.getDatasetMeta(0).data.forEach((bar,i)=>{
-      const f=sorted[i]; if(!f||!f.tot) return;
+      const f=fabWkData[i]; if(!f) return;
       const actPct=Math.round(f.d/Math.max(f.t,1)*100);
       ctx2.save();
-      ctx2.font='bold 10px Segoe UI'; ctx2.textAlign='left';
-      ctx2.textBaseline='middle'; ctx2.fillStyle='#1e2d4d';
-      ctx2.fillText(`${f.tot} เครื่อง`, bar.x+5, bar.y-5);
-      ctx2.font='9px Segoe UI'; ctx2.fillStyle='#64748b';
-      ctx2.fillText(`รวม ${actPct}%`, bar.x+5, bar.y+5);
+      if(f.tot>0){
+        ctx2.font='bold 10px Segoe UI'; ctx2.textAlign='left';
+        ctx2.textBaseline='middle'; ctx2.fillStyle='#1e2d4d';
+        ctx2.fillText(`${f.tot} เครื่อง`, bar.x+5, bar.y-5);
+        ctx2.font='9px Segoe UI'; ctx2.fillStyle='#64748b';
+        ctx2.fillText(`รวม ${actPct}%`, bar.x+5, bar.y+5);
+      } else {
+        ctx2.font='9px Segoe UI'; ctx2.textAlign='left';
+        ctx2.textBaseline='middle'; ctx2.fillStyle='#94a3b8';
+        ctx2.fillText(`–  (รวม ${actPct}%)`, bar.x+5, bar.y);
+      }
       ctx2.restore();
     });
   }};
@@ -1717,28 +1725,39 @@ function buildFabGap(){
   new Chart(cv,{
     type:'bar', plugins:[fabLabelPlugin],
     data:{
-      labels:sorted.map(f=>f.n),
-      datasets:[{label:'ติดตั้งสัปดาห์นี้',
-        data:sorted.map(f=>f.tot),
-        backgroundColor:sorted.map(f=>f.c+'cc'),
-        borderColor:sorted.map(f=>f.c),
-        borderWidth:1.5, borderRadius:4}]
+      labels:fabWkData.map(f=>f.n),
+      datasets:[{
+        label:'ติดตั้งสัปดาห์นี้',
+        data:fabWkData.map(f=>f.tot),
+        backgroundColor:fabWkData.map(f=>f.tot>0?f.c+'cc':'rgba(148,163,196,0.15)'),
+        borderColor:fabWkData.map(f=>f.tot>0?f.c:'rgba(148,163,196,0.4)'),
+        borderWidth:1.5, borderRadius:4
+      }]
     },
-    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      layout:{padding:{right:110,top:4}},
-      plugins:{legend:{display:false},
-        tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,
-          callbacks:{title:ctx=>`${sorted[ctx[0].dataIndex].n}`,
-            label:ctx=>{const f=sorted[ctx[0].dataIndex];
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      layout:{padding:{right:130,top:4}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',
+          bodyColor:'rgba(255,255,255,.8)',padding:10,
+          callbacks:{
+            title:ctx=>`${fabWkData[ctx[0].dataIndex].n}`,
+            label:ctx=>{
+              const f=fabWkData[ctx[0].dataIndex];
               const pct=totalWk>0?Math.round(f.tot/totalWk*100):0;
               const actPct=Math.round(f.d/Math.max(f.t,1)*100);
-              return [` สัปดาห์นี้: ${f.tot} เครื่อง (${pct}%)`,` รวม: ${f.d}/${f.t} = ${actPct}%`];
+              return f.tot>0
+                ?[` สัปดาห์นี้: ${f.tot} เครื่อง (${pct}%)`,` รวม: ${f.d}/${f.t} = ${actPct}%`]
+                :[` สัปดาห์นี้: ไม่มีงาน`,` รวม: ${f.d}/${f.t} = ${actPct}%`];
             }
           }
         }
       },
-      scales:{x:{ticks:{font:{size:10}},grid:{color:'#f0f4ff'},min:0},
-        y:{ticks:{font:{size:11},color:'#1e2d4d'},grid:{display:false}}}
+      scales:{
+        x:{ticks:{font:{size:10}},grid:{color:'#f0f4ff'},min:0},
+        y:{ticks:{font:{size:11},color:'#1e2d4d'},grid:{display:false}}
+      }
     }
   });
 }
