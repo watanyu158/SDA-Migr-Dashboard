@@ -307,6 +307,21 @@ function calcDashboard(wb) {
       .sort((a,b) => b.t - a.t);
   });
 
+  // on-time = installed ที่ Install Date <= Scheduled Date
+  let onTimeQty = 0;
+  aRows.forEach(r => {
+    const ok    = r['Qty. Success'] || 0;
+    let instDt  = r['Install Date'];
+    let schedDt = r['Scheduled Date'];
+    if (typeof instDt  === 'number') instDt  = new Date((instDt  - 25569) * 86400000);
+    if (typeof schedDt === 'number') schedDt = new Date((schedDt - 25569) * 86400000);
+    if (ok > 0 && instDt instanceof Date && schedDt instanceof Date && !isNaN(instDt) && !isNaN(schedDt)) {
+      instDt.setHours(0,0,0,0); schedDt.setHours(0,0,0,0);
+      if (instDt <= schedDt) onTimeQty += ok;
+    }
+  });
+  const onTimePct = installed > 0 ? Math.round(onTimeQty / installed * 1000) / 10 : 0;
+
   // hold items list
   const holdItems = aRows
     .filter(r => r['Status']==='Hold')
@@ -334,7 +349,7 @@ function calcDashboard(wb) {
     wk:        WK_BOUNDS.map(w => w.label),
     today_wk:  todayWk,
     last_install_date: lastInstallDate,
-    meta:      { total:TOTAL, installed, remaining, hold, overdue },
+    meta:      { total:TOTAL, installed, remaining, hold, overdue, on_time_qty:onTimeQty, on_time_pct:onTimePct },
     hold_items: holdItems,
     insight:   { daily_rate:dailyRate, req_rate:reqRate, need_more:needMore,
                  pct_more:pctMore, days_late:daysLate, gauge_pct:gaugePct,

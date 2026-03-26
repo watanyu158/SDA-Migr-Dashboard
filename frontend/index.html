@@ -858,9 +858,9 @@ main { padding: 12px 10px; }
     <div class="ins-pill p-ot">
       <div class="ip-icon">✓</div>
       <div class="ip-body">
-        <div class="ip-val" style="color:var(--success)"><span id="pill-ontime">99%</span></div>
+        <div class="ip-val" style="color:var(--success)"><span id="pill-ontime">–%</span></div>
         <div class="ip-lbl">ตรงเวลา</div>
-        <div class="ip-sub">459/1592</div>
+        <div class="ip-sub" id="pill-ontime-sub">–/–</div>
       </div>
     </div>
     <div class="ins-pill p-over">
@@ -973,9 +973,9 @@ main { padding: 12px 10px; }
         <div style="position:relative;width:150px;height:150px">
           <canvas id="donut-c" style="width:150px!important;height:150px!important"></canvas>
           <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-            <div style="font-size:24px;font-weight:700;color:var(--success)">99%</div>
+            <div style="font-size:24px;font-weight:700;color:var(--success)" id="donut-ontime-pct">–%</div>
             <div style="font-size:11px;color:var(--text2)">ตรงเวลา</div>
-            <div style="font-size:10px;color:var(--text2)">459/1592</div>
+            <div style="font-size:10px;color:var(--text2)" id="donut-ontime-sub">–/–</div>
           </div>
         </div>
       </div>
@@ -1205,6 +1205,7 @@ main { padding: 12px 10px; }
     <div class="fw">
       <div class="fg2">
         <div class="fgr"><label>เลข No.</labe
+<script>
 const API = window.location.hostname==='localhost'?'http://localhost:3000':'https://sda-migr-api.onrender.com';
 
 // ── WEEKLY DATA ───────────────────────────────────────────────────────────────
@@ -2730,6 +2731,12 @@ async function loadData(){
     // gauge
     if(_e('gauge-pct-lbl')) _e('gauge-pct-lbl').textContent = ins.gauge_pct+'%';
 
+    // on-time
+    if(_e('pill-ontime'))     _e('pill-ontime').textContent     = meta.on_time_pct+'%';
+    if(_e('pill-ontime-sub')) _e('pill-ontime-sub').textContent = `${meta.on_time_qty}/${meta.installed}`;
+    if(_e('donut-ontime-pct'))_e('donut-ontime-pct').textContent= meta.on_time_pct+'%';
+    if(_e('donut-ontime-sub'))_e('donut-ontime-sub').textContent= `${meta.on_time_qty}/${meta.installed}`;
+
     // insight text — อัพเดทเสมอโดยไม่ check ข้อความเดิม
     document.querySelectorAll('.ins-big em').forEach(em=>em.textContent=Number(ins.need_more).toFixed(1));
     document.querySelectorAll('.ins-pct-tag').forEach(t=>t.textContent='↑'+ins.pct_more+'% จากอัตราปัจจุบัน');
@@ -2840,7 +2847,8 @@ function showLoading(){
   if(_sdot){ _sdot.style.animation='none'; _sdot.style.background='rgba(255,255,255,.4)'; }
   // reset numbers
   ['ts-done','pill-rem','pill-hold','pill-over','gauge-pct-lbl',
-   'ov-all','ov-sw','ov-ap','ov-inf','tb-days','tb-rate','tb-over','tb-pct'].forEach(id=>{
+   'ov-all','ov-sw','ov-ap','ov-inf','tb-days','tb-rate','tb-over','tb-pct',
+   'pill-ontime','pill-ontime-sub','donut-ontime-pct','donut-ontime-sub'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.innerHTML='<span style="opacity:.35">–</span>';
   });
@@ -2918,10 +2926,8 @@ function updateLoadingProgress(pct, label){
         ?`⚠ ถ้าไม่เพิ่ม → เสร็จ ${finTH} — ช้ากว่าเป้า ${ins.days_late} วัน`
         :`✅ ถ้าคงอัตรานี้ → เสร็จ ${finTH} — ก่อนกำหนด`;
     });
-    a    // ── อัพเดท pills by ID ─────────────────────────────────────────────
-    
+    // ── อัพเดท pills by ID ─────────────────────────────────────────────
     // คาดเสร็จ + วันเหลือ
-    _);
     // ip-sub
     document.querySelectorAll('.ip-sub').forEach(el=>{
       const txt=el.textContent;
