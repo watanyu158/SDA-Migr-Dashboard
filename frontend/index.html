@@ -689,6 +689,14 @@ main { padding: 12px 10px; }
   .ins-panels { flex-direction: row !important; }
   .ins-pills { grid-template-columns: repeat(6,1fr) !important; }
 }
+
+/* ── Loading spinner ─────────────────────────────── */
+.loading-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.75);border-radius:var(--r);z-index:10;backdrop-filter:blur(2px)}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);
+  border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.card.is-loading{position:relative;pointer-events:none}
 </style>
 </head>
 <body>
@@ -707,7 +715,7 @@ main { padding: 12px 10px; }
     <div class="sdot-wrap"><div class="sdot"></div>ตรงแผน</div>
   </div>
   <div class="tb-stats">
-    <div class="tb-stat"><div class="v" id="ts-done">460/1592</div><div class="l">ติดตั้งแล้ว (29%)</div></div>
+    <div class="tb-stat"><div class="v" id="ts-done">–/1592</div><div class="l">ติดตั้งแล้ว (29%)</div></div>
     <div class="tb-div"></div>
     <div class="tb-stat"><div class="v">11.0</div><div class="l">อุปกรณ์/วัน</div></div>
     <div class="tb-div"></div>
@@ -765,7 +773,7 @@ main { padding: 12px 10px; }
       <div class="ins-gauge-section">
         <div class="ins-gauge-wrap">
           <canvas id="gauge-c"></canvas>
-          <div class="ins-gc"><div class="gp" id="gauge-pct-lbl">83%</div></div>
+          <div class="ins-gc"><div class="gp" id="gauge-pct-lbl">–%</div></div>
         </div>
       </div>
       <div class="ins-kpi-table">
@@ -802,7 +810,7 @@ main { padding: 12px 10px; }
     <div class="ins-pill p-rem">
       <div class="ip-icon">📦</div>
       <div class="ip-body">
-        <div class="ip-val" id="pill-rem">1,132</div>
+        <div class="ip-val" id="pill-rem">–</div>
         <div class="ip-lbl">เหลือ</div>
         <div class="ip-sub">อุปกรณ์</div>
       </div>
@@ -826,7 +834,7 @@ main { padding: 12px 10px; }
     <div class="ins-pill p-over">
       <div class="ip-icon">⚠</div>
       <div class="ip-body">
-        <div class="ip-val" id="pill-over">0</div>
+        <div class="ip-val" id="pill-over">–</div>
         <div class="ip-lbl">Overdue</div>
         <div class="ip-sub">เกินกำหนด</div>
       </div>
@@ -834,7 +842,7 @@ main { padding: 12px 10px; }
     <div class="ins-pill p-hold">
       <div class="ip-icon">⏸</div>
       <div class="ip-body">
-        <div class="ip-val" id="pill-hold">8</div>
+        <div class="ip-val" id="pill-hold">–</div>
         <div class="ip-lbl">HOLD</div>
         <div class="ip-sub">อุปกรณ์</div>
       </div>
@@ -870,10 +878,10 @@ main { padding: 12px 10px; }
 <!-- ════ TAB: ภาพรวม ════ -->
 <div class="tab-body" id="tab-overview">
   <div class="g4" style="margin-bottom:14px">
-    <div class="scard all"><div class="sl" style="color:var(--primary)">🏗 สรุปผลการติดตั้งทั้งหมด</div><div class="sn" id="ov-all">460/1592</div><div class="ss">อุปกรณ์ที่ติดตั้งแล้ว (29%)</div><div class="sbar"><div class="sf" id="ov-all-b" style="width:29%"></div></div><div class="sbadge" style="background:var(--primary-l);color:var(--primary)">29%</div></div>
-    <div class="scard sw"><div class="sl" style="color:#4361ee">🔀 Switch</div><div class="sn" id="ov-sw">368/1121</div><div class="ss">Switch ที่ติดตั้งแล้ว (32.9%)</div><div class="sbar"><div class="sf" id="ov-sw-b" style="width:32.9%"></div></div><div class="sbadge" style="background:var(--primary-l);color:#4361ee">31.2%</div></div>
-    <div class="scard ap"><div class="sl" style="color:#065f46">📶 AP</div><div class="sn" id="ov-ap">67/445</div><div class="ss">AP ที่ติดตั้งแล้ว (15.1%)</div><div class="sbar"><div class="sf" id="ov-ap-b" style="width:15.1%"></div></div><div class="sbadge" style="background:var(--success-l);color:#065f46">15.1%</div></div>
-    <div class="scard inf"><div class="sl" style="color:#92400e">⚡ Infra</div><div class="sn" id="ov-inf">24/26</div><div class="ss">Infra ที่ติดตั้งแล้ว (92.3%)</div><div class="sbar"><div class="sf" id="ov-inf-b" style="width:92.3%"></div></div><div class="sbadge" style="background:var(--warning-l);color:#92400e">92.3%</div></div>
+    <div class="scard all"><div class="sl" style="color:var(--primary)">🏗 สรุปผลการติดตั้งทั้งหมด</div><div class="sn" id="ov-all">–/1592</div><div class="ss">อุปกรณ์ที่ติดตั้งแล้ว (29%)</div><div class="sbar"><div class="sf" id="ov-all-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--primary-l);color:var(--primary)">29%</div></div>
+    <div class="scard sw"><div class="sl" style="color:#4361ee">🔀 Switch</div><div class="sn" id="ov-sw">–/1121</div><div class="ss">Switch ที่ติดตั้งแล้ว (32.9%)</div><div class="sbar"><div class="sf" id="ov-sw-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--primary-l);color:#4361ee">31.2%</div></div>
+    <div class="scard ap"><div class="sl" style="color:#065f46">📶 AP</div><div class="sn" id="ov-ap">–/445</div><div class="ss">AP ที่ติดตั้งแล้ว (15.1%)</div><div class="sbar"><div class="sf" id="ov-ap-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--success-l);color:#065f46">15.1%</div></div>
+    <div class="scard inf"><div class="sl" style="color:#92400e">⚡ Infra</div><div class="sn" id="ov-inf">–/26</div><div class="ss">Infra ที่ติดตั้งแล้ว (92.3%)</div><div class="sbar"><div class="sf" id="ov-inf-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--warning-l);color:#92400e">92.3%</div></div>
   </div>
   <!-- ── Fabric breakdown table ── -->
   <div class="card" style="margin-bottom:14px">
@@ -975,7 +983,7 @@ main { padding: 12px 10px; }
   </div>
   <div class="card" style="margin-bottom:14px"><div class="ch"><div class="chi" style="background:var(--warning-l);color:var(--warning)">📅</div>ไทม์ไลน์ Fabric</div><div id="tl-wrap"></div><div class="cleg" style="margin-top:11px"><div class="cl"><div class="cll" style="background:var(--primary)"></div>ติดตั้งแล้ว</div><div class="cl"><div class="cll" style="background:#e2e8f0"></div>คงเหลือ</div><div class="cl" style="color:var(--danger)"><span style="display:inline-block;width:2px;height:12px;background:var(--danger);margin-right:4px;vertical-align:middle"></span>วันนี้</div></div></div>
   <div class="card" style="margin-bottom:14px"><div class="ch"><div class="chi" style="background:var(--hold-l);color:var(--hold)">🗺</div>Fabric Heatmap</div><div class="heatmap" id="hm-wrap"></div></div>
-  <div class="hold-tog" onclick="toggleHold(this)"><div class="hold-lbl">⏸ อุปกรณ์ที่ Hold</div><div style="display:flex;align-items:center;gap:7px"><span class="hold-badge" id="hold-cnt">8 รายการ</span><span id="hold-arr" style="color:var(--hold);font-size:12px">▼</span></div></div>
+  <div class="hold-tog" onclick="toggleHold(this)"><div class="hold-lbl">⏸ อุปกรณ์ที่ Hold</div><div style="display:flex;align-items:center;gap:7px"><span class="hold-badge" id="hold-cnt">– รายการ</span><span id="hold-arr" style="color:var(--hold);font-size:12px">▼</span></div></div>
   <div id="hold-body" style="display:none;margin-top:6px"></div>
 </div>
 
@@ -2604,7 +2612,47 @@ async function manualRefresh(){
 }
 
 // ── API ───────────────────────────────────────────────────────────────────────
+
+// ── Loading helpers ──────────────────────────────────────────────────────────
+function showLoading(){
+  // แสดง – บน topbar stats ทันที
+  ['ts-done','pill-rem','pill-hold','pill-over','gauge-pct-lbl',
+   'ov-all','ov-sw','ov-ap','ov-inf'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<span style="opacity:.4">–</span>';
+  });
+  // spinner บน cards
+  document.querySelectorAll('.card').forEach(card=>{
+    if(card.querySelector('canvas')||card.querySelector('.shdr-stats')||card.querySelector('.ins-box')){
+      card.classList.add('is-loading');
+      if(!card.querySelector('.loading-overlay')){
+        const ov=document.createElement('div');
+        ov.className='loading-overlay';
+        ov.innerHTML='<div class="spinner"></div>';
+        card.appendChild(ov);
+      }
+    }
+  });
+  // ins-box spinner
+  const ins=document.querySelector('.ins-box');
+  if(ins&&!ins.querySelector('.loading-overlay')){
+    ins.style.position='relative';
+    const ov=document.createElement('div');
+    ov.className='loading-overlay';
+    ov.innerHTML='<div class="spinner"></div>';
+    ins.appendChild(ov);
+  }
+}
+
+function hideLoading(){
+  document.querySelectorAll('.loading-overlay').forEach(ov=>ov.remove());
+  document.querySelectorAll('.is-loading').forEach(c=>c.classList.remove('is-loading'));
+  const ins=document.querySelector('.ins-box');
+  if(ins) ins.style.position='';
+}
+
 async function loadData(){
+  showLoading();
   try{
     const r = await fetch(`${API}/api/dashboard`);
     if (!r.ok) throw new Error('HTTP '+r.status);
