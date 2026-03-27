@@ -2107,6 +2107,12 @@ function buildProgressCharts(){
   // Per fabric cards
   const wrap = document.getElementById('fab-prog-charts');
   if (!wrap) return;
+  // destroy charts เก่าก่อน clear DOM
+  wrap.querySelectorAll('canvas').forEach(cv => {
+    const ch = Chart.getChart(cv);
+    if (ch) ch.destroy();
+  });
+  wrap.innerHTML = '';
   FABRICS.forEach(f => {
     const fd = FAB_WEEKLY[f.n];
     if (!fd) return;
@@ -2131,6 +2137,8 @@ function buildProgressCharts(){
       const cid = `fab-${f.n.replace('-','')}-c`;
       const ctx = document.getElementById(cid);
       if (!ctx) return;
+      const _ex = Chart.getChart(ctx);
+      if (_ex) _ex.destroy();
       new Chart(ctx, {
         type:'line',
         data:{
