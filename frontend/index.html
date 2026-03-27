@@ -1223,7 +1223,7 @@ const _todayGMT7 = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Ba
 const _wkStart   = new Date(2026, 1, 9);
 const _totalDays = Math.floor((_todayGMT7 - _wkStart) / (24*60*60*1000));
 let TODAY_WK = 6; // populated from API
-const TODAY_FRAC = (_totalDays % 7) / 7;
+function getTodayFrac(){ const t=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Bangkok'})); const d=Math.floor((t-new Date(2026,1,9))/(24*60*60*1000)); return (d%7)/7; }
 let PLAN_ALL = [3.14, 9.61, 15.52, 18.09, 23.99, 27.76, 42.9, 45.98, 49.12, 51.07, 56.47, 62.31, 68.4, 71.55, 75.19, 80.03, 86.49, 92.59, 99.62, 100.0];
 let ACT_ALL_RAW = [5.03, 11.24, 15.64, 18.09, 23.93, 28.83, 28.83, null, null, null, null, null, null, null, null, null, null, null, null, null];
 // carry-forward ACT_ALL ถึง TODAY_WK
@@ -1317,7 +1317,7 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
     if(!m.data[TODAY_WK]) return;
     const {top,bottom}=chart.chartArea;
     const x0=m.data[TODAY_WK].x,x1=m.data[TODAY_WK+1]?m.data[TODAY_WK+1].x:x0;
-    const x=x0+(x1-x0)*TODAY_FRAC;
+    const x=x0+(x1-x0)*getTodayFrac();
     const cv=chart.ctx; cv.save();
     cv.beginPath();cv.moveTo(x,top);cv.lineTo(x,bottom);
     cv.strokeStyle='#ee4b4b';cv.lineWidth=1.2;cv.setLineDash([4,3]);cv.stroke();
@@ -1886,7 +1886,7 @@ function buildBurndown(){
   const {top,bottom}=chart.chartArea;
   const x0=m.data[TODAY_WK].x;
   const x1=m.data[TODAY_WK+1]?m.data[TODAY_WK+1].x:x0;
-  const x=x0+(x1-x0)*TODAY_FRAC;
+  const x=x0+(x1-x0)*getTodayFrac();
   const cv=chart.ctx;
   cv.save();
   // Dashed red line
@@ -2030,7 +2030,7 @@ function buildProgressCharts(){
       if(!m.data[TODAY_WK]) return;
       const {top,bottom}=chart.chartArea;
       const x0=m.data[TODAY_WK].x, x1=m.data[TODAY_WK+1]?m.data[TODAY_WK+1].x:x0;
-      const x=x0+(x1-x0)*TODAY_FRAC;
+      const x=x0+(x1-x0)*getTodayFrac();
       const cv=chart.ctx; cv.save();
       cv.beginPath(); cv.moveTo(x,top); cv.lineTo(x,bottom);
       cv.strokeStyle='#ee4b4b'; cv.lineWidth=1.5; cv.setLineDash([5,3]); cv.stroke();
@@ -2674,10 +2674,6 @@ async function loadData(){
     CUM_INF.length=0;      daily.cum_inf.forEach(v=>CUM_INF.push(v));
 
     // carry-forward ACT
-    let _la=null; ACT_ALL.length=0;
-    WK.forEach((_,i)=>{ if(ACT_ALL_RAW[i]!=null)_la=ACT_ALL_RAW[i]; ACT_ALL.push(i<=TODAY_WK?_la:null); });
-    let _ls=null; ACT_SW.length=0;
-    WK.forEach((_,i)=>{ if(ACT_SW_RAW[i]!=null)_ls=ACT_SW_RAW[i]; ACT_SW.push(i<=TODAY_WK?_ls:null); });
     let _lp=null; ACT_AP.length=0;
     WK.forEach((_,i)=>{ if(ACT_AP_RAW[i]!=null)_lp=ACT_AP_RAW[i]; ACT_AP.push(i<=TODAY_WK?_lp:null); });
 
@@ -2697,6 +2693,11 @@ async function loadData(){
     TYPE_DATA.length=0;
     (types||[]).forEach(t=>TYPE_DATA.push({n:t.n,plan:t.plan,done:t.done}));
     window.TODAY_WK = d.today_wk;
+    TODAY_WK = d.today_wk;
+    let _la=null; ACT_ALL.length=0;
+    WK.forEach((_,i)=>{ if(ACT_ALL_RAW[i]!=null)_la=ACT_ALL_RAW[i]; ACT_ALL.push(i<=TODAY_WK?_la:null); });
+    let _ls=null; ACT_SW.length=0;
+    WK.forEach((_,i)=>{ if(ACT_SW_RAW[i]!=null)_ls=ACT_SW_RAW[i]; ACT_SW.push(i<=TODAY_WK?_ls:null); });
 
     // ── อัพเดท UI ─────────────────────────────────────────────────────────
     const _e = id=>document.getElementById(id);
