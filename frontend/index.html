@@ -1927,8 +1927,9 @@ function buildBurndown(){
   if(!_labels.length) return;
 
   const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
-  const lastActIdx=DAILY_BD_ACT.reduce((a,v,j)=>v!=null?j:a,-1);
+  const lastActIdx=_bdAct.reduce((a,v,j)=>v!=null?j:a,-1);
   const _uid='burndown_'+Date.now();
+  const tickStep=useDaily?14:1;
 
   const tdPl={id:'td_'+_uid,afterDraw(chart){
     const {top,bottom}=chart.chartArea; const ctx=chart.ctx;
@@ -1950,9 +1951,9 @@ function buildBurndown(){
   new Chart(cv,{
     type:'line',plugins:[tdPl],
     data:{
-      labels:DAILY_PROG_LABELS,
+      labels:_labels,
       datasets:[
-        {label:'แผน',data:DAILY_BD_PLAN,borderColor:'#94a3c4',borderWidth:1.5,
+        {label:'แผน',data:_bdPlan,borderColor:'#94a3c4',borderWidth:1.5,
          borderDash:[6,4],pointRadius:0,tension:0.3,fill:false,spanGaps:true},
         {label:'จริง',data:_bdAct,borderColor:'#2bc48a',borderWidth:2.5,
          pointRadius:(c)=>c.dataIndex===lastActIdx?4:0,
@@ -1967,14 +1968,14 @@ function buildBurndown(){
         tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',
           bodyColor:'rgba(255,255,255,.8)',padding:10,cornerRadius:8,
           callbacks:{
-            title:items=>DAILY_PROG_LABELS[items[0].dataIndex]||'',
+            title:items=>_labels[items[0].dataIndex]||'',
             label:c=>` ${c.dataset.label}: ${c.parsed.y!=null?Math.round(c.parsed.y).toLocaleString()+' เหลือ':'–'}`
           }
         }
       },
       scales:{
         x:{ticks:{font:{size:9},maxRotation:45,color:'#94a3c4',
-             callback:(v,i)=>i%14===0?DAILY_PROG_LABELS[i]:null},grid:{display:false}},
+             callback:(v,i)=>i%tickStep===0?_labels[i]:null},grid:{display:false}},
         y:{min:0,ticks:{font:{size:10},color:'#94a3c4',
              callback:v=>v.toLocaleString()},grid:{color:'#f0f4ff'}}
       }
