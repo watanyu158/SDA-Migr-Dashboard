@@ -1916,14 +1916,26 @@ function buildBurndown(){
   if(!cv) return;
   const ex=Chart.getChart(cv); if(ex) ex.destroy();
 
-  // ใช้ daily data ถ้ามี ไม่งั้น fallback weekly
-  const useDaily = DAILY_BD_PLAN.length > 0;
-  const _labels  = useDaily ? DAILY_PROG_LABELS : WK;
-  const _bdPlan  = useDaily ? DAILY_BD_PLAN : BD_PLAN;
-  // weekly BD_ACT: carry-forward
-  let _wbLast=null;
-  const _wkBdAct = WK.map((_,i)=>{ if(BD_ACT[i]!=null)_wbLast=BD_ACT[i]; return i<=TODAY_WK?_wbLast:null; });
-  const _bdAct   = useDaily ? DAILY_BD_ACT : _wkBdAct;
+  // คำนวณ BD จาก DAILY_PROG_PLAN/ACT ถ้ามี ไม่งั้น weekly fallback
+  const TOTAL_T = 1592;
+  let _labels, _bdPlan, _bdAct, useDaily;
+
+  if(DAILY_PROG_LABELS.length > 0){
+    // daily: BD = TOTAL - cumulative
+    useDaily = true;
+    _labels  = DAILY_PROG_LABELS;
+    _bdPlan  = DAILY_BD_PLAN.length ? DAILY_BD_PLAN
+               : DAILY_PROG_PLAN.map(p=>Math.round((1 - p/100)*TOTAL_T));
+    _bdAct   = DAILY_BD_ACT.length  ? DAILY_BD_ACT
+               : DAILY_PROG_ACT.map(p=>p!=null?Math.round((1-p/100)*TOTAL_T):null);
+  } else {
+    // weekly fallback
+    useDaily = false;
+    _labels  = WK;
+    _bdPlan  = BD_PLAN;
+    let _wbLast=null;
+    _bdAct = WK.map((_,i)=>{ if(BD_ACT[i]!=null)_wbLast=BD_ACT[i]; return i<=TODAY_WK?_wbLast:null; });
+  }
   if(!_labels.length) return;
 
   const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
