@@ -1915,7 +1915,16 @@ function buildBurndown(){
   const cv=document.getElementById('burndown-c');
   if(!cv) return;
   const ex=Chart.getChart(cv); if(ex) ex.destroy();
-  if(!DAILY_BD_PLAN.length) return;
+
+  // ใช้ daily data ถ้ามี ไม่งั้น fallback weekly
+  const useDaily = DAILY_BD_PLAN.length > 0;
+  const _labels  = useDaily ? DAILY_PROG_LABELS : WK;
+  const _bdPlan  = useDaily ? DAILY_BD_PLAN : BD_PLAN;
+  // weekly BD_ACT: carry-forward
+  let _wbLast=null;
+  const _wkBdAct = WK.map((_,i)=>{ if(BD_ACT[i]!=null)_wbLast=BD_ACT[i]; return i<=TODAY_WK?_wbLast:null; });
+  const _bdAct   = useDaily ? DAILY_BD_ACT : _wkBdAct;
+  if(!_labels.length) return;
 
   const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
   const lastActIdx=DAILY_BD_ACT.reduce((a,v,j)=>v!=null?j:a,-1);
@@ -1945,7 +1954,7 @@ function buildBurndown(){
       datasets:[
         {label:'แผน',data:DAILY_BD_PLAN,borderColor:'#94a3c4',borderWidth:1.5,
          borderDash:[6,4],pointRadius:0,tension:0.3,fill:false,spanGaps:true},
-        {label:'จริง',data:DAILY_BD_ACT,borderColor:'#2bc48a',borderWidth:2.5,
+        {label:'จริง',data:_bdAct,borderColor:'#2bc48a',borderWidth:2.5,
          pointRadius:(c)=>c.dataIndex===lastActIdx?4:0,
          pointBackgroundColor:'#2bc48a',tension:0.3,fill:false,spanGaps:false},
       ]
@@ -2144,7 +2153,14 @@ function buildProgressCharts(){
     const cv=document.getElementById('prog-all-c');
     if(!cv) return;
     const ex=Chart.getChart(cv); if(ex) ex.destroy();
-    if(!DAILY_PROG_LABELS.length) return;
+    // fallback: ถ้ายังไม่มี daily data ใช้ weekly แทน
+    const useDaily=DAILY_PROG_LABELS.length>0;
+    const _pLabels = useDaily ? DAILY_PROG_LABELS : WK;
+    const _pPlan   = useDaily ? DAILY_PROG_PLAN : PLAN_ALL;
+    let _wLast=null;
+    const _wkAct = WK.map((_,i)=>{ if(ACT_ALL_RAW[i]!=null)_wLast=ACT_ALL_RAW[i]; return i<=TODAY_WK?_wLast:null; });
+    const _pAct  = useDaily ? DAILY_PROG_ACT : _wkAct;
+    if(!_pLabels.length) return;
 
     const _uid=Date.now();
     const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
@@ -2190,15 +2206,15 @@ function buildProgressCharts(){
       });
     }};
 
-    const lastActIdx=DAILY_PROG_ACT.reduce((a,v,j)=>v!=null?j:a,-1);
+    const lastActIdx=_pAct.reduce((a,v,j)=>v!=null?j:a,-1);
     new Chart(cv,{
       type:'line',plugins:[tdPlugin,lblPlugin],
       data:{
-        labels:DAILY_PROG_LABELS,
+        labels:_pLabels,
         datasets:[
-          {label:'แผน (%)',data:DAILY_PROG_PLAN,borderColor:'#94a3c4',borderDash:[5,3],
+          {label:'แผน (%)',data:_pPlan,borderColor:'#94a3c4',borderDash:[5,3],
            borderWidth:1.5,pointRadius:0,tension:0.3,fill:false,spanGaps:true},
-          {label:'จริง (%)',data:DAILY_PROG_ACT,borderColor:'#4361ee',borderWidth:2.5,
+          {label:'จริง (%)',data:_pAct,borderColor:'#4361ee',borderWidth:2.5,
            pointRadius:(c)=>c.dataIndex===lastActIdx?5:0,
            pointBackgroundColor:'#4361ee',tension:0.3,fill:true,
            backgroundColor:'rgba(67,97,238,0.06)',spanGaps:false},
@@ -2220,7 +2236,7 @@ function buildProgressCharts(){
         },
         scales:{
           x:{ticks:{font:{size:9},maxRotation:45,color:'#94a3c4',
-               callback:(v,i)=>i%7===0?DAILY_PROG_LABELS[i]:null},
+               callback:(v,i)=>useDaily?(i%7===0?_pLabels[i]:null):_pLabels[i]},
              grid:{display:false}},
           y:{min:0,max:100,ticks:{font:{size:10},color:'#94a3c4',callback:v=>v+'%'},
              grid:{color:'#f0f4ff'}}
@@ -2229,9 +2245,9 @@ function buildProgressCharts(){
     });
 
     // header labels
-    const todayIdx=DAILY_PROG_LABELS.indexOf(todayLbl);
-    const planNow=todayIdx>=0?DAILY_PROG_PLAN[todayIdx]:null;
-    const actNow=lastActIdx>=0?DAILY_PROG_ACT[lastActIdx]:null;
+    const todayIdx=_pLabels.indexOf(todayLbl);
+    const planNow=todayIdx>=0?_pPlan[todayIdx]:null;
+    const actNow=lastActIdx>=0?_pAct[lastActIdx]:null;
     const pEl=document.getElementById('prog-all-plan-lbl');
     const aEl=document.getElementById('prog-all-act-lbl');
     if(pEl&&planNow!=null) pEl.textContent='แผน: '+planNow.toFixed(1)+'%';
@@ -2239,9 +2255,21 @@ function buildProgressCharts(){
   })();
 
   // SW daily chart
-  buildDailyChart('prog-sw-c', DAILY_PROG_LABELS, DAILY_SW_PLAN, DAILY_SW_ACT, '#818cf8','#4361ee', 100, '%');
-  // AP daily chart
-  buildDailyChart('prog-ap-c', DAILY_PROG_LABELS, DAILY_AP_PLAN, DAILY_AP_ACT, '#34d399','#2bc48a', 100, '%');
+  // SW chart — daily หรือ weekly fallback
+  if(DAILY_SW_PLAN.length){
+    buildDailyChart('prog-sw-c', DAILY_PROG_LABELS, DAILY_SW_PLAN, DAILY_SW_ACT, '#818cf8','#4361ee', 100, '%');
+  } else {
+    // weekly fallback
+    let _sl=null; const _swAct=WK.map((_,i)=>{if(ACT_SW_RAW[i]!=null)_sl=ACT_SW_RAW[i];return i<=TODAY_WK?_sl:null;});
+    buildDailyChart('prog-sw-c', WK, PLAN_SW, _swAct, '#818cf8','#4361ee', 100, '%');
+  }
+  // AP chart — daily หรือ weekly fallback
+  if(DAILY_AP_PLAN.length){
+    buildDailyChart('prog-ap-c', DAILY_PROG_LABELS, DAILY_AP_PLAN, DAILY_AP_ACT, '#34d399','#2bc48a', 100, '%');
+  } else {
+    let _al=null; const _apAct=WK.map((_,i)=>{if(ACT_AP_RAW[i]!=null)_al=ACT_AP_RAW[i];return i<=TODAY_WK?_al:null;});
+    buildDailyChart('prog-ap-c', WK, PLAN_AP, _apAct, '#34d399','#2bc48a', 100, '%');
+  }
 
   // Per fabric cards — daily version
   const wrap = document.getElementById('fab-prog-charts');
@@ -2250,8 +2278,11 @@ function buildProgressCharts(){
   wrap.innerHTML = '';
 
   FABRICS.forEach(f => {
+    // ใช้ daily ถ้ามี ไม่งั้น weekly fallback
     const fd = DAILY_FAB_PROG[f.n];
-    if (!fd) return;
+    const fdWeekly = FAB_WEEKLY[f.n];
+    if (!fd && !fdWeekly) return;
+    const fabUseDaily = fd && fd.plan && fd.plan.length > 0;
     const swPct = Math.round(f.sw.d/Math.max(f.sw.t,1)*100);
     const apPct = Math.round(f.ap.d/Math.max(f.ap.t,1)*100);
     const totPct= Math.round(f.d/Math.max(f.t,1)*100);
@@ -2275,7 +2306,21 @@ function buildProgressCharts(){
 
     const ctx2 = document.getElementById(cid);
     if (!ctx2) return;
-    buildDailyChart(cid, DAILY_PROG_LABELS, fd.plan, fd.act, f.c+'88', f.c, 100, '%');
+    if(fabUseDaily){
+      buildDailyChart(cid, DAILY_PROG_LABELS, fd.plan, fd.act, f.c+'88', f.c, 100, '%');
+    } else if(fdWeekly){
+      // weekly fallback: รวม SW+AP
+      const wPlan=fdWeekly.sw_plan.map((v,i)=>{
+        const ap=fdWeekly.ap_plan[i]||0; const sw=v||0;
+        return sw>0||ap>0 ? Math.round((sw+ap)/2*10)/10 : (sw||ap);
+      });
+      let _fl=null; const wAct=WK.map((_,i)=>{
+        const sv=fdWeekly.sw_act[i], av=fdWeekly.ap_act[i];
+        const v=(sv!=null||av!=null)?((sv||0)+(av||0))/2:null;
+        if(v!=null)_fl=v; return i<=TODAY_WK?_fl:null;
+      });
+      buildDailyChart(cid, WK, fdWeekly.sw_plan, wAct, f.c+'88', f.c, 100, '%');
+    }
   });
 }
 
