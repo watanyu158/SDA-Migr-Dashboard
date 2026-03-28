@@ -2776,17 +2776,18 @@ async function loadData(){
     // daily progress
     if(d.daily_progress){
       const dp=d.daily_progress;
-      DAILY_PROG_LABELS.length=0; dp.labels.forEach(v=>DAILY_PROG_LABELS.push(v));
-      DAILY_PROG_PLAN.length=0;   dp.plan_cum.forEach(v=>DAILY_PROG_PLAN.push(v));
-      DAILY_PROG_ACT.length=0;    dp.act_cum.forEach(v=>DAILY_PROG_ACT.push(v));
-      DAILY_SW_PLAN.length=0;     dp.sw_plan.forEach(v=>DAILY_SW_PLAN.push(v));
-      DAILY_SW_ACT.length=0;      dp.sw_act.forEach(v=>DAILY_SW_ACT.push(v));
-      DAILY_AP_PLAN.length=0;     dp.ap_plan.forEach(v=>DAILY_AP_PLAN.push(v));
-      DAILY_AP_ACT.length=0;      dp.ap_act.forEach(v=>DAILY_AP_ACT.push(v));
-      DAILY_BD_PLAN.length=0;     dp.bd_plan.forEach(v=>DAILY_BD_PLAN.push(v));
-      DAILY_BD_ACT.length=0;      dp.bd_act.forEach(v=>DAILY_BD_ACT.push(v));
+      const _safe=(arr,target)=>{target.length=0;(arr||[]).forEach(v=>target.push(v));};
+      _safe(dp.labels,   DAILY_PROG_LABELS);
+      _safe(dp.plan_cum, DAILY_PROG_PLAN);
+      _safe(dp.act_cum,  DAILY_PROG_ACT);
+      _safe(dp.sw_plan,  DAILY_SW_PLAN);
+      _safe(dp.sw_act,   DAILY_SW_ACT);
+      _safe(dp.ap_plan,  DAILY_AP_PLAN);
+      _safe(dp.ap_act,   DAILY_AP_ACT);
+      _safe(dp.bd_plan,  DAILY_BD_PLAN);
+      _safe(dp.bd_act,   DAILY_BD_ACT);
       Object.keys(dp.fab||{}).forEach(f=>{
-        DAILY_FAB_PROG[f]={plan:[...dp.fab[f].plan], act:[...dp.fab[f].act]};
+        DAILY_FAB_PROG[f]={plan:[...(dp.fab[f].plan||[])], act:[...(dp.fab[f].act||[])]};
       });
     }
     console.warn('=== API DATA ===');
