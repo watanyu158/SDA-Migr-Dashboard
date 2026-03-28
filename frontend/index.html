@@ -742,9 +742,9 @@ main { padding: 12px 10px; }
     </div>
   </div>
   <div class="tb-stats">
-    <div class="tb-stat"><div class="v" id="ts-done">–/1592</div><div class="l">ติดตั้งแล้ว (<span id="tb-pct">29.9%</span>)</div></div>
+    <div class="tb-stat"><div class="v" id="ts-done">–/1592</div><div class="l">ติดตั้งแล้ว (<span id="tb-pct">–</span>)</div></div>
     <div class="tb-div"></div>
-    <div class="tb-stat"><div class="v" id="tb-rate">10.3</div><div class="l">อุปกรณ์/วัน</div></div>
+    <div class="tb-stat"><div class="v" id="tb-rate">–</div><div class="l">อุปกรณ์/วัน</div></div>
     <div class="tb-div"></div>
     <div class="tb-stat"><div class="v" id="tb-days">–</div><div class="l">วันเหลือ</div></div>
     <div class="tb-div"></div>
@@ -786,7 +786,7 @@ main { padding: 12px 10px; }
       </div>
       <div class="ins-rate-row">
         <span class="ins-rate-lbl">ทำได้</span>
-        <span class="ins-rate-val">10.5</span>
+        <span class="ins-rate-val">–</span>
         <span class="ins-rate-arrow">→</span>
         <span class="ins-rate-lbl">ต้องทำ</span>
         <span class="ins-rate-val ins-rate-target">12.6</span>
@@ -905,10 +905,10 @@ main { padding: 12px 10px; }
 <!-- ════ TAB: ภาพรวม ════ -->
 <div class="tab-body" id="tab-overview">
   <div class="g4" style="margin-bottom:14px">
-    <div class="scard all"><div class="sl" style="color:var(--primary)">🏗 สรุปผลการติดตั้งทั้งหมด</div><div class="sn" id="ov-all">–/1592</div><div class="ss">อุปกรณ์ที่ติดตั้งแล้ว (29%)</div><div class="sbar"><div class="sf" id="ov-all-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--primary-l);color:var(--primary)">29%</div></div>
-    <div class="scard sw"><div class="sl" style="color:#4361ee">🔀 Switch</div><div class="sn" id="ov-sw">–/1121</div><div class="ss">Switch ที่ติดตั้งแล้ว (32.9%)</div><div class="sbar"><div class="sf" id="ov-sw-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--primary-l);color:#4361ee">31.2%</div></div>
-    <div class="scard ap"><div class="sl" style="color:#065f46">📶 AP</div><div class="sn" id="ov-ap">–/445</div><div class="ss">AP ที่ติดตั้งแล้ว (15.1%)</div><div class="sbar"><div class="sf" id="ov-ap-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--success-l);color:#065f46">15.1%</div></div>
-    <div class="scard inf"><div class="sl" style="color:#92400e">⚡ Infra</div><div class="sn" id="ov-inf">–/26</div><div class="ss">Infra ที่ติดตั้งแล้ว (92.3%)</div><div class="sbar"><div class="sf" id="ov-inf-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--warning-l);color:#92400e">92.3%</div></div>
+    <div class="scard all"><div class="sl" style="color:var(--primary)">🏗 สรุปผลการติดตั้งทั้งหมด</div><div class="sn" id="ov-all">–/1592</div><div class="ss">อุปกรณ์ที่ติดตั้งแล้ว (<span id="ov-all-pct">–</span>)</div><div class="sbar"><div class="sf" id="ov-all-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--primary-l);color:var(--primary)" id="ov-all-badge">–</div></div>
+    <div class="scard sw"><div class="sl" style="color:#4361ee">🔀 Switch</div><div class="sn" id="ov-sw">–/1121</div><div class="ss">Switch ที่ติดตั้งแล้ว (<span id="ov-sw-pct">–</span>)</div><div class="sbar"><div class="sf" id="ov-sw-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--primary-l);color:#4361ee" id="ov-sw-badge">–</div></div>
+    <div class="scard ap"><div class="sl" style="color:#065f46">📶 AP</div><div class="sn" id="ov-ap">–/445</div><div class="ss">AP ที่ติดตั้งแล้ว (<span id="ov-ap-pct">–</span>)</div><div class="sbar"><div class="sf" id="ov-ap-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--success-l);color:#065f46" id="ov-ap-badge">–</div></div>
+    <div class="scard inf"><div class="sl" style="color:#92400e">⚡ Infra</div><div class="sn" id="ov-inf">–/26</div><div class="ss">Infra ที่ติดตั้งแล้ว (<span id="ov-inf-pct">–</span>)</div><div class="sbar"><div class="sf" id="ov-inf-b" style="width:0%"></div></div><div class="sbadge" style="background:var(--warning-l);color:#92400e" id="ov-inf-badge">–</div></div>
   </div>
   <!-- ── Fabric breakdown table ── -->
   <div class="card" style="margin-bottom:14px">
@@ -1076,7 +1076,7 @@ main { padding: 12px 10px; }
     <div class="card"><div class="ch"><div class="chi" style="background:var(--primary-l);color:var(--primary)">🍩</div>สัดส่วนประเภทอุปกรณ์</div>
       <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
         <div style="position:relative;width:150px;height:150px;flex-shrink:0"><canvas id="type-c"></canvas>
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:16px;font-weight:700">29%</div><div style="font-size:10px;color:var(--text2)">รวม</div></div>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:16px;font-weight:700"><span id="type-donut-pct">–</span></div><div style="font-size:10px;color:var(--text2)">รวม</div></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;flex:1;font-size:12px;color:var(--text2)">
           <div style="display:flex;justify-content:space-between"><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--primary);display:inline-block"></span>Switch 70%</span><span style="font-weight:600">1,121</span></div>
@@ -1178,24 +1178,24 @@ main { padding: 12px 10px; }
     </div>
     <div class="card"><div class="ch" style="font-size:12px;color:var(--text2);font-weight:500;margin-bottom:9px">📈 เป้าหมายตามแผน</div>
       <div class="pcard" style="margin-bottom:7px"><div class="pc-l">เป้าหมายอุปกรณ์/วัน</div><div class="pc-v">12.0 อุปกรณ์/วัน</div></div>
-      <div class="pcard" style="margin-bottom:7px"><div class="pc-l">เป้าหมายปัจจุบัน</div><div class="pc-v red">12.4 อุปกรณ์/วัน</div></div>
-      <div class="pcard"><div class="pc-l">อุปกรณ์ที่เหลือ</div><div class="pc-v">1,132 อุปกรณ์</div></div>
+      <div class="pcard" style="margin-bottom:7px"><div class="pc-l">เป้าหมายปัจจุบัน</div><div class="pc-v red" id="plan-req-rate">– อุปกรณ์/วัน</div></div>
+      <div class="pcard"><div class="pc-l">อุปกรณ์ที่เหลือ</div><div class="pc-v" id="plan-remaining">– อุปกรณ์</div></div>
     </div>
     <div class="card"><div class="ch" style="font-size:12px;color:var(--text2);font-weight:500;margin-bottom:9px">✅ การประเมินโครงการ</div>
-      <div class="pcard" style="margin-bottom:7px"><div class="pc-l">ความคืบหน้าตามแผน</div><div class="pc-v">42.9%%</div></div>
-      <div class="pcard" style="margin-bottom:7px"><div class="pc-l">ความคืบหน้าปัจจุบัน</div><div class="pc-v grn">28.89%%</div><div style="height:5px;background:#f0f4ff;border-radius:99px;margin-top:5px;overflow:hidden"><div style="height:100%;width:28.89%%;background:var(--success);border-radius:99px"></div></div></div>
+      <div class="pcard" style="margin-bottom:7px"><div class="pc-l">ความคืบหน้าตามแผน</div><div class="pc-v" id="plan-plan-pct">–%</div></div>
+      <div class="pcard" style="margin-bottom:7px"><div class="pc-l">ความคืบหน้าปัจจุบัน</div><div class="pc-v grn" id="plan-act-pct">–%</div><div style="height:5px;background:#f0f4ff;border-radius:99px;margin-top:5px;overflow:hidden"><div id="plan-act-bar" style="height:100%;width:0%;background:var(--success);border-radius:99px"></div></div></div>
       <div class="pcard"><div class="pc-l">สถานะ</div><div class="pc-v red">↘ ช้ากว่าแผน</div></div>
     </div>
   </div>
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><div class="chi" style="background:var(--success-l);color:var(--success)">⚡</div>ข้อมูลการติดตั้งจริง</div>
     <div class="g3" style="margin-bottom:11px">
-      <div class="pcard"><div class="pc-l">อุปกรณ์ที่ติดตั้งแล้วจริง</div><div class="pc-v" style="font-size:20px">460 อุปกรณ์</div></div>
-      <div class="pcard"><div class="pc-l">เฉลี่ยที่ทำได้/วัน</div><div class="pc-v" style="font-size:20px">10.5 อุปกรณ์/วัน</div></div>
+      <div class="pcard"><div class="pc-l">อุปกรณ์ที่ติดตั้งแล้วจริง</div><div class="pc-v" style="font-size:20px" id="plan-installed">– อุปกรณ์</div></div>
+      <div class="pcard"><div class="pc-l">เฉลี่ยที่ทำได้/วัน</div><div class="pc-v" style="font-size:20px" id="plan-daily-rate">– อุปกรณ์/วัน</div></div>
       <div class="pcard"><div class="pc-l">คาดว่าจะเสร็จ</div><div class="pc-v red" style="font-size:20px">11 ก.ค. -431</div></div>
     </div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:5px">ประสิทธิภาพเทียบกับแผน:</div>
-    <div style="display:flex;align-items:center;gap:9px"><span style="font-size:12px;color:var(--text2);white-space:nowrap">ทำได้ 10.5.6/วัน</span><div style="flex:1;height:11px;background:#f0f4ff;border-radius:99px;overflow:hidden"><div style="height:100%;width:83.3%%;background:linear-gradient(90deg,var(--danger),#ff8a8a);border-radius:99px"></div></div><span style="font-size:12px;font-weight:700;color:var(--danger)">83.3%</span>85%</span></div>
+    <div style="display:flex;align-items:center;gap:9px"><span style="font-size:12px;color:var(--text2);white-space:nowrap" id="plan-eff-label">ทำได้ –/วัน</span><div style="flex:1;height:11px;background:#f0f4ff;border-radius:99px;overflow:hidden"><div id="plan-eff-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--danger),#ff8a8a);border-radius:99px"></div></div><span style="font-size:12px;font-weight:700;color:var(--danger)" id="plan-eff-pct">–%</span></div>
     <div style="text-align:right;font-size:11px;color:var(--danger);margin-top:3px">⚠ ต่ำกว่าเป้าหมาย</div>
   </div>
   <div id="fpc-list"></div>
@@ -1266,7 +1266,7 @@ let DAILY_INF = []; // populated from API
 let FAB_DAILY = {};
 // Fabric colors and totals for charts
 let FAB_COLORS = {'D1-041': '#4361ee', 'CFZ': '#2bc48a', 'T1-015': '#ff9f43', 'D1-091': '#a855f7', 'RFF': '#22b8cf', 'AMF': '#f76707', 'PPW': '#74c0fc'};
-let FAB_TOTALS = {'D1-041': {'sw': 228, 'ap': 43, 'inf': 10}, 'CFZ': {'sw': 141, 'ap': 24, 'inf': 4}, 'T1-015': {'sw': 0, 'ap': 0, 'inf': 2}, 'D1-091': {'sw': 0, 'ap': 0, 'inf': 2}, 'RFF': {'sw': 0, 'ap': 0, 'inf': 2}, 'AMF': {'sw': 0, 'ap': 0, 'inf': 2}, 'PPW': {'sw': 0, 'ap': 0, 'inf': 2}};
+let FAB_TOTALS = {}; // populated from API
 
 // Plan targets (scheduled qty) per date matching DAILY_L
 let DAILY_PLAN = []; // populated from API
@@ -1274,22 +1274,14 @@ let DAILY_PLAN = []; // populated from API
 // Per-fabric plan on those same dates
 let FAB_DAILY_PLAN = {};
 // ── Device type breakdown ──────────────────────────────────────────────────────
-let TYPE_DATA = [{n:'Access Switch Type 2',plan:584,done:188},{n:'Access Point',plan:445,done:67},{n:'Access Switch Type 4',plan:320,done:84},{n:'Aggregation Switch Type 3',plan:62,done:21},{n:'Aggregation Switch Type 2',plan:47,done:14},{n:'Access Switch Type 1',plan:45,done:23},{n:'Access Switch Type 3',plan:37,done:21},{n:'Wireless Controller',plan:14,done:14},{n:'Distribute Switch Type 1',plan:10,done:4},{n:'Core Switch Type 1',plan:4,done:4},{n:'Access Control Type 1',plan:4,done:4},{n:'Router',plan:4,done:2},{n:'Distribute Switch Type 2',plan:4,done:2},{n:'SDN Controller',plan:3,done:3},{n:'Aggregation Switch Type 1',plan:2,done:2},{n:'Extranet Switch Type 1',plan:2,done:2},{n:'Next Gen Firewall Type 2',plan:2,done:2},{n:'Next Gen Firewall Type 1',plan:2,done:2},{n:'SDN Witness',plan:1,done:1}];
+let TYPE_DATA = []; // populated from API
 
 // Plan totals per fabric (total scheduled devices)
 let FAB_PLAN_TOTALS = {'D1-041': 710, 'CFZ': 187, 'T1-015': 327, 'D1-091': 147, 'RFF': 99, 'AMF': 114, 'PPW': 8};
 
 let FAB_WEEKLY = {};
 
-let FABRICS = [
-  {n:'D1-041',t:710,d:281,p:39.58,h:0.5560975609756098,r:429,c:'#4361ee',sw:{t:410,d:228},ap:{t:290,d:43},inf:{t:10,d:10}},
-  {n:'CFZ',t:187,d:169,p:90.37,h:0.9038461538461539,r:18,c:'#2bc48a',sw:{t:156,d:141},ap:{t:25,d:24},inf:{t:6,d:4}},
-  {n:'T1-015',t:327,d:2,p:0.61,h:0,r:325,c:'#ff9f43',sw:{t:281,d:0},ap:{t:44,d:0},inf:{t:2,d:2}},
-  {n:'D1-091',t:147,d:2,p:1.36,h:0,r:145,c:'#a855f7',sw:{t:134,d:0},ap:{t:11,d:0},inf:{t:2,d:2}},
-  {n:'RFF',t:99,d:2,p:2.02,h:0,r:97,c:'#22b8cf',sw:{t:65,d:0},ap:{t:32,d:0},inf:{t:2,d:2}},
-  {n:'AMF',t:114,d:2,p:1.75,h:0,r:112,c:'#f76707',sw:{t:69,d:0},ap:{t:43,d:0},inf:{t:2,d:2}},
-  {n:'PPW',t:8,d:2,p:25.0,h:0,r:6,c:'#74c0fc',sw:{t:6,d:0},ap:{t:0,d:0},inf:{t:2,d:2}}
-];
+let FABRICS = []; // populated from API
 let LOC_DATA = {};
 
 // ── CHART OPTIONS FACTORY ─────────────────────────────────────────────────────
@@ -2827,14 +2819,42 @@ async function loadData(){
     const sw=fabrics.reduce((a,f)=>a+f.sw.d,0);
     const ap=fabrics.reduce((a,f)=>a+f.ap.d,0);
     const inf=fabrics.reduce((a,f)=>a+f.inf.d,0);
+    const swT=fabrics.reduce((a,f)=>a+f.sw.t,0)||1;
+    const apT=fabrics.reduce((a,f)=>a+f.ap.t,0)||1;
+    const infT=fabrics.reduce((a,f)=>a+f.inf.t,0)||1;
+    const allPct=(meta.installed/meta.total*100).toFixed(1);
+    const swPct=(sw/swT*100).toFixed(1);
+    const apPct=(ap/apT*100).toFixed(1);
+    const infPct=(inf/infT*100).toFixed(1);
     if(_e('ov-all'))    _e('ov-all').textContent    = `${meta.installed}/${meta.total}`;
-    if(_e('ov-sw'))     _e('ov-sw').textContent     = `${sw}/1121`;
-    if(_e('ov-ap'))     _e('ov-ap').textContent     = `${ap}/445`;
-    if(_e('ov-inf'))    _e('ov-inf').textContent    = `${inf}/26`;
-    if(_e('ov-all-b'))  _e('ov-all-b').style.width  = (meta.installed/meta.total*100).toFixed(1)+'%';
-    if(_e('ov-sw-b'))   _e('ov-sw-b').style.width   = (sw/1121*100).toFixed(1)+'%';
-    if(_e('ov-ap-b'))   _e('ov-ap-b').style.width   = (ap/445*100).toFixed(1)+'%';
-    if(_e('ov-inf-b'))  _e('ov-inf-b').style.width  = (inf/26*100).toFixed(1)+'%';
+    if(_e('ov-sw'))     _e('ov-sw').textContent     = `${sw}/${swT}`;
+    if(_e('ov-ap'))     _e('ov-ap').textContent     = `${ap}/${apT}`;
+    if(_e('ov-inf'))    _e('ov-inf').textContent    = `${inf}/${infT}`;
+    if(_e('ov-all-b'))  _e('ov-all-b').style.width  = allPct+'%';
+    if(_e('ov-sw-b'))   _e('ov-sw-b').style.width   = swPct+'%';
+    if(_e('ov-ap-b'))   _e('ov-ap-b').style.width   = apPct+'%';
+    if(_e('ov-inf-b'))  _e('ov-inf-b').style.width  = infPct+'%';
+    if(_e('ov-all-pct')) _e('ov-all-pct').textContent = allPct+'%';
+    if(_e('ov-sw-pct'))  _e('ov-sw-pct').textContent  = swPct+'%';
+    if(_e('ov-ap-pct'))  _e('ov-ap-pct').textContent  = apPct+'%';
+    if(_e('ov-inf-pct')) _e('ov-inf-pct').textContent = infPct+'%';
+    if(_e('ov-all-badge')) _e('ov-all-badge').textContent = allPct+'%';
+    if(_e('ov-sw-badge'))  _e('ov-sw-badge').textContent  = swPct+'%';
+    if(_e('ov-ap-badge'))  _e('ov-ap-badge').textContent  = apPct+'%';
+    if(_e('ov-inf-badge')) _e('ov-inf-badge').textContent = infPct+'%';
+    if(_e('type-donut-pct')) _e('type-donut-pct').textContent = allPct+'%';
+    // Tab แผนงาน
+    const effPct = ins.req_rate>0 ? Math.round(ins.daily_rate/ins.req_rate*100) : 0;
+    if(_e('plan-req-rate'))  _e('plan-req-rate').textContent  = ins.req_rate+' อุปกรณ์/วัน';
+    if(_e('plan-remaining')) _e('plan-remaining').textContent = meta.remaining.toLocaleString()+' อุปกรณ์';
+    if(_e('plan-plan-pct'))  _e('plan-plan-pct').textContent  = (PLAN_ALL[Math.min(TODAY_WK,PLAN_ALL.length-1)]||0).toFixed(1)+'%';
+    if(_e('plan-act-pct'))   _e('plan-act-pct').textContent   = allPct+'%';
+    if(_e('plan-act-bar'))   _e('plan-act-bar').style.width   = allPct+'%';
+    if(_e('plan-installed')) _e('plan-installed').textContent = meta.installed.toLocaleString()+' อุปกรณ์';
+    if(_e('plan-daily-rate'))_e('plan-daily-rate').textContent= ins.daily_rate.toFixed(1)+' อุปกรณ์/วัน';
+    if(_e('plan-eff-label')) _e('plan-eff-label').textContent = 'ทำได้ '+ins.daily_rate.toFixed(1)+'/วัน';
+    if(_e('plan-eff-bar'))   _e('plan-eff-bar').style.width   = Math.min(effPct,100)+'%';
+    if(_e('plan-eff-pct'))   _e('plan-eff-pct').textContent   = effPct+'%';
 
     // pills
     if(_e('pill-rem'))  _e('pill-rem').textContent  = meta.remaining.toLocaleString();
