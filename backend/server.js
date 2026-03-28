@@ -351,6 +351,48 @@ function calcDashboard(wb) {
     }
   });
 
+  // ── Daily cumulative progress ────────────────────────────────────────────────
+  const PROJ_START_D = new Date('2026-02-09'); PROJ_START_D.setHours(0,0,0,0);
+  const PROJ_END_D   = new Date('2026-06-23'); PROJ_END_D.setHours(0,0,0,0);
+
+  // สร้าง daily actual/plan map จาก aRows
+  const dayActMap = {}, dayPlanMap = {};
+  aRows.forEach(r => {
+    const qty   = r['Qty'] || 0;
+    const ok    = r['Qty. Success'] || 0;
+    let instDt  = r['Install Date'];
+    let schedDt = r['Scheduled Date'];
+    if (typeof instDt  === 'number') instDt  = new Date((instDt  - 25569) * 86400000);
+    if (typeof schedDt === 'number') schedDt = new Date((schedDt - 25569) * 86400000);
+    if (instDt instanceof Date && !isNaN(instDt) && ok > 0) {
+      const k = instDt.toISOString().slice(0,10);
+      dayActMap[k] = (dayActMap[k]||0) + ok;
+    }
+    if (schedDt instanceof Date && !isNaN(schedDt) && qty > 0) {
+      const k = schedDt.toISOString().slice(0,10);
+      dayPlanMap[k] = (dayPlanMap[k]||0) + qty;
+    }
+  });
+
+  // สร้าง array วัน proj_start ถึง proj_end
+  const dailyProgress = { labels:[], plan_cum:[], act_cum:[], last_act_date: lastInstallDate };
+  let cumPlanD = 0, cumActD = 0;
+  const cur = new Date(PROJ_START_D);
+  const lastActDt = lastInstallDate ? new Date(lastInstallDate+'T00:00:00') : null;
+  while (cur <= PROJ_END_D) {
+    const k = cur.toISOString().slice(0,10);
+    const dd = cur.getDate(), mm = cur.getMonth()+1;
+    const lbl = `${dd}/${String(mm).padStart(2,'0')}`;
+    cumPlanD += dayPlanMap[k]||0;
+    cumActD  += dayActMap[k]||0;
+    dailyProgress.labels.push(lbl);
+    dailyProgress.plan_cum.push(Math.round(cumPlanD/TOTAL*10000)/100);
+    dailyProgress.act_cum.push(
+      lastActDt && cur <= lastActDt ? Math.round(cumActD/TOTAL*10000)/100 : null
+    );
+    cur.setDate(cur.getDate()+1);
+  }
+
   return {
     wk:        WK_BOUNDS.map(w => w.label),
     today_wk:  todayWk,
@@ -366,6 +408,7 @@ function calcDashboard(wb) {
     fab_daily:  fabDaily,
     fab_daily_plan: fabDailyPlanOut,
     daily,
+    daily_progress: dailyProgress,
     fabrics,
     fab_totals:      fabTotals,
     fab_plan_totals: FAB_PLAN_T,
