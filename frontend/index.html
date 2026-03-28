@@ -1227,15 +1227,15 @@ function getTodayFrac(){ return (_totalDays()%7)/7; }
 let PLAN_ALL = []; // populated from API
 let ACT_ALL_RAW = []; // populated from API
 // carry-forward ACT_ALL ถึง TODAY_WK
-function getActAll(){let _l=null;return WK.map((_,i)=>{if(i<ACT_ALL_RAW.length&&ACT_ALL_RAW[i]!==null)_l=ACT_ALL_RAW[i];return i<=TODAY_WK?_l:null;});}
+function getActAll(){let _l=null;return WK.map((_,i)=>{if(i<ACT_ALL_RAW.length&&ACT_ALL_RAW[i]!==null)_l=ACT_ALL_RAW[i];return i<=TODAY_WK+1?_l:null;});}
 let PLAN_SW = []; // populated from API
 let ACT_SW_RAW = []; // populated from API
 // carry-forward ACT_SW ถึง TODAY_WK
-function getActSW(){let _l=null;return WK.map((_,i)=>{if(i<ACT_SW_RAW.length&&ACT_SW_RAW[i]!==null)_l=ACT_SW_RAW[i];return i<=TODAY_WK?_l:null;});}
+function getActSW(){let _l=null;return WK.map((_,i)=>{if(i<ACT_SW_RAW.length&&ACT_SW_RAW[i]!==null)_l=ACT_SW_RAW[i];return i<=TODAY_WK+1?_l:null;});}
 let PLAN_AP = []; // populated from API
 let ACT_AP_RAW = []; // populated from API
 // carry-forward ACT_AP ถึง TODAY_WK
-function getActAP(){let _l=null;return WK.map((_,i)=>{if(i<ACT_AP_RAW.length&&ACT_AP_RAW[i]!==null)_l=ACT_AP_RAW[i];return i<=TODAY_WK?_l:null;});}
+function getActAP(){let _l=null;return WK.map((_,i)=>{if(i<ACT_AP_RAW.length&&ACT_AP_RAW[i]!==null)_l=ACT_AP_RAW[i];return i<=TODAY_WK+1?_l:null;});}
 let BD_PLAN = []; // populated from API
 let BD_ACT = []; // populated from API
 let CUM_D = []; // populated from API
@@ -1919,7 +1919,7 @@ function buildBurndown(){
   let _bdLast = null;
   const actualFull = WK.map((_,i) => {
     if(i < BD_ACT.length && BD_ACT[i] !== null) _bdLast = BD_ACT[i];
-    return (i <= TODAY_WK) ? _bdLast : null;
+    return (i <= TODAY_WK+1) ? _bdLast : null;
   });
   const _ch_burndownc = Chart.getChart(document.getElementById('burndown-c'));
   if(_ch_burndownc) _ch_burndownc.destroy();
@@ -2122,8 +2122,8 @@ function buildProgressCharts(){
 
     // carry-forward sw_act / ap_act
     let _ls=null, _la=null;
-    const swAct = WK.map((_,i)=>{ if(fd.sw_act[i]!=null)_ls=fd.sw_act[i]; return i<=TODAY_WK?_ls:null; });
-    const apAct = WK.map((_,i)=>{ if(fd.ap_act[i]!=null)_la=fd.ap_act[i]; return i<=TODAY_WK?_la:null; });
+    const swAct = WK.map((_,i)=>{ if(fd.sw_act[i]!=null)_ls=fd.sw_act[i]; return i<=TODAY_WK+1?_ls:null; });
+    const apAct = WK.map((_,i)=>{ if(fd.ap_act[i]!=null)_la=fd.ap_act[i]; return i<=TODAY_WK+1?_la:null; });
 
     const swPct = Math.round(f.sw.d/Math.max(f.sw.t,1)*100);
     const apPct = Math.round(f.ap.d/Math.max(f.ap.t,1)*100);
