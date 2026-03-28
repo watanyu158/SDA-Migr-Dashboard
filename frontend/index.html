@@ -1227,11 +1227,19 @@ let LAST_INSTALL_DATE = null; // populated from API e.g. '2026-03-26'
 function getTodayFrac(){ return (_totalDays()%7)/7; }
 // คำนวณ fraction ของ last install date ภายใน week ของมัน
 function getLastInstallFrac(){
+  // คำนวณ fraction ของ last install date ภายใน week TODAY_WK
   if(!LAST_INSTALL_DATE) return null;
-  const d = new Date(LAST_INSTALL_DATE+'T00:00:00');
-  const wkStart = new Date(2026, 1, 9); // 09 Feb
+  const d   = new Date(LAST_INSTALL_DATE+'T00:00:00');
+  // หา week start ของ TODAY_WK จาก WK_BOUNDS_MS
+  const WK_STARTS = [
+    '2026-02-09','2026-02-16','2026-02-23','2026-03-02','2026-03-09',
+    '2026-03-16','2026-03-23','2026-03-30','2026-04-06','2026-04-13',
+    '2026-04-20','2026-04-27','2026-05-04','2026-05-11','2026-05-18',
+    '2026-05-25','2026-06-01','2026-06-09','2026-06-16','2026-06-23',
+  ];
+  const wkStart = new Date(WK_STARTS[TODAY_WK]+'T00:00:00');
   const days = Math.floor((d - wkStart)/(24*60*60*1000));
-  return (days % 7) / 7;
+  return Math.max(0, Math.min(1, days / 7));
 }
 // label สำหรับ last install เช่น "26/03"
 function getLastInstallLabel(){
