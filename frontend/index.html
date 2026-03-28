@@ -2072,7 +2072,10 @@ function buildDailyChart(canvasId, labels, planData, actData, planColor, actColo
   const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
   const lastActIdx=actData.reduce((a,v,j)=>v!=null?j:a,-1);
   const _uid=canvasId+'_'+Date.now();
+  const isDaily=labels.length>30; // daily ถ้า label เยอะ, weekly ถ้าน้อย
+  const tickStep=isDaily?14:1;
 
+  // today line + pill แดง (เหมือน overall)
   const tdPlugin={id:'td_'+_uid,afterDraw(chart){
     const {top,bottom}=chart.chartArea; const cv=chart.ctx;
     const tIdx=chart.data.labels.indexOf(todayLbl);
@@ -2080,30 +2083,46 @@ function buildDailyChart(canvasId, labels, planData, actData, planColor, actColo
     const x=chart.getDatasetMeta(0).data[tIdx].x;
     cv.save();
     cv.beginPath();cv.moveTo(x,top);cv.lineTo(x,bottom);
-    cv.strokeStyle='#ee4b4b';cv.lineWidth=1.2;cv.setLineDash([4,3]);cv.stroke();
-    cv.setLineDash([]);cv.restore();
+    cv.strokeStyle='#ee4b4b';cv.lineWidth=1.5;cv.setLineDash([5,3]);cv.stroke();
+    cv.setLineDash([]);
+    // pill วันที่
+    cv.font='bold 9px Segoe UI,sans-serif';
+    const tw=cv.measureText(todayLbl).width;
+    cv.fillStyle='#ee4b4b';
+    cv.beginPath();cv.roundRect(x-tw/2-4,top-1,tw+8,14,3);cv.fill();
+    cv.fillStyle='#fff';cv.textAlign='center';cv.textBaseline='top';
+    cv.fillText(todayLbl,x,top+2);
+    cv.restore();
   }};
 
+  // datalabels ทุก 14 วัน + จุดสุดท้าย (เหมือน overall)
   const lblPlugin={id:'lbl_'+_uid,afterDatasetsDraw(chart){
     const ctx2=chart.ctx;
     chart.data.datasets.forEach((ds,di)=>{
+      if(ds.data.every(v=>v==null)) return;
       const meta=chart.getDatasetMeta(di);
       const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
       const isPlan=di===0;
       meta.data.forEach((pt,i)=>{
         const v=ds.data[i]; if(v==null) return;
-        if(i!==lastIdx && i%21!==0) return;
+        if(i!==lastIdx && i%tickStep!==0) return;
         ctx2.save();
-        ctx2.font=isPlan?'8px Segoe UI':'bold 8px Segoe UI';
+        ctx2.font=isPlan?'9px Segoe UI':'bold 9px Segoe UI';
         ctx2.fillStyle=isPlan?'#94a3c4':(actColor||'#4361ee');
         ctx2.textAlign='center';
         ctx2.textBaseline=isPlan?'bottom':'top';
         const suffix=yUnit==='%'?'%':' เครื่อง';
-        ctx2.fillText(v.toFixed(yUnit==='%'?1:0)+suffix, pt.x, isPlan?pt.y-3:pt.y+4);
+        ctx2.fillText(v.toFixed(yUnit==='%'?1:0)+suffix, pt.x, isPlan?pt.y-4:pt.y+5);
         ctx2.restore();
       });
     });
   }};
+
+  // actColor with opacity สำหรับ fill
+  const fillColor = (actColor||'#4361ee')
+    .replace('#','').match(/.{2}/g)
+    .map(h=>parseInt(h,16));
+  const fillBg = `rgba(${fillColor[0]},${fillColor[1]},${fillColor[2]},0.06)`;
 
   return new Chart(ctx,{
     type:'line', plugins:[tdPlugin,lblPlugin],
@@ -2112,34 +2131,35 @@ function buildDailyChart(canvasId, labels, planData, actData, planColor, actColo
       datasets:[
         {label:'แผน',data:planData,borderColor:planColor||'#94a3c4',borderDash:[5,3],
          borderWidth:1.5,pointRadius:0,tension:0.3,fill:false,spanGaps:true},
-        {label:'จริง',data:actData,borderColor:actColor||'#4361ee',borderWidth:2,
-         pointRadius:(c)=>c.dataIndex===lastActIdx?4:0,
-         pointBackgroundColor:actColor||'#4361ee',tension:0.3,fill:false,spanGaps:false},
+        {label:'จริง',data:actData,borderColor:actColor||'#4361ee',borderWidth:2.5,
+         pointRadius:(c)=>c.dataIndex===lastActIdx?5:0,
+         pointBackgroundColor:actColor||'#4361ee',tension:0.3,
+         fill:true,backgroundColor:fillBg,spanGaps:false},
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      layout:{padding:{top:16,bottom:8}},
+      layout:{padding:{top:20,bottom:10}},
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
         tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',
-          bodyColor:'rgba(255,255,255,.8)',padding:8,cornerRadius:8,
+          bodyColor:'rgba(255,255,255,.8)',padding:10,cornerRadius:8,
           callbacks:{
             title:items=>labels[items[0].dataIndex]||'',
             label:c=>{
-              const v=c.parsed.y;
-              if(v==null) return null;
+              const v=c.parsed.y; if(v==null) return null;
               return ` ${c.dataset.label}: ${yUnit==='%'?v.toFixed(1)+'%':Math.round(v).toLocaleString()+' เครื่อง'}`;
             }
           }
         }
       },
       scales:{
-        x:{ticks:{font:{size:8},maxRotation:45,color:'#94a3c4',
-             callback:(v,i)=>i%14===0?labels[i]:null},grid:{display:false}},
+        x:{ticks:{font:{size:9},maxRotation:45,color:'#94a3c4',
+             callback:(v,i)=>i%tickStep===0?labels[i]:null},
+           grid:{display:false}},
         y:{min:0,max:yMax||100,
-           ticks:{font:{size:9},color:'#94a3c4',
+           ticks:{font:{size:10},color:'#94a3c4',
              callback:v=>yUnit==='%'?v+'%':v.toLocaleString()},
            grid:{color:'#f0f4ff'}}
       }
@@ -2255,21 +2275,33 @@ function buildProgressCharts(){
   })();
 
   // SW daily chart
-  // SW chart — daily หรือ weekly fallback
-  if(DAILY_SW_PLAN.length){
-    buildDailyChart('prog-sw-c', DAILY_PROG_LABELS, DAILY_SW_PLAN, DAILY_SW_ACT, '#818cf8','#4361ee', 100, '%');
-  } else {
-    // weekly fallback
-    let _sl=null; const _swAct=WK.map((_,i)=>{if(ACT_SW_RAW[i]!=null)_sl=ACT_SW_RAW[i];return i<=TODAY_WK?_sl:null;});
-    buildDailyChart('prog-sw-c', WK, PLAN_SW, _swAct, '#818cf8','#4361ee', 100, '%');
-  }
-  // AP chart — daily หรือ weekly fallback
-  if(DAILY_AP_PLAN.length){
-    buildDailyChart('prog-ap-c', DAILY_PROG_LABELS, DAILY_AP_PLAN, DAILY_AP_ACT, '#34d399','#2bc48a', 100, '%');
-  } else {
-    let _al=null; const _apAct=WK.map((_,i)=>{if(ACT_AP_RAW[i]!=null)_al=ACT_AP_RAW[i];return i<=TODAY_WK?_al:null;});
-    buildDailyChart('prog-ap-c', WK, PLAN_AP, _apAct, '#34d399','#2bc48a', 100, '%');
-  }
+  // SW chart
+  const _swLabels = DAILY_SW_PLAN.length ? DAILY_PROG_LABELS : WK;
+  const _swPlan   = DAILY_SW_PLAN.length ? DAILY_SW_PLAN : PLAN_SW;
+  const _swAct2   = DAILY_SW_PLAN.length ? DAILY_SW_ACT : (()=>{let _l=null;return WK.map((_,i)=>{if(ACT_SW_RAW[i]!=null)_l=ACT_SW_RAW[i];return i<=TODAY_WK?_l:null;});})();
+  buildDailyChart('prog-sw-c', _swLabels, _swPlan, _swAct2, '#818cf8','#4361ee', 100, '%');
+  // อัพเดท header SW
+  const _swPlanNow=_swLabels.indexOf(todayLbl)>=0?_swPlan[_swLabels.indexOf(todayLbl)]:null;
+  const _swActNow=_swAct2.reduce((a,v,j)=>v!=null?j:a,-1);
+  const _swActVal=_swActNow>=0?_swAct2[_swActNow]:null;
+  const _pSwEl=document.getElementById('prog-sw-plan-lbl');
+  const _aSwEl=document.getElementById('prog-sw-act-lbl');
+  if(_pSwEl&&_swPlanNow!=null) _pSwEl.textContent='แผน: '+_swPlanNow.toFixed(1)+'%';
+  if(_aSwEl&&_swActVal!=null)  _aSwEl.textContent='จริง: '+_swActVal.toFixed(1)+'%';
+
+  // AP chart
+  const _apLabels = DAILY_AP_PLAN.length ? DAILY_PROG_LABELS : WK;
+  const _apPlan   = DAILY_AP_PLAN.length ? DAILY_AP_PLAN : PLAN_AP;
+  const _apAct2   = DAILY_AP_PLAN.length ? DAILY_AP_ACT : (()=>{let _l=null;return WK.map((_,i)=>{if(ACT_AP_RAW[i]!=null)_l=ACT_AP_RAW[i];return i<=TODAY_WK?_l:null;});})();
+  buildDailyChart('prog-ap-c', _apLabels, _apPlan, _apAct2, '#34d399','#2bc48a', 100, '%');
+  // อัพเดท header AP
+  const _apPlanNow=_apLabels.indexOf(todayLbl)>=0?_apPlan[_apLabels.indexOf(todayLbl)]:null;
+  const _apActNow=_apAct2.reduce((a,v,j)=>v!=null?j:a,-1);
+  const _apActVal=_apActNow>=0?_apAct2[_apActNow]:null;
+  const _pApEl=document.getElementById('prog-ap-plan-lbl');
+  const _aApEl=document.getElementById('prog-ap-act-lbl');
+  if(_pApEl&&_apPlanNow!=null) _pApEl.textContent='แผน: '+_apPlanNow.toFixed(1)+'%';
+  if(_aApEl&&_apActVal!=null)  _aApEl.textContent='จริง: '+_apActVal.toFixed(1)+'%';
 
   // Per fabric cards — daily version
   const wrap = document.getElementById('fab-prog-charts');
@@ -2290,17 +2322,40 @@ function buildProgressCharts(){
 
     const div = document.createElement('div');
     div.className = 'card';
+    const fabPlanNow = (()=>{
+      const fd2=DAILY_FAB_PROG[f.n];
+      const todL=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+      if(fd2&&fd2.plan.length){
+        const tIdx=DAILY_PROG_LABELS.indexOf(todL);
+        return tIdx>=0?fd2.plan[tIdx]:null;
+      }
+      return null;
+    })();
+    const fabActNow = (()=>{
+      const fd2=DAILY_FAB_PROG[f.n];
+      if(fd2&&fd2.act.length){
+        const li=fd2.act.reduce((a,v,j)=>v!=null?j:a,-1);
+        return li>=0?fd2.act[li]:null;
+      }
+      return null;
+    })();
+    const fabPlanLbl = fabPlanNow!=null ? fabPlanNow.toFixed(1)+'%' : '–';
+    const fabActLbl  = fabActNow!=null  ? fabActNow.toFixed(1)+'%'  : totPct+'%';
+
     div.innerHTML =
-      '<div class="ch" style="margin-bottom:8px">'+
+      '<div class="ch" style="margin-bottom:8px;flex-wrap:wrap;gap:4px">'+
         '<div style="width:10px;height:10px;border-radius:50%;background:'+f.c+';flex-shrink:0"></div>'+
         '<span style="font-size:13px;font-weight:700">'+f.n+'</span>'+
-        '<span style="font-size:11px;font-weight:400;color:var(--text2);margin-left:6px">'+
-          totPct+'% | SW: '+swPct+'% | AP: '+apPct+'%</span>'+
+        '<div style="display:flex;gap:10px;margin-left:auto;font-size:11px;font-weight:400">'+
+          '<span style="color:var(--text3)">แผน: '+fabPlanLbl+'</span>'+
+          '<span style="color:'+f.c+';font-weight:600">จริง: '+fabActLbl+'</span>'+
+        '</div>'+
       '</div>'+
       '<div style="height:190px"><canvas id="'+cid+'"></canvas></div>'+
       '<div class="cleg" style="margin-top:6px">'+
-        '<div class="cl"><div class="cld" style="border-color:'+f.c+'88"></div>แผน</div>'+
-        '<div class="cl"><div class="cll" style="background:'+f.c+'"></div>จริง (รวม)</div>'+
+        '<div class="cl"><div class="cld"></div>แผน (%)</div>'+
+        '<div class="cl"><div class="cll" style="background:'+f.c+'"></div>จริง (%)</div>'+
+        '<div class="cl" style="color:var(--danger);font-size:11px">| วันนี้</div>'+
       '</div>';
     wrap.appendChild(div);
 
