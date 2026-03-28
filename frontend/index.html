@@ -1326,46 +1326,29 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
     return (i <= TODAY_WK) ? _last : null;
   });
 
-  // today line + last install label plugin
+  // เพิ่ม label + data point พิเศษที่ last install date เพื่อให้ tooltip ทำงาน
+  const liLbl = getLastInstallLabel();  // เช่น "26/03"
+  const liF   = getLastInstallFrac();   // fraction ใน week
+  const labels = [...WK];
+  const planExt = [...planData];
+  const actExt  = [...actFull];
+  if(liLbl && liF !== null && liLbl !== WK[TODAY_WK]) {
+    // แทรก label หลัง WK[TODAY_WK]
+    labels.splice(TODAY_WK + 1, 0, liLbl);
+    planExt.splice(TODAY_WK + 1, 0, null);
+    actExt.splice(TODAY_WK + 1, 0, actFull[TODAY_WK]); // ค่าเดิม
+  }
+
+  // plugin: today line เท่านั้น (label ใช้ data point จริงแล้ว)
   const _pid=canvasId+'_'+Date.now();
+  const todayWkAdj = liLbl && liF!==null && liLbl!==WK[TODAY_WK] ? TODAY_WK+1 : TODAY_WK;
   const _tdPlg={id:'td_'+_pid,afterDraw(chart){
     const m0=chart.getDatasetMeta(0);
-    if(!m0.data[TODAY_WK]) return;
+    if(!m0.data[todayWkAdj]) return;
     const {top,bottom}=chart.chartArea;
     const cv=chart.ctx;
-    const x0=m0.data[TODAY_WK].x;
-    const x1=m0.data[TODAY_WK+1]?m0.data[TODAY_WK+1].x:x0;
-
-    // วาดเส้นยืดจากจุดสุดท้าย → last install x position + label
-    const liF=getLastInstallFrac();
-    const liLbl=getLastInstallLabel();
-    if(liF!==null && liLbl){
-      const xLi=x0+(x1-x0)*liF;
-      const m1=chart.getDatasetMeta(1);
-      const lastPt=m1.data[TODAY_WK];
-      if(lastPt){
-        cv.save();
-        // เส้นยาว
-        cv.beginPath(); cv.moveTo(lastPt.x,lastPt.y); cv.lineTo(xLi,lastPt.y);
-        cv.strokeStyle=actColor||'#4361ee'; cv.lineWidth=2.5; cv.setLineDash([]); cv.stroke();
-        // จุดปลาย
-        cv.beginPath(); cv.arc(xLi,lastPt.y,4,0,Math.PI*2);
-        cv.fillStyle=actColor||'#4361ee'; cv.fill();
-        // label วันที่ + % บนจุด
-        const pct=actFull[TODAY_WK];
-        cv.font='bold 9px Segoe UI,sans-serif';
-        cv.fillStyle=actColor||'#4361ee';
-        cv.textAlign='center'; cv.textBaseline='bottom';
-        cv.fillText(liLbl, xLi, lastPt.y-9);
-        if(pct!=null){
-          cv.font='bold 9px Segoe UI,sans-serif';
-          cv.fillText(pct.toFixed(1)+'%', xLi, lastPt.y+14);
-        }
-        cv.restore();
-      }
-    }
-
-    // today line
+    const x0=m0.data[todayWkAdj].x;
+    const x1=m0.data[todayWkAdj+1]?m0.data[todayWkAdj+1].x:x0;
     const xT=x0+(x1-x0)*getTodayFrac();
     cv.save();
     cv.beginPath();cv.moveTo(xT,top);cv.lineTo(xT,bottom);
@@ -1379,10 +1362,10 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
     chart.data.datasets.forEach((ds,di)=>{
       const meta=chart.getDatasetMeta(di); if(meta.hidden) return;
       const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
+      const isPlan=di===0;
       meta.data.forEach((pt,i)=>{
         const v=ds.data[i]; if(v==null) return;
-        if(i!==lastIdx && i%3!==0) return;  // แสดงทุก 3 จุด + จุดสุดท้าย
-        const isPlan=di===0;
+        if(i!==lastIdx && i%3!==0) return;
         ctx2.save();
         ctx2.font=isPlan?'9px Segoe UI':'bold 9px Segoe UI';
         ctx2.fillStyle=isPlan?'#94a3b8':(actColor||'#4361ee');
@@ -1398,13 +1381,23 @@ function makeLineChart(canvasId, planData, actData, planColor, actColor, planLab
     type:'line',
     plugins:[_tdPlg,_lblPlg],
     data:{
-      labels: WK,
+      labels: labels,
       datasets:[
-        {label:planLabel||'แผน',data:planData,borderColor:planColor||'#64748b',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:planColor||'#64748b',tension:0.3,fill:false,spanGaps:false},
-        {label:actLabel||'จริง',data:actFull,borderColor:actColor||'#4361ee',borderWidth:2.5,pointRadius:(c)=>c.parsed.y!=null?4:0,pointBackgroundColor:actColor||'#4361ee',tension:0.3,fill:false,spanGaps:false}
+        {label:planLabel||'แผน',data:planExt,borderColor:planColor||'#64748b',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:planColor||'#64748b',tension:0.3,fill:false,spanGaps:false},
+        {label:actLabel||'จริง',data:actExt,borderColor:actColor||'#4361ee',borderWidth:2.5,
+         pointRadius:(c)=>c.parsed.y!=null?4:0,
+         pointBackgroundColor:actColor||'#4361ee',tension:0.3,fill:false,spanGaps:false}
       ]
     },
-    options:{...lineOpts(actColor),layout:{padding:{top:18,bottom:12}}}
+    options:{...lineOpts(actColor),layout:{padding:{top:18,bottom:12}},
+      plugins:{
+        tooltip:{
+          backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',
+          padding:10,cornerRadius:8,
+          callbacks:{label:(c)=>` ${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(1)+'%':'–'}`}
+        }
+      }
+    }
   });
 
   // อัพเดท header label (plan=TODAY_WK, act=carry-forward ถึง TODAY_WK)
@@ -2082,18 +2075,31 @@ function buildProgressCharts(){
 
     const actFull=getActAll();
 
+    // เพิ่ม label + data point พิเศษที่ last install date
+    const _liLbl=getLastInstallLabel();
+    const _liF=getLastInstallFrac();
+    const _wkLabels=[...WK];
+    const _planExt=[...PLAN_ALL];
+    const _actExt=[...actFull];
+    const _hasExtra=_liLbl && _liF!==null && _liLbl!==WK[TODAY_WK];
+    if(_hasExtra){
+      _wkLabels.splice(TODAY_WK+1,0,_liLbl);
+      _planExt.splice(TODAY_WK+1,0,null);
+      _actExt.splice(TODAY_WK+1,0,actFull[TODAY_WK]);
+    }
+    const _todayIdxAdj=_hasExtra?TODAY_WK+1:TODAY_WK;
+
     // today line plugin
     const _uid=Date.now();
     const tdPlugin={id:'tdAll_'+_uid,afterDraw(chart){
-      if(!chart.getDatasetMeta(0).data[TODAY_WK]) return;
+      if(!chart.getDatasetMeta(0).data[_todayIdxAdj]) return;
       const {top,bottom}=chart.chartArea;
       const m0=chart.getDatasetMeta(0);
       const cv=chart.ctx;
 
       // วาดเส้น + จุด + label last install date
-      const liF=getLastInstallFrac();
-      const liLbl=getLastInstallLabel();
-      if(liF!==null && m0.data[TODAY_WK+1]){
+      // last install line ถูกแทนด้วย data point จริงแล้ว ไม่ต้องวาด
+      if(false){
         const xLi=m0.data[TODAY_WK].x+(m0.data[TODAY_WK+1].x-m0.data[TODAY_WK].x)*liF;
         // หาจุดสุดท้ายที่มีค่าจริงใน dataset actual (index 1)
         const m1=chart.getDatasetMeta(1);
@@ -2119,7 +2125,7 @@ function buildProgressCharts(){
       }
 
       // วาด today line
-      const x0=m0.data[TODAY_WK].x,x1=m0.data[TODAY_WK+1]?m0.data[TODAY_WK+1].x:x0;
+      const x0=m0.data[_todayIdxAdj].x,x1=m0.data[_todayIdxAdj+1]?m0.data[_todayIdxAdj+1].x:x0;
       const x=x0+(x1-x0)*getTodayFrac();
       cv.save();
       cv.beginPath(); cv.moveTo(x,top); cv.lineTo(x,bottom);
@@ -2139,12 +2145,11 @@ function buildProgressCharts(){
       chart.data.datasets.forEach((ds,di)=>{
         if(ds.data.every(v=>v==null)) return;
         const meta=chart.getDatasetMeta(di);
+        const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
+        const isPlan=di===0;
         meta.data.forEach((pt,i)=>{
           const v=ds.data[i];
           if(v==null||v===undefined) return;
-          const isPlan=di===0;
-          // แสดงเฉพาะทุก 2 จุด หรือจุดสุดท้ายที่มีข้อมูล
-          const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
           if(i!==lastIdx && i%3!==0) return;
           ctx.save();
           ctx.font=isPlan?'9px Segoe UI':'bold 10px Segoe UI';
@@ -2160,10 +2165,10 @@ function buildProgressCharts(){
 
     const ch=new Chart(cv,{
       type:'line', plugins:[tdPlugin,lblPlugin],
-      data:{labels:WK,datasets:[
-        {label:'แผน (%)',data:PLAN_ALL,borderColor:'#94a3c4',borderDash:[5,3],borderWidth:1.5,
+      data:{labels:_wkLabels,datasets:[
+        {label:'แผน (%)',data:_planExt,borderColor:'#94a3c4',borderDash:[5,3],borderWidth:1.5,
          pointRadius:3,pointBackgroundColor:'#94a3c4',tension:0.3,fill:false,spanGaps:false},
-        {label:'จริง (%)',data:actFull,borderColor:'#4361ee',borderWidth:2.5,
+        {label:'จริง (%)',data:_actExt,borderColor:'#4361ee',borderWidth:2.5,
          pointRadius:(c)=>c.parsed.y!=null?4:0,pointBackgroundColor:'#4361ee',
          tension:0.3,fill:true,backgroundColor:'rgba(67,97,238,0.06)',spanGaps:false},
       ]},
@@ -2185,8 +2190,8 @@ function buildProgressCharts(){
     });
 
     // อัพเดท label บน header
-    const planNow=PLAN_ALL[Math.min(TODAY_WK,PLAN_ALL.length-1)];
-    const actNow=actFull[TODAY_WK];
+    const planNow=_planExt[Math.min(TODAY_WK,_planExt.length-1)];
+    const actNow=_actExt[TODAY_WK];
     const pEl=document.getElementById('prog-all-plan-lbl');
     const aEl=document.getElementById('prog-all-act-lbl');
     if(pEl) pEl.textContent='แผน: '+planNow.toFixed(1)+'%';
