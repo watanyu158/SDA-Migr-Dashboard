@@ -2978,14 +2978,15 @@ async function loadData(){
       DAILY_BD_PLAN.length=0;
       DAILY_PROG_PLAN.forEach(p=>DAILY_BD_PLAN.push(Math.round((1-p/100)*TOTAL_T)));
 
-      // per-fabric: SW+AP+Infra ÷ fab plan total
+      // per-fabric: FAB_DAILY[fab] เป็น array of total installs per DAILY_L index
       Object.keys(FAB_DAILY).forEach(fab=>{
         const fd=FAB_DAILY[fab]; if(!fd) return;
         const fabTotal=FAB_PLAN_TOTALS[fab]||1;
         const fabActDay=new Array(DAILY_PROG_LABELS.length).fill(0);
         DAILY_PROG_LABELS.forEach((lbl,i)=>{
           const di=dailyLMap[lbl]; if(di===undefined) return;
-          fabActDay[i]=(fd.sw[di]||0)+(fd.ap[di]||0)+(fd.inf[di]||0);
+          // FAB_DAILY[fab] = array[DAILY_L index] = total installs (number)
+          fabActDay[i]=fd[di]||0;
         });
         let cFab=0; const fPlan=[],fAct=[];
         let fabLastIdx=-1;
