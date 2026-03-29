@@ -2322,7 +2322,7 @@ function buildProgressCharts(){
   wrap.innerHTML = '';
 
   FABRICS.forEach(f => {
-    if(!DAILY_FAB_PROG[f.n]||!DAILY_FAB_PROG[f.n].plan.length) return;
+    if(!DAILY_FAB_PROG[f.n]||!DAILY_FAB_PROG[f.n].sw_plan||!DAILY_FAB_PROG[f.n].sw_plan.length) return;
     const swPct = Math.round(f.sw.d/Math.max(f.sw.t,1)*100);
     const apPct = Math.round(f.ap.d/Math.max(f.ap.t,1)*100);
     const totPct= Math.round(f.d/Math.max(f.t,1)*100);
@@ -2333,17 +2333,17 @@ function buildProgressCharts(){
     const fabPlanNow = (()=>{
       const fd2=DAILY_FAB_PROG[f.n];
       const todL=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
-      if(fd2&&fd2.plan.length){
+      if(fd2&&fd2.sw_plan&&fd2.sw_plan.length){
         const tIdx=DAILY_PROG_LABELS.indexOf(todL);
-        return tIdx>=0?fd2.plan[tIdx]:null;
+        return tIdx>=0?fd2.sw_plan[tIdx]:null;
       }
       return null;
     })();
     const fabActNow = (()=>{
       const fd2=DAILY_FAB_PROG[f.n];
-      if(fd2&&fd2.act.length){
-        const li=fd2.act.reduce((a,v,j)=>v!=null?j:a,-1);
-        return li>=0?fd2.act[li]:null;
+      if(fd2&&fd2.sw_act&&fd2.sw_act.length){
+        const li=fd2.sw_act.reduce((a,v,j)=>v!=null?j:a,-1);
+        return li>=0?fd2.sw_act[li]:null;
       }
       return null;
     })();
@@ -2946,7 +2946,12 @@ async function loadData(){
       _safe(dp.bd_plan,  DAILY_BD_PLAN);
       _safe(dp.bd_act,   DAILY_BD_ACT);
       Object.keys(dp.fab||{}).forEach(f=>{
-        DAILY_FAB_PROG[f]={plan:[...(dp.fab[f].plan||[])], act:[...(dp.fab[f].act||[])]};
+        DAILY_FAB_PROG[f]={
+          sw_plan:[...(dp.fab[f].sw_plan||dp.fab[f].plan||[])],
+          sw_act: [...(dp.fab[f].sw_act ||dp.fab[f].act ||[])],
+          ap_plan:[...(dp.fab[f].ap_plan||[])],
+          ap_act: [...(dp.fab[f].ap_act ||[])],
+        };
       });
     console.warn('today_wk=', d.today_wk, '| last_install=', d.last_install_date,
       '| act_all W13=', weekly&&weekly.act_all?weekly.act_all[6]:'?');
