@@ -166,6 +166,8 @@ function calcDashboard(wb) {
 
   // นับ Qty.Success ทั้งหมด (ไม่ require Install Date) — ตรงกับ Dashboard
   let totalSwOk=0, totalApOk=0, totalInfOk=0;
+  // หา min/max scheduled date per fabric
+  const fabSchedMin={}, fabSchedMax={};
   aRows.forEach(r => {
     const fab  = r['Fabric'];
     const cat  = r['Category'];
@@ -191,9 +193,14 @@ function calcDashboard(wb) {
       locMap[fab][loc].d += ok;
     }
 
-    // Scheduled date → plan
+    // track min/max scheduled per fabric
     let schedDt = r['Scheduled Date'];
     if (typeof schedDt === 'number') schedDt = new Date((schedDt - 25569) * 86400000);
+    if (schedDt && FABRICS.includes(fab)) {
+      const dk=schedDt.getTime();
+      if(!fabSchedMin[fab]||dk<fabSchedMin[fab]) fabSchedMin[fab]=dk;
+      if(!fabSchedMax[fab]||dk>fabSchedMax[fab]) fabSchedMax[fab]=dk;
+    }
     if (schedDt && qty > 0) {
       const wi = wkIdx(schedDt); const dk = fmtDate(schedDt);
       if (wi >= 0) {
@@ -306,6 +313,11 @@ function calcDashboard(wb) {
     const d=new Date(base.getTime()+v*86400000);
     return `${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
   };
+  const fmtExcelDate2 = ts => {
+    if(!ts) return '–';
+    const d=new Date(ts);
+    return `${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+  };
   const fabrics = FABRICS.map(fn => {
     const fr  = fabRows.find(r => r[0] === fn) || [];
     const frc = fabCatRows.find(r => r[0] === fn) || [];
@@ -314,7 +326,8 @@ function calcDashboard(wb) {
     return {
       n:fn, t:tot, d:done, p:tot>0?Math.round(done/tot*10000)/100:0,
       h:fr[4]||0, r:tot-done, c:FAB_COLORS[fn],
-      s:fmtExcelDate(fr[6]), e:fmtExcelDate(fr[7]),
+      s:(fabSchedMin[fn]?fmtExcelDate2(fabSchedMin[fn]):'–'),
+      e:(fabSchedMax[fn]?fmtExcelDate2(fabSchedMax[fn]):'–'),
       sw:{t:swT,d:swD}, ap:{t:apT,d:apD}, inf:{t:infT,d:infD},
       weekly: fabWeekly[fn],
     };
