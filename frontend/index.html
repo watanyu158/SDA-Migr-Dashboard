@@ -1035,30 +1035,29 @@ main { padding: 12px 10px; }
     </div>
   </div>
 
-  <!-- SW + AP: เล็กคู่กัน -->
-  <div class="g2" style="margin-bottom:14px">
-    <div class="card">
-      <div class="ch">
-        <div class="chi" style="background:#eef1ff;color:#4361ee">🔀</div>Switch รวม — แผน vs จริง (%)
-        <div style="display:flex;gap:10px;margin-left:auto;font-size:11px;font-weight:400">
-          <span id="prog-sw-plan-lbl" style="color:var(--text3)">แผน: –%</span>
-          <span id="prog-sw-act-lbl" style="color:#4361ee;font-weight:600">จริง: –%</span>
-        </div>
+  <!-- SW -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch">
+      <div class="chi" style="background:#eef1ff;color:#4361ee">🔀</div>Switch รวม — แผน vs จริง (%)
+      <div style="display:flex;gap:10px;margin-left:auto;font-size:11px;font-weight:400">
+        <span id="prog-sw-plan-lbl" style="color:var(--text3)">แผน: –%</span>
+        <span id="prog-sw-act-lbl" style="color:#4361ee;font-weight:600">จริง: –%</span>
       </div>
-      <div style="height:180px"><canvas id="prog-sw-c"></canvas></div>
-      <div class="cleg"><div class="cl"><div class="cld" style="border-color:#a5b4fc"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#4361ee"></div>จริง (%)</div></div>
     </div>
-    <div class="card">
-      <div class="ch">
-        <div class="chi" style="background:var(--success-l);color:var(--success)">📶</div>AP รวม — แผน vs จริง (%)
-        <div style="display:flex;gap:10px;margin-left:auto;font-size:11px;font-weight:400">
-          <span id="prog-ap-plan-lbl" style="color:var(--text3)">แผน: –%</span>
-          <span id="prog-ap-act-lbl" style="color:var(--success);font-weight:600">จริง: –%</span>
-        </div>
+    <div style="height:220px"><canvas id="prog-sw-c"></canvas></div>
+    <div class="cleg"><div class="cl"><div class="cld" style="border-color:#a5b4fc"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#4361ee"></div>จริง (%)</div></div>
+  </div>
+  <!-- AP -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch">
+      <div class="chi" style="background:var(--success-l);color:var(--success)">📶</div>AP รวม — แผน vs จริง (%)
+      <div style="display:flex;gap:10px;margin-left:auto;font-size:11px;font-weight:400">
+        <span id="prog-ap-plan-lbl" style="color:var(--text3)">แผน: –%</span>
+        <span id="prog-ap-act-lbl" style="color:var(--success);font-weight:600">จริง: –%</span>
       </div>
-      <div style="height:180px"><canvas id="prog-ap-c"></canvas></div>
-      <div class="cleg"><div class="cl"><div class="cld" style="border-color:#6ee7b7"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#2bc48a"></div>จริง (%)</div></div>
     </div>
+    <div style="height:220px"><canvas id="prog-ap-c"></canvas></div>
+    <div class="cleg"><div class="cl"><div class="cld" style="border-color:#6ee7b7"></div>แผน (%)</div><div class="cl"><div class="cll" style="background:#2bc48a"></div>จริง (%)</div></div>
   </div>
 
   <!-- Per Fabric charts -->
