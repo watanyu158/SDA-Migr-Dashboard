@@ -3106,6 +3106,7 @@ async function loadData(){
     FABRICS.length=0;
     fabrics.forEach(f=>FABRICS.push({
       n:f.n, t:f.t, d:f.d, p:f.p, h:f.h, r:f.r, c:f.c,
+      s:f.s||'–', e:f.e||'–',
       sw:{t:f.sw.t,d:f.sw.d}, ap:{t:f.ap.t,d:f.ap.d}, inf:{t:f.inf.t,d:f.inf.d}
     }));
     TYPE_DATA.length=0;
