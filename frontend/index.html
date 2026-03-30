@@ -2632,14 +2632,19 @@ function buildGraphs(){
   }
   {
     const _cumEl=document.getElementById('cum-c');
+    if(_cumEl){
+      const _exCum=Chart.getChart(_cumEl); if(_exCum) _exCum.destroy();
+    }
     if(_cumEl && DAILY_L.length){
+      // คำนวณ cumulative จาก DAILY arrays
+      let _cumSW=[],_cumAP=[],_cumInf=[];
+      let cs=0,ca=0,ci=0;
+      DAILY_L.forEach((_,i)=>{
+        cs+=DAILY_SW[i]||0; ca+=DAILY_AP[i]||0; ci+=DAILY_INF[i]||0;
+        _cumSW.push(cs); _cumAP.push(ca); _cumInf.push(ci);
+      });
       const _todayL=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
-      const _lastSW=CUM_SW[CUM_SW.length-1]||0;
-      const _lastAP=CUM_AP[CUM_AP.length-1]||0;
-      const _lastInf=CUM_INF[CUM_INF.length-1]||0;
-      const _lastTotal=_lastSW+_lastAP+_lastInf;
       const _lastIdx=DAILY_L.length-1;
-      // today line plugin
       const _tdCum={id:'tdCum',afterDraw(chart){
         const {top,bottom}=chart.chartArea; const cv2=chart.ctx;
         const tIdx=chart.data.labels.indexOf(_todayL);
@@ -2656,7 +2661,6 @@ function buildGraphs(){
         cv2.fillStyle='#fff';cv2.textAlign='center';cv2.textBaseline='top';
         cv2.fillText(_todayL,x,top+2);cv2.restore();
       }};
-      // last value label plugin
       const _lblCum={id:'lblCum',afterDatasetsDraw(chart){
         const cv2=chart.ctx;
         chart.data.datasets.forEach((ds,di)=>{
@@ -2684,9 +2688,9 @@ function buildGraphs(){
           plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}},
             tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,cornerRadius:8,
               callbacks:{
-                title:items=>DAILY_L[items[0].dataIndex]||'',
+                title:items=>DAILY_L[items[0]?.dataIndex]||'',
                 label:c=>` ${c.dataset.label}: ${c.parsed.y} เครื่อง`,
-                footer:items=>`รวม: ${items.reduce((a,c)=>a+c.parsed.y,0)} เครื่อง`
+                footer:items=>`รวม: ${items.reduce((a,c)=>a+(c.parsed.y||0),0)} เครื่อง`
               }
             }
           },
@@ -3407,6 +3411,25 @@ async function loadData(){
     buildGauge(); buildBurndown();
     gblt=false; buildProgressCharts(); buildFabBreakdown(); buildTypeBarChart();
     buildVelocityChart(); buildWeekdayChart(); buildFabGap();
+    // wd-cells populate ทันทีหลัง data load
+    if(document.getElementById('wd-cells') && DAILY_L.length){
+      const _dn=['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+      const _dt=new Array(7).fill(0);
+      DAILY_L.forEach((lbl,di)=>{
+        const [d,m]=lbl.split('/').map(Number);
+        const dow=new Date(2026,m-1,d).getDay();
+        _dt[dow]+=(DAILY_SW[di]||0)+(DAILY_AP[di]||0)+(DAILY_INF[di]||0);
+      });
+      const _ord=[1,2,3,4,5,6,0];
+      const _vv=_ord.map(d=>_dt[d]), _ll=_ord.map(d=>_dn[d]);
+      const _mx=Math.max(..._vv,1);
+      document.getElementById('wd-cells').innerHTML=_ll.map((lbl,i)=>{
+        const v=_vv[i],p=Math.round(v/_mx*100);
+        const bg=p>=80?'#2bc48a':p>=50?'#4361ee':p>=20?'#ff9f43':'#e2e8f0';
+        const tc=p>=20?'#fff':'var(--text2)';
+        return `<div style="border-radius:7px;padding:9px 3px;text-align:center;background:${bg};color:${tc}"><div style="font-size:10px;opacity:.8">${lbl}</div><div style="font-size:14px;font-weight:700;margin-top:3px">${v}</div></div>`;
+      }).join('');
+    }
     buildTimeline(); buildHeatmap(); buildLocList(); buildFabCards();
     gblt=false;
 
