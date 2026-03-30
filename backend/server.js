@@ -508,7 +508,7 @@ function calcDashboard(wb) {
     wk:        WK_BOUNDS.map(w => w.label),
     today_wk:  todayWk,
     last_install_date: lastInstallDate,
-    meta:      { total:TOTAL, installed, installed_sw:INSTALLED_SW, installed_ap:INSTALLED_AP, installed_inf:INSTALLED_INF, remaining, hold, overdue, on_time_qty:onTimeQty, on_time_pct:onTimePct, on_time_early:earlyQty, on_time_late:lateQty },
+    meta:      { total:TOTAL, installed, installed_sw:totalSwOk, installed_ap:totalApOk, installed_inf:totalInfOk, remaining, hold, overdue, on_time_qty:onTimeQty, on_time_pct:onTimePct, on_time_early:earlyQty, on_time_late:lateQty },
     hold_items: holdItems,
     insight:   { daily_rate:dailyRate, req_rate:reqRate, need_more:needMore,
                  pct_more:pctMore, days_late:daysLate, gauge_pct:gaugePct,
