@@ -2221,25 +2221,24 @@ function buildProgressCharts(){
       cv.fillText(todayLbl,x,top+2);cv.restore();
     }};
 
-    // datalabels — ทุก 14 วัน + จุดสุดท้าย
+    // datalabels — เฉพาะ last actual index (plan+actual คู่กัน)
     const lblPlugin={id:'allLabels_'+_uid,afterDatasetsDraw(chart){
       const ctx=chart.ctx;
+      const actDs=chart.data.datasets[1];
+      const sharedIdx=actDs?actDs.data.reduce((a,v,j)=>v!=null?j:a,-1):-1;
+      if(sharedIdx<0) return;
       chart.data.datasets.forEach((ds,di)=>{
-        if(ds.data.every(v=>v==null)) return;
         const meta=chart.getDatasetMeta(di);
-        const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
+        const v=ds.data[sharedIdx]; if(v==null) return;
+        const pt=meta.data[sharedIdx]; if(!pt) return;
         const isPlan=di===0;
-        meta.data.forEach((pt,i)=>{
-          const v=ds.data[i]; if(v==null) return;
-          if(i!==lastIdx && i%7!==0) return;
-          ctx.save();
-          ctx.font=isPlan?'9px Segoe UI':'bold 9px Segoe UI';
-          ctx.fillStyle=isPlan?'#94a3c4':'#4361ee';
-          ctx.textAlign='center';
-          ctx.textBaseline=isPlan?'bottom':'top';
-          ctx.fillText(v.toFixed(1)+'%',pt.x,isPlan?pt.y-4:pt.y+5);
-          ctx.restore();
-        });
+        ctx.save();
+        ctx.font='bold 9px Segoe UI';
+        ctx.fillStyle=isPlan?'#94a3c4':'#4361ee';
+        ctx.textAlign='left';
+        ctx.textBaseline=isPlan?'bottom':'top';
+        ctx.fillText(v.toFixed(1)+'%', pt.x+5, isPlan?pt.y-2:pt.y+2);
+        ctx.restore();
       });
     }};
 
@@ -2250,7 +2249,10 @@ function buildProgressCharts(){
         labels:_pLabels,
         datasets:[
           {label:'แผน (%)',data:_pPlan,borderColor:'#94a3c4',borderDash:[5,3],
-           borderWidth:1.5,pointRadius:0,tension:0.3,fill:false,spanGaps:true},
+           borderWidth:1.5,
+           pointRadius:(c)=>c.dataIndex===lastActIdx?3:0,
+           pointBackgroundColor:'#94a3c4',
+           tension:0.3,fill:false,spanGaps:true},
           {label:'จริง (%)',data:_pAct,borderColor:'#4361ee',borderWidth:2.5,
            pointRadius:(c)=>c.dataIndex===lastActIdx?3:0,
            pointBackgroundColor:'#4361ee',tension:0.3,fill:true,
