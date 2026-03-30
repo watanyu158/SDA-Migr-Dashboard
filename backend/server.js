@@ -7,13 +7,8 @@ const https   = require('https');
 const http    = require('http');
 
 const app = express();
-app.use(cors({
-  origin: ['https://svb-migr-progress.onrender.com', 'http://localhost:3000', 'http://localhost:5500'],
-  methods: ['GET','POST'],
-  credentials: false
-}));
+app.use(cors({origin:['https://svb-migr-progress.onrender.com','http://localhost:3000'],methods:['GET','POST']}));
 app.use(express.json());
-app.options('*', cors());
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const SHAREPOINT_URL = process.env.SHAREPOINT_URL || '';
@@ -289,8 +284,8 @@ function calcDashboard(wb) {
     fabDailyPlanOut[f] = sortedDates.map(d => fabDailyPlan[f][d] || 0);
   });
 
-  // Fabrics from Dashboard rows 23-29 (D1-041=23, CFZ=24, T1-015=25, D1-091=26, RFF=27, AMF=28, PPW=29)
-  const fabRows = dRows.slice(23, 30);
+  // Fabrics from Dashboard rows 27-33
+  const fabRows = dRows.slice(27, 34);
   const fabrics = FABRICS.map(fn => {
     const fr = fabRows.find(r => r[0] === fn) || [];
     const swT=fr[1]||0, swD=fr[2]||0, apT=fr[4]||0, apD=fr[5]||0, infT=fr[7]||0, infD=fr[8]||0;
