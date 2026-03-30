@@ -2107,24 +2107,25 @@ function buildDailyChart(canvasId, labels, planData, actData, planColor, actColo
     cv.restore();
   }};
 
-  // datalabels เฉพาะ last point เท่านั้น
+  // datalabels เฉพาะ last actual point — plan ใช้ index เดียวกัน
   const lblPlugin={id:'lbl_'+_uid,afterDatasetsDraw(chart){
     const ctx2=chart.ctx;
+    // หา last actual index จาก dataset di=1
+    const actDs=chart.data.datasets[1];
+    const sharedIdx=actDs?actDs.data.reduce((a,v,j)=>v!=null?j:a,-1):-1;
+    if(sharedIdx<0) return;
     chart.data.datasets.forEach((ds,di)=>{
-      if(ds.data.every(v=>v==null)) return;
       const meta=chart.getDatasetMeta(di);
-      const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
-      if(lastIdx<0) return;
+      const v=ds.data[sharedIdx]; if(v==null) return;
+      const pt=meta.data[sharedIdx]; if(!pt) return;
       const isPlan=di===0;
-      const pt=meta.data[lastIdx];
-      const v=ds.data[lastIdx]; if(v==null) return;
       ctx2.save();
       ctx2.font='bold 9px Segoe UI';
       ctx2.fillStyle=isPlan?(planColor||'#94a3c4'):(actColor||'#4361ee');
       ctx2.textAlign='left';
-      ctx2.textBaseline='middle';
+      ctx2.textBaseline=isPlan?'bottom':'top';
       const suffix=yUnit==='%'?'%':' เครื่อง';
-      ctx2.fillText(v.toFixed(yUnit==='%'?1:0)+suffix, pt.x+5, pt.y);
+      ctx2.fillText(v.toFixed(yUnit==='%'?1:0)+suffix, pt.x+5, isPlan?pt.y-2:pt.y+2);
       ctx2.restore();
     });
   }};
@@ -2398,22 +2399,28 @@ function buildProgressCharts(){
         cv3.fillText(_tod,x,top+2);cv3.restore();
       }};
       // datalabel plugin — ทุก 14 วัน + last point
-      // datalabel เฉพาะ last point ทางขวาของจุด
+      // datalabel — plan+actual ที่ last actual index
       const lblPl3={id:'lbl3_'+_uid3,afterDatasetsDraw(chart){
         const ctx3c=chart.ctx;
-        chart.data.datasets.forEach((ds,di)=>{
-          if(ds.data.every(v=>v==null)) return;
+        // หา last actual index จาก SW จริง (di=1) หรือ AP จริง (di=3)
+        const swActDs=chart.data.datasets[1], apActDs=chart.data.datasets[3];
+        const swLastIdx=swActDs?swActDs.data.reduce((a,v,j)=>v!=null?j:a,-1):-1;
+        const apLastIdx=apActDs?apActDs.data.reduce((a,v,j)=>v!=null?j:a,-1):-1;
+        // pair: [dataset_index, shared_last_idx]
+        const pairs=[[0,swLastIdx],[1,swLastIdx],[2,apLastIdx],[3,apLastIdx]];
+        pairs.forEach(([di,sharedIdx])=>{
+          if(sharedIdx<0) return;
+          const ds=chart.data.datasets[di]; if(!ds) return;
+          const v=ds.data[sharedIdx]; if(v==null) return;
           const meta=chart.getDatasetMeta(di);
-          const lastIdx=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
-          if(lastIdx<0) return;
-          const pt=meta.data[lastIdx];
-          const v=ds.data[lastIdx]; if(v==null) return;
+          const pt=meta.data[sharedIdx]; if(!pt) return;
+          const isPlan=di===0||di===2;
           ctx3c.save();
           ctx3c.font='bold 9px Segoe UI';
           ctx3c.fillStyle=ds.borderColor;
           ctx3c.textAlign='left';
-          ctx3c.textBaseline='middle';
-          ctx3c.fillText(v.toFixed(1)+'%', pt.x+5, pt.y);
+          ctx3c.textBaseline=isPlan?'bottom':'top';
+          ctx3c.fillText(v.toFixed(1)+'%', pt.x+5, isPlan?pt.y-2:pt.y+2);
           ctx3c.restore();
         });
       }};
