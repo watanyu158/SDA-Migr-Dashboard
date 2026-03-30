@@ -7,8 +7,13 @@ const https   = require('https');
 const http    = require('http');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://svb-migr-progress.onrender.com', 'http://localhost:3000', 'http://localhost:5500'],
+  methods: ['GET','POST'],
+  credentials: false
+}));
 app.use(express.json());
+app.options('*', cors());
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const SHAREPOINT_URL = process.env.SHAREPOINT_URL || '';
@@ -409,7 +414,7 @@ function calcDashboard(wb) {
     bd_plan:[], bd_act:[], fab:{} };
   FABRICS.forEach(f => { dailyProgress.fab[f] = { plan:[], act:[] }; });
 
-  let cAll=0, cPlan=0, cSW=0, cSWp=0, cAP=0, cAPp=0;
+  let cAll=0, cPlan=0, cSWd=0, cSWp=0, cAPd=0, cAPp=0;
   const cFab={}, cFabP={};
   FABRICS.forEach(f=>{ cFab[f]=0; cFabP[f]=0; });
 
@@ -432,8 +437,8 @@ function calcDashboard(wb) {
     const lbl = `${dd}/${String(mm).padStart(2,'0')}`;
 
     cAll  += dayActMap[k]||0; cPlan += dayPlanMap[k]||0;
-    cSW   += daySwAct[k]||0;  cSWp  += daySwPlan[k]||0;
-    cAP   += dayApAct[k]||0;  cAPp  += dayApPlan[k]||0;
+    cSWd  += daySwAct[k]||0;  cSWp  += daySwPlan[k]||0;
+    cAPd  += dayApAct[k]||0;  cAPp  += dayApPlan[k]||0;
     FABRICS.forEach(f=>{ cFab[f]+=(dayFabAct[f][k]||0); cFabP[f]+=(dayFabPlan[f][k]||0); });
 
     const inAct  = lastActDt && cur <= lastActDt;
@@ -445,9 +450,9 @@ function calcDashboard(wb) {
 
     const swT = TOTAL_SW||1, apT = TOTAL_AP||1;
     dailyProgress.sw_plan.push(pct(cSWp/swT));
-    dailyProgress.sw_act.push(inAct ? pct(cSW/swT) : null);
+    dailyProgress.sw_act.push(inAct ? pct(cSWd/swT) : null);
     dailyProgress.ap_plan.push(pct(cAPp/apT));
-    dailyProgress.ap_act.push(inAct ? pct(cAP/apT) : null);
+    dailyProgress.ap_act.push(inAct ? pct(cAPd/apT) : null);
 
     // burndown
     dailyProgress.bd_plan.push(TOTAL - cPlan);
