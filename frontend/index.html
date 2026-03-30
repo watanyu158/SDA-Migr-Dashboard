@@ -1734,7 +1734,7 @@ function buildFabGap(){
     DAILY_L.forEach((lbl,di)=>{
       const [day,mo]=lbl.split('/').map(Number);
       const dt=new Date(2026,mo-1,day);
-      if(dt>=wkStart&&dt<=wkEnd) tot+=(FAB_DAILY[f.n]&&FAB_DAILY[f.n][di])||0;
+      if(dt>=wkStart&&dt<=wkEnd) tot+=fabDailyTotal(f.n,di);
     });
     return {n:f.n, c:f.c, tot, t:f.t, d:f.d};
   });
@@ -1751,11 +1751,11 @@ function buildFabGap(){
         ctx2.textBaseline='middle'; ctx2.fillStyle='#1e2d4d';
         ctx2.fillText(`${f.tot} เครื่อง`, bar.x+5, bar.y-5);
         ctx2.font='9px Segoe UI'; ctx2.fillStyle='#64748b';
-        ctx2.fillText(`รวม ${actPct}%`, bar.x+5, bar.y+5);
+        ctx2.fillText(`(รวม ${f.d}/${f.t})`, bar.x+5, bar.y+5);
       } else {
         ctx2.font='9px Segoe UI'; ctx2.textAlign='left';
         ctx2.textBaseline='middle'; ctx2.fillStyle='#94a3b8';
-        ctx2.fillText(`–  (รวม ${actPct}%)`, bar.x+5, bar.y);
+        ctx2.fillText(`– (รวม ${f.d}/${f.t})`, bar.x+5, bar.y);
       }
       ctx2.restore();
     });
@@ -1781,9 +1781,9 @@ function buildFabGap(){
         tooltip:{backgroundColor:'rgba(30,45,77,.92)',titleColor:'#fff',
           bodyColor:'rgba(255,255,255,.8)',padding:10,
           callbacks:{
-            title:ctx=>`${fabWkData[ctx[0].dataIndex].n}`,
+            title:ctx=>`${fabWkData[ctx[0]?.dataIndex??0]?.n||''}`,
             label:ctx=>{
-              const f=fabWkData[ctx[0].dataIndex];
+              const f=fabWkData[ctx?.dataIndex??0];
               const pct=totalWk>0?Math.round(f.tot/totalWk*100):0;
               const actPct=Math.round(f.d/Math.max(f.t,1)*100);
               return f.tot>0
@@ -2661,16 +2661,21 @@ function buildGraphs(){
         cv2.fillStyle='#fff';cv2.textAlign='center';cv2.textBaseline='top';
         cv2.fillText(_todayL,x,top+2);cv2.restore();
       }};
+      // ใช้ installed totals จาก Dashboard sheet สำหรับ last value label
+      const _swTotal = window.INSTALLED_SW || _cumSW[_cumSW.length-1] || 0;
+      const _apTotal = window.INSTALLED_AP || _cumAP[_cumAP.length-1] || 0;
+      const _infTotal= window.INSTALLED_INF|| _cumInf[_cumInf.length-1]|| 0;
+      const _dsLabels = [_swTotal+' เครื่อง', _apTotal+' เครื่อง', _infTotal+' เครื่อง'];
       const _lblCum={id:'lblCum',afterDatasetsDraw(chart){
         const cv2=chart.ctx;
         chart.data.datasets.forEach((ds,di)=>{
           const lastI=ds.data.reduce((a,v,j)=>v!=null?j:a,-1);
           if(lastI<0) return;
           const pt=chart.getDatasetMeta(di).data[lastI];
-          const v=ds.data[lastI]; if(!v) return;
+          if(!pt) return;
           cv2.save();cv2.font='bold 9px Segoe UI';cv2.fillStyle=ds.borderColor;
           cv2.textAlign='left';cv2.textBaseline='middle';
-          cv2.fillText(v+' เครื่อง',pt.x+5,pt.y);cv2.restore();
+          cv2.fillText(_dsLabels[di]||'',pt.x+5,pt.y);cv2.restore();
         });
       }};
       new Chart(_cumEl,{type:'line',plugins:[_tdCum,_lblCum],
@@ -3079,6 +3084,10 @@ async function loadData(){
     const {meta, insight:ins, weekly, fabrics, types, daily, locations} = d;
 
     // ── อัพเดท arrays ────────────────────────────────────────────────────
+    // installed totals จาก Dashboard sheet (ตรงกับ Excel)
+    window.INSTALLED_SW  = meta.installed_sw  || 0;
+    window.INSTALLED_AP  = meta.installed_ap  || 0;
+    window.INSTALLED_INF = meta.installed_inf || 0;
     WK.length=0;           d.wk.forEach(v=>WK.push(v));
     PLAN_ALL.length=0;     weekly.plan_all.forEach(v=>PLAN_ALL.push(v));
     ACT_ALL_RAW.length=0;  weekly.act_all.forEach(v=>ACT_ALL_RAW.push(v));

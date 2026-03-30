@@ -109,8 +109,11 @@ function calcDashboard(wb) {
   const aRows = XLSX.utils.sheet_to_json(wsA, { defval:null });
 
   // Overview
-  // installed = R7[3] Actual Installed
-  const installed = (dRows[6]&&dRows[6][3]) || 0;
+  // installed/SW/AP from Dashboard sheet (rows 4=total, 18=SW, 19=AP)
+  const installed = (dRows[5]&&dRows[5][3]) || (dRows[6]&&dRows[6][3]) || 0;
+  const INSTALLED_SW  = (dRows[18]&&dRows[18][2]) || 0;  // SW Done
+  const INSTALLED_AP  = (dRows[19]&&dRows[19][2]) || 0;  // AP Done
+  const INSTALLED_INF = installed - INSTALLED_SW - INSTALLED_AP;
 
   // hold = นับจำนวน rows ที่ Status='Hold' (ไม่ใช่ qty)
   const hold = aRows.filter(r => r['Status'] === 'Hold').length;
@@ -494,7 +497,7 @@ function calcDashboard(wb) {
     wk:        WK_BOUNDS.map(w => w.label),
     today_wk:  todayWk,
     last_install_date: lastInstallDate,
-    meta:      { total:TOTAL, installed, remaining, hold, overdue, on_time_qty:onTimeQty, on_time_pct:onTimePct, on_time_early:earlyQty, on_time_late:lateQty },
+    meta:      { total:TOTAL, installed, installed_sw:INSTALLED_SW, installed_ap:INSTALLED_AP, installed_inf:INSTALLED_INF, remaining, hold, overdue, on_time_qty:onTimeQty, on_time_pct:onTimePct, on_time_early:earlyQty, on_time_late:lateQty },
     hold_items: holdItems,
     insight:   { daily_rate:dailyRate, req_rate:reqRate, need_more:needMore,
                  pct_more:pctMore, days_late:daysLate, gauge_pct:gaugePct,
