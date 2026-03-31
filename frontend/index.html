@@ -657,6 +657,11 @@ main { padding: 12px 10px; }
   /* ── Hide controls ── */
   .topbar, .actions, .tabs, .tbtn,
   .hold-tog, #hold-body { display: none !important; }
+  /* insights-box แสดงใน print */
+  .insights-box { display: block !important; }
+  /* upcoming ขึ้นหน้าใหม่ */
+  #upcoming-list { page-break-before: always; break-before: page; }
+  #upcoming-list .card { break-inside: avoid; }
   #fab-daily-charts-wrap, .prog-fab-grid { display: block !important; }
 
   /* ── Show all tab bodies ── */
@@ -3535,6 +3540,9 @@ async function exportPDF(){
     });
     // open loc-list และ set page-break แต่ละ fabric
     clone.querySelectorAll('.fgb').forEach(b=>b.classList.add('open'));
+    // upcoming ขึ้นหน้าใหม่
+    const _upList=clone.querySelector('#upcoming-list');
+    if(_upList) _upList.style.pageBreakBefore='always';
     clone.querySelectorAll('#loc-list .fg').forEach((fg,i)=>{
       const rows=parseInt(fg.dataset.rows||'99');
       // แยกหน้าทุก fabric ยกเว้นอันแรก; ถ้า rows<=5 อาจรวมกับ fabric ถัดไปได้
@@ -3548,7 +3556,7 @@ async function exportPDF(){
       const r2=parseInt(fgs[i+1].dataset.rows||'99');
       if(r1<=5 && r2<=5){ fgs[i+1].style.pageBreakBefore='avoid'; i++; }
     }
-    clone.querySelectorAll('.topbar,.tabs,.tab-btn,.ins-actions,.tbtn,.print-hide,.hold-tog,#hold-body').forEach(t=>t.style.display='none');
+    clone.querySelectorAll('.topbar,.tabs,.tab-btn,.tbtn,.print-hide,.hold-tog,#hold-body').forEach(t=>t.style.display='none');
 
     // แทน canvas ด้วยรูป
     clone.querySelectorAll('canvas').forEach(cv=>{
