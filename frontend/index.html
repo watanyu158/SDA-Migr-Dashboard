@@ -3585,6 +3585,12 @@ canvas{display:none!important}
 .tblw{overflow:visible!important}
 table{width:100%!important;font-size:9px!important}
 th,td{padding:3px 4px!important}
+/* tab-plan: pcards เป็นคู่ */
+#tab-plan .g3{display:grid!important;grid-template-columns:1fr 1fr 1fr!important}
+/* fpc-list: fabric cards เป็นคู่ ขึ้นหน้าใหม่ก่อน */
+#fpc-list{page-break-before:always;break-before:page}
+#fpc-list .g2{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;page-break-inside:avoid;break-inside:avoid}
+#fpc-list .fpc{break-inside:avoid}
 </style></head><body>
 <div style="background:linear-gradient(135deg,#1e2d4d,#2d3f6b);color:#fff;padding:8px 14px;
   margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;
