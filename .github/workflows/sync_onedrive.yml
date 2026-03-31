@@ -13,7 +13,8 @@ jobs:
       - name: Download from OneDrive
         run: |
           # วางลิงก์ที่คุณก๊อปปี้มาในเครื่องหมายคำพูดด้านล่างนี้
-          curl -L "https://drive.google.com/uc?export=download&id=16HWCNOgpGtCSehBTh_VrDTsnEFyoZ3po" -o "backend/SDA_Installation_Plan_V2.xlsx"
+          mkdir -p backend
+          curl -L "https://drive.google.com/uc?export=download&id=16HWCNOgpGtCSehBTh_VrDTsnEFyoZ3po" -o backend/SDA_Installation_Plan_V2.xlsx
           
       - name: Commit and Push
         run: |
