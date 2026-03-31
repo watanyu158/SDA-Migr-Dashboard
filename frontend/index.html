@@ -1067,6 +1067,14 @@ main { padding: 12px 10px; }
   </div>
   <div class="prog-fab-grid" id="fab-prog-charts"></div>
 
+  <!-- Upcoming 14 วัน -->
+  <div style="display:flex;align-items:center;gap:7px;margin:20px 0 10px;font-size:13px;font-weight:600;color:var(--text)">
+    <div class="sic" style="background:#fef3c7;color:#d97706">📅</div>
+    แผนการติดตั้ง 2 สัปดาห์หน้า
+    <span style="font-size:11px;font-weight:400;color:var(--text2)" id="upcoming-range"></span>
+  </div>
+  <div id="upcoming-list"></div>
+
 </div>
 
 <!-- ════ TAB: กราฟ ════ -->
@@ -3005,7 +3013,7 @@ function showTab(n,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   btn.classList.add('on');
   if(n==='graphs')   buildGraphs();
-  if(n==='progress') buildProgressCharts();
+  if(n==='progress'){ buildProgressCharts(); buildUpcoming(); }
 }
 
 // ── HOLD ──────────────────────────────────────────────────────────────────────
@@ -3112,6 +3120,7 @@ async function loadData(){
     TYPE_DATA.length=0;
     (types||[]).forEach(t=>TYPE_DATA.push({n:t.n,plan:t.plan,done:t.done}));
     window.TODAY_WK = d.today_wk;
+    window.UPCOMING = d.upcoming || {};
     TODAY_WK = d.today_wk;
     LAST_INSTALL_DATE = d.last_install_date || null;
 
@@ -3389,7 +3398,7 @@ async function loadData(){
     if(_e('donut-late-cnt'))    _e('donut-late-cnt').textContent    = lateQ.toLocaleString();
     if(_e('donut-pending-cnt')) _e('donut-pending-cnt').textContent = pendQ.toLocaleString();
     buildGauge(); buildBurndown();
-    gblt=false; buildProgressCharts(); buildFabBreakdown(); buildTypeBarChart();
+    gblt=false; buildProgressCharts(); buildFabBreakdown(); buildTypeBarChart(); buildUpcoming();
     buildVelocityChart(); buildWeekdayChart(); buildFabGap();
     // wd-cells populate ทันทีหลัง data load
     if(document.getElementById('wd-cells') && DAILY_L.length){
@@ -3489,6 +3498,98 @@ async function manualRefresh(){
   btns.forEach(b=>{ b.textContent=b._orig||'↺ รีเฟรชข้อมูล'; b.disabled=false; });
 }
 
+
+// ── UPCOMING 14 วัน ──────────────────────────────────────────────────────────
+function buildUpcoming(){
+  const wrap=document.getElementById('upcoming-list');
+  const rangeEl=document.getElementById('upcoming-range');
+  if(!wrap) return;
+  const up=window.UPCOMING||{};
+  const dates=Object.keys(up).sort();
+  if(!dates.length){
+    wrap.innerHTML='<div style="padding:14px;color:var(--text2);font-size:12px">ไม่มีแผนการติดตั้งใน 2 สัปดาห์หน้า</div>';
+    return;
+  }
+  const thDow=['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+  const thMo=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const fmtD=s=>{const d=new Date(s+'T00:00:00');return `${thDow[d.getDay()]} ${d.getDate()} ${thMo[d.getMonth()]} ${(d.getFullYear()+543)%100}`;};
+  if(rangeEl) rangeEl.textContent=`${fmtD(dates[0])} – ${fmtD(dates[dates.length-1])}`;
+
+  // สรุปรวม
+  let sumQty=0,sumRem=0; const fabSet=new Set(),catSet=new Set();
+  dates.forEach(d=>Object.entries(up[d]).forEach(([f,v])=>{sumQty+=v.qty;sumRem+=v.rem;fabSet.add(f);v.cats.forEach(c=>catSet.add(c));}));
+
+  const FAB_C={'D1-041':'#4361ee','CFZ':'#2bc48a','T1-015':'#ff9f43','D1-091':'#a855f7','RFF':'#22b8cf','AMF':'#f76707','PPW':'#74c0fc'};
+
+  let html=`<div class="card" style="margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+      <div style="background:var(--primary-l);border-radius:8px;padding:10px 12px">
+        <div style="font-size:11px;color:var(--text2)">อุปกรณ์ตามแผน</div>
+        <div style="font-size:22px;font-weight:700;color:var(--primary)">${sumQty} <span style="font-size:12px;font-weight:400">เครื่อง</span></div>
+      </div>
+      <div style="background:#fef3c7;border-radius:8px;padding:10px 12px">
+        <div style="font-size:11px;color:#92400e">ยังเหลือต้องติดตั้ง</div>
+        <div style="font-size:22px;font-weight:700;color:#d97706">${sumRem} <span style="font-size:12px;font-weight:400">เครื่อง</span></div>
+      </div>
+      <div style="background:var(--success-l);border-radius:8px;padding:10px 12px">
+        <div style="font-size:11px;color:var(--text2)">Fabric ที่เกี่ยวข้อง</div>
+        <div style="font-size:14px;font-weight:700;color:var(--success);margin-top:3px">${[...fabSet].join(', ')}</div>
+      </div>
+    </div>
+  </div>`;
+
+  // timeline รายวัน
+  dates.forEach(d=>{
+    const fabs=up[d];
+    const dt=new Date(d+'T00:00:00');
+    const isWkend=dt.getDay()===0||dt.getDay()===6;
+    const dayTot=Object.values(fabs).reduce((a,v)=>a+v.rem,0);
+    html+=`<div class="card" style="margin-bottom:8px;${isWkend?'border-left:3px solid var(--warning)':'border-left:3px solid var(--primary)'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:36px;height:36px;border-radius:8px;background:${isWkend?'var(--warning-l)':'var(--primary-l)'};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="font-size:9px;color:${isWkend?'#92400e':'var(--primary)'};">${thDow[dt.getDay()]}</div>
+            <div style="font-size:16px;font-weight:800;color:${isWkend?'#d97706':'var(--primary)'};line-height:1">${dt.getDate()}</div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700">${fmtD(d)}</div>
+            <div style="font-size:11px;color:var(--text2)">รวม ${dayTot} เครื่องที่ต้องติดตั้ง</div>
+          </div>
+        </div>
+        <div style="font-size:20px;font-weight:800;color:var(--primary)">${dayTot}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">`;
+    Object.entries(fabs).forEach(([fab,v])=>{
+      const fc=FAB_C[fab]||'#888';
+      const typeStr=v.types.slice(0,3).join(', ')+(v.types.length>3?` +${v.types.length-3} อื่นๆ`:'');
+      const catStr=[...new Set(v.cats)].join(', ');
+      const locStr=v.locs.slice(0,3).join(', ')+(v.locs.length>3?` +${v.locs.length-3}`:'');
+      const pct=v.qty>0?Math.round((v.qty-v.rem)/v.qty*100):0;
+      html+=`<div style="background:#f8faff;border-radius:6px;padding:7px 10px;display:flex;align-items:flex-start;gap:8px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${fc};flex-shrink:0;margin-top:4px"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:12px;font-weight:700;color:${fc}">${fab}</span>
+            <span style="font-size:11px;color:var(--text2)">${catStr}</span>
+            <span style="font-size:11px;background:${fc}22;color:${fc};padding:1px 6px;border-radius:99px;font-weight:600">${v.rem} เครื่อง</span>
+            ${pct>0?`<span style="font-size:10px;color:var(--success)">✓ ติดตั้งแล้ว ${pct}%</span>`:''}
+          </div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">
+            📦 ${typeStr}
+          </div>
+          ${locStr?`<div style="font-size:11px;color:var(--text2)">📍 ${locStr}</div>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:12px;font-weight:700">${v.qty-v.rem}/${v.qty}</div>
+          <div style="font-size:10px;color:var(--text2)">ติดตั้งแล้ว</div>
+        </div>
+      </div>`;
+    });
+    html+='</div></div>';
+  });
+
+  wrap.innerHTML=html;
+}
 // ── EXPORT PDF ────────────────────────────────────────────────────────────────
 async function exportPDF(){
   const pw=window.open('','_blank','width=1280,height=900');

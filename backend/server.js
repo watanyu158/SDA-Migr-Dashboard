@@ -164,6 +164,11 @@ function calcDashboard(wb) {
   const typeMap = {};
   const locMap  = {}; // fab → loc → {t,d}
 
+  // upcoming 14 วัน
+  const todayStr = today.toISOString().slice(0,10);
+  const end14 = new Date(today); end14.setDate(end14.getDate()+14);
+  const end14Str = end14.toISOString().slice(0,10);
+  const upcoming = {};
   // นับ Qty.Success ทั้งหมด (ไม่ require Install Date) — ตรงกับ Dashboard
   let totalSwOk=0, totalApOk=0, totalInfOk=0;
   // หา min/max scheduled date per fabric
@@ -193,9 +198,21 @@ function calcDashboard(wb) {
       locMap[fab][loc].d += ok;
     }
 
-    // track min/max scheduled per fabric
+    // upcoming 14 วัน
     let schedDt = r['Scheduled Date'];
     if (typeof schedDt === 'number') schedDt = new Date((schedDt - 25569) * 86400000);
+    if (schedDt) {
+      const sd = schedDt.toISOString().slice(0,10);
+      if (sd >= todayStr && sd <= end14Str && qty > 0) {
+        if (!upcoming[sd]) upcoming[sd] = {};
+        if (!upcoming[sd][fab]) upcoming[sd][fab] = {qty:0, rem:0, locs:new Set(), types:new Set(), cats:new Set()};
+        upcoming[sd][fab].qty += qty;
+        upcoming[sd][fab].rem += (r['Qty. Remaining'] || qty);
+        if (r['Location']) upcoming[sd][fab].locs.add(r['Location']);
+        if (r['Device Type']) upcoming[sd][fab].types.add(r['Device Type']);
+        if (cat) upcoming[sd][fab].cats.add(cat);
+      }
+    }
     if (schedDt && FABRICS.includes(fab)) {
       const dk=schedDt.getTime();
       if(!fabSchedMin[fab]||dk<fabSchedMin[fab]) fabSchedMin[fab]=dk;
@@ -536,6 +553,11 @@ function calcDashboard(wb) {
     wk:        WK_BOUNDS.map(w => w.label),
     today_wk:  todayWk,
     last_install_date: lastInstallDate,
+    upcoming:  Object.fromEntries(Object.entries(upcoming).sort().map(([d,fabs])=>[d,
+               Object.fromEntries(Object.entries(fabs).map(([f,v])=>[f,
+                 {qty:v.qty,rem:v.rem,locs:[...v.locs],types:[...v.types],cats:[...v.cats]}
+               ]))
+             ])),
     meta:      { total:TOTAL, installed, installed_sw:totalSwOk, installed_ap:totalApOk, installed_inf:totalInfOk, remaining, hold, overdue, on_time_qty:onTimeQty, on_time_pct:onTimePct, on_time_early:earlyQty, on_time_late:lateQty },
     hold_items: holdItems,
     insight:   { daily_rate:dailyRate, req_rate:reqRate, need_more:needMore,
