@@ -3571,13 +3571,15 @@ async function exportPDF(){
     }
     clone.querySelectorAll('.topbar,.tabs,.tab-btn,.tbtn,.print-hide,.hold-tog,#hold-body').forEach(t=>t.style.display='none');
 
-    // แทน canvas ด้วยรูป
-    clone.querySelectorAll('canvas').forEach(cv=>{
+    // แทน canvas ด้วยรูป (ทั้ง insBox และ main)
+    wrapper.querySelectorAll('canvas').forEach(cv=>{
       const d=imgs[cv.id];
       if(d){
         const img=document.createElement('img');
         img.src=d.url;
-        img.style.cssText=`display:block;width:${Math.min(d.w,1100)}px;height:${d.h}px;max-width:100%`;
+        // บังคับ aspect ratio ให้ตรง (ป้องกันวงรี)
+        const w=Math.min(d.w,1100), h=d.h;
+        img.style.cssText=`display:block;width:${w}px;height:${h}px;max-width:100%;aspect-ratio:${w}/${h}`;
         cv.parentNode.replaceChild(img,cv);
       }else cv.style.display='none';
     });
@@ -3595,6 +3597,9 @@ ${styles}
 .fgb{display:block!important}
 .card{break-inside:avoid;margin-bottom:8px}
 canvas{display:none!important}
+img[style*="aspect-ratio"]{object-fit:contain!important}
+[style*="position:relative"][style*="150px"]{flex-shrink:0!important}
+[style*="position:relative"][style*="150px"] img{width:150px!important;height:150px!important}
 .g2{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
 .g3{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important}
 .g4{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:8px!important}
