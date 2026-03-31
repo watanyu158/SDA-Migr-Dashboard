@@ -661,6 +661,7 @@ main { padding: 12px 10px; }
   .insights-box { display: block !important; }
   /* upcoming header + list ขึ้นหน้าใหม่ */
   #upcoming-header { page-break-before: always; break-before: page; }
+  #per-fabric-header { page-break-before: always; break-before: page; }
   #upcoming-list .card { break-inside: avoid; }
   #fab-daily-charts-wrap, .prog-fab-grid { display: block !important; }
 
@@ -1130,7 +1131,7 @@ main { padding: 12px 10px; }
   </div>
 
   <!-- Per-Fabric daily charts -->
-  <div style="display:flex;align-items:center;gap:7px;margin:16px 0 10px;font-size:13px;font-weight:600;color:var(--text)">
+  <div id="per-fabric-header" style="display:flex;align-items:center;gap:7px;margin:16px 0 10px;font-size:13px;font-weight:600;color:var(--text)">
     <div class="sic" style="background:var(--primary-l);color:var(--primary)">🏭</div>
     อุปกรณ์ที่ติดตั้งตามวันที่ — แยกแต่ละ Fabric
     <span style="font-size:11px;font-weight:400;color:var(--text2)">(Switch / AP / Infra)</span>
@@ -3556,6 +3557,9 @@ async function exportPDF(){
     // upcoming header ขึ้นหน้าใหม่
     const _upHdr=clone.querySelector('#upcoming-header');
     if(_upHdr) { _upHdr.style.pageBreakBefore='always'; _upHdr.style.breakBefore='page'; }
+    // per-fabric header ขึ้นหน้าใหม่
+    const _pfHdr=clone.querySelector('#per-fabric-header');
+    if(_pfHdr) { _pfHdr.style.pageBreakBefore='always'; _pfHdr.style.breakBefore='page'; }
     clone.querySelectorAll('#loc-list .fg').forEach((fg,i)=>{
       const rows=parseInt(fg.dataset.rows||'99');
       // แยกหน้าทุก fabric ยกเว้นอันแรก; ถ้า rows<=5 อาจรวมกับ fabric ถัดไปได้
