@@ -3707,12 +3707,12 @@ function buildUpcoming(){
           </div>
           <div>
             <div style="font-size:13px;font-weight:700">${fmtD(d)}</div>
-            <div style="font-size:11px;color:var(--text2)">แผน ${dayRem} เครื่อง (รวม ${dayQty} ตามแผน)</div>
+            <div style="font-size:11px;color:var(--text2)">ต้องติดตั้ง <strong>${dayRem}</strong> จาก ${dayQty} เครื่องตามแผน</div>
           </div>
         </div>
-        <div style="text-align:center;background:${abg};border-radius:10px;padding:6px 14px">
-          <div style="font-size:22px;font-weight:800;color:${ac}">${dayRem}</div>
-          <div style="font-size:9px;color:${ac}">เครื่อง</div>
+        <div style="text-align:center;background:${abg};border-radius:10px;padding:6px 14px;min-width:60px">
+          <div style="font-size:22px;font-weight:800;color:${ac};line-height:1">${dayRem}</div>
+          <div style="font-size:9px;color:${ac}">เครื่องคงเหลือ</div>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:7px">`;
@@ -3722,7 +3722,7 @@ function buildUpcoming(){
       const moreT=v.types.length>4?`<span style="font-size:10px;color:var(--text2)">+${v.types.length-4} อื่นๆ</span>`:'';
       const locChips=v.locs.slice(0,3).map(l=>`<span style="font-size:10px;background:#f0fdf4;color:#166534;padding:2px 8px;border-radius:6px;border:1px solid #bbf7d0">📍 ${l}</span>`).join('');
       const moreL=v.locs.length>3?`<span style="font-size:10px;color:var(--text2)">+${v.locs.length-3}</span>`:'';
-      const catBadges=[...new Set(v.cats)].map(c=>{const s=CAT_S[c]||{bg:'#f5f5f5',c:'#666',icon:'📦'};return `<span style="font-size:10px;background:${s.bg};color:${s.c};padding:2px 8px;border-radius:99px;font-weight:600">${s.icon}${c}</span>`;}).join('');
+      const catBadges=[...new Set(v.cats)].map(c=>{const s=CAT_S[c]||{bg:'#f5f5f5',c:'#666',icon:'📦'};return `<span style="font-size:10px;background:${s.bg};color:${s.c};padding:2px 8px;border-radius:99px;font-weight:600">${c}</span>`;}).join('');
       const pct=v.qty>0?Math.round((v.qty-v.rem)/v.qty*100):0;
       html+=`<div style="background:#f8faff;border-radius:8px;padding:10px 12px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
@@ -3733,8 +3733,8 @@ function buildUpcoming(){
             ${pct>0?`<span style="font-size:10px;color:var(--success);font-weight:600">✓ ${pct}%</span>`:''}
           </div>
           <div style="text-align:right;flex-shrink:0;margin-left:8px">
-            <div style="font-size:15px;font-weight:800;color:${fc}">${v.rem}</div>
-            <div style="font-size:9px;color:var(--text2)">เหลือ/${v.qty}</div>
+            <div style="font-size:13px;font-weight:800;color:${fc}">${v.rem}<span style="font-size:9px;font-weight:400;color:var(--text2)">/${v.qty}</span></div>
+            <div style="font-size:9px;color:var(--text2)">ยังไม่ติดตั้ง/แผน</div>
           </div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">${typeChips}${moreT}</div>
