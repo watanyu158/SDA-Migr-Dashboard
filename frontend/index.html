@@ -3528,13 +3528,27 @@ async function exportPDF(){
     const mn=document.querySelector('main')||document.body;
     const clone=mn.cloneNode(true);
 
-    // แสดงทุก tab และ loc open
-    clone.querySelectorAll('.tab-body').forEach((t,i,arr)=>{
+    // แสดงทุก tab
+    clone.querySelectorAll('.tab-body').forEach((t,i)=>{
       t.style.display='block';
-      t.style.pageBreakBefore= i===0?'avoid':'always';
+      t.style.pageBreakBefore=i===0?'avoid':'always';
       t.style.pageBreakAfter='avoid';
     });
+    // open loc-list และ set page-break แต่ละ fabric
     clone.querySelectorAll('.fgb').forEach(b=>b.classList.add('open'));
+    clone.querySelectorAll('#loc-list .fg').forEach((fg,i)=>{
+      const rows=parseInt(fg.dataset.rows||'99');
+      // แยกหน้าทุก fabric ยกเว้นอันแรก; ถ้า rows<=5 อาจรวมกับ fabric ถัดไปได้
+      fg.style.pageBreakBefore=i===0?'avoid':'always';
+      fg.style.pageBreakInside='avoid';
+    });
+    // รวม 2 fabric ที่มีน้อยกว่า 6 rows
+    const fgs=Array.from(clone.querySelectorAll('#loc-list .fg'));
+    for(let i=0;i<fgs.length-1;i++){
+      const r1=parseInt(fgs[i].dataset.rows||'99');
+      const r2=parseInt(fgs[i+1].dataset.rows||'99');
+      if(r1<=5 && r2<=5){ fgs[i+1].style.pageBreakBefore='avoid'; i++; }
+    }
     clone.querySelectorAll('.topbar,.tabs,.tab-btn,.ins-actions,.tbtn,.print-hide,.hold-tog,#hold-body').forEach(t=>t.style.display='none');
 
     // แทน canvas ด้วยรูป
