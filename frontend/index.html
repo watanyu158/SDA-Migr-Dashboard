@@ -1067,13 +1067,6 @@ main { padding: 12px 10px; }
   </div>
   <div class="prog-fab-grid" id="fab-prog-charts"></div>
 
-  <!-- Upcoming 14 วัน -->
-  <div style="display:flex;align-items:center;gap:7px;margin:20px 0 10px;font-size:13px;font-weight:600;color:var(--text)">
-    <div class="sic" style="background:#fef3c7;color:#d97706">📅</div>
-    แผนการติดตั้ง 2 สัปดาห์หน้า
-    <span style="font-size:11px;font-weight:400;color:var(--text2)" id="upcoming-range"></span>
-  </div>
-  <div id="upcoming-list"></div>
 
 </div>
 
@@ -1204,6 +1197,18 @@ main { padding: 12px 10px; }
     <div style="font-size:12px;color:var(--text2);margin-bottom:5px">ประสิทธิภาพเทียบกับแผน:</div>
     <div style="display:flex;align-items:center;gap:9px"><span style="font-size:12px;color:var(--text2);white-space:nowrap" id="plan-eff-label">ทำได้ –/วัน</span><div style="flex:1;height:11px;background:#f0f4ff;border-radius:99px;overflow:hidden"><div id="plan-eff-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--danger),#ff8a8a);border-radius:99px"></div></div><span style="font-size:12px;font-weight:700;color:var(--danger)" id="plan-eff-pct">–%</span></div>
     <div style="text-align:right;font-size:11px;color:var(--danger);margin-top:3px">⚠ ต่ำกว่าเป้าหมาย</div>
+  </div>
+  <!-- Upcoming 14 วัน -->
+  <div style="display:flex;align-items:center;gap:7px;margin:20px 0 10px;font-size:13px;font-weight:600;color:var(--text)">
+    <div class="sic" style="background:#fef3c7;color:#d97706">📅</div>
+    แผนการติดตั้ง 2 สัปดาห์หน้า
+    <span style="font-size:11px;font-weight:400;color:var(--text2)" id="upcoming-range"></span>
+  </div>
+  <div id="upcoming-list"></div>
+
+  <div style="display:flex;align-items:center;gap:7px;margin:20px 0 10px;font-size:13px;font-weight:600;color:var(--text)">
+    <div class="sic" style="background:var(--primary-l);color:var(--primary)">🏗</div>
+    ความคืบหน้าแต่ละ Fabric
   </div>
   <div id="fpc-list"></div>
   <div class="card">
@@ -3013,7 +3018,7 @@ function showTab(n,btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   btn.classList.add('on');
   if(n==='graphs')   buildGraphs();
-  if(n==='progress'){ buildProgressCharts(); buildUpcoming(); }
+  if(n==='progress') buildProgressCharts();
 }
 
 // ── HOLD ──────────────────────────────────────────────────────────────────────
@@ -3398,7 +3403,7 @@ async function loadData(){
     if(_e('donut-late-cnt'))    _e('donut-late-cnt').textContent    = lateQ.toLocaleString();
     if(_e('donut-pending-cnt')) _e('donut-pending-cnt').textContent = pendQ.toLocaleString();
     buildGauge(); buildBurndown();
-    gblt=false; buildProgressCharts(); buildFabBreakdown(); buildTypeBarChart(); buildUpcoming();
+    gblt=false; buildProgressCharts(); buildFabBreakdown(); buildTypeBarChart();
     buildVelocityChart(); buildWeekdayChart(); buildFabGap();
     // wd-cells populate ทันทีหลัง data load
     if(document.getElementById('wd-cells') && DAILY_L.length){
@@ -3419,7 +3424,7 @@ async function loadData(){
         return `<div style="border-radius:7px;padding:9px 3px;text-align:center;background:${bg};color:${tc}"><div style="font-size:10px;opacity:.8">${lbl}</div><div style="font-size:14px;font-weight:700;margin-top:3px">${v}</div></div>`;
       }).join('');
     }
-    buildTimeline(); buildHeatmap(); buildLocList(); buildFabCards();
+    buildTimeline(); buildHeatmap(); buildLocList(); buildFabCards(); buildUpcoming();
     gblt=false;
 
     // ── Build hold list ─────────────────────────────────────────────────
@@ -3715,3 +3720,136 @@ ${clone.outerHTML}
 </script>
 </body>
 </html>
+// ── UPCOMING 14 วัน ──────────────────────────────────────────────────────────
+function buildUpcoming(){
+  const wrap=document.getElementById('upcoming-list');
+  const rangeEl=document.getElementById('upcoming-range');
+  if(!wrap) return;
+  const up=window.UPCOMING||{};
+  const dates=Object.keys(up).sort();
+
+  const thDow=['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+  const thMo=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const fmtD=s=>{const d=new Date(s+'T00:00:00');return `${thDow[d.getDay()]} ${d.getDate()} ${thMo[d.getMonth()]} ${(d.getFullYear()+543)%100}`;};
+  const FAB_C={'D1-041':'#4361ee','CFZ':'#2bc48a','T1-015':'#ff9f43','D1-091':'#a855f7','RFF':'#22b8cf','AMF':'#f76707','PPW':'#74c0fc'};
+  // สี chip ตาม category
+  const CAT_STYLE={
+    'Switch':{bg:'#eff6ff',color:'#1d4ed8',icon:'🔀'},
+    'AP'    :{bg:'#f0fdf4',color:'#15803d',icon:'📶'},
+    'Infra' :{bg:'#fff7ed',color:'#c2410c',icon:'⚡'},
+  };
+
+  if(!dates.length){
+    wrap.innerHTML='<div style="padding:16px;color:var(--text2);font-size:12px;text-align:center">ไม่มีแผนการติดตั้งใน 2 สัปดาห์หน้า</div>';
+    return;
+  }
+  if(rangeEl) rangeEl.textContent=`${fmtD(dates[0])} – ${fmtD(dates[dates.length-1])}`;
+
+  // summary
+  let sumQty=0,sumRem=0; const fabSet=new Set(),catCount={Switch:0,AP:0,Infra:0};
+  dates.forEach(d=>Object.entries(up[d]).forEach(([f,v])=>{
+    sumQty+=v.qty; sumRem+=v.rem; fabSet.add(f);
+    v.cats.forEach(c=>{if(catCount[c]!==undefined) catCount[c]+=v.rem;});
+  }));
+
+  let html=`<div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#f0f4ff,#f8faff)">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #e0e7ff">
+        <div style="font-size:10px;color:var(--text2);margin-bottom:2px">อุปกรณ์ตามแผน (เหลือ)</div>
+        <div style="font-size:26px;font-weight:800;color:var(--primary);line-height:1">${sumRem}<span style="font-size:13px;font-weight:400;color:var(--text2)"> / ${sumQty}</span></div>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px">เครื่อง</div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #e0e7ff">
+        <div style="font-size:10px;color:var(--text2);margin-bottom:4px">ประเภทอุปกรณ์</div>
+        ${Object.entries(catCount).filter(([,v])=>v>0).map(([c,v])=>{
+          const s=CAT_STYLE[c]||{bg:'#f5f5f5',color:'#666',icon:'📦'};
+          return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+            <span style="font-size:10px;background:${s.bg};color:${s.color};padding:1px 7px;border-radius:99px;font-weight:600">${s.icon} ${c}</span>
+            <span style="font-size:11px;font-weight:700;color:${s.color}">${v}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #e0e7ff">
+        <div style="font-size:10px;color:var(--text2);margin-bottom:6px">Fabric ที่เกี่ยวข้อง</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
+          ${[...fabSet].map(f=>`<span style="font-size:10px;font-weight:700;background:${FAB_C[f]||'#888'}22;color:${FAB_C[f]||'#888'};padding:2px 8px;border-radius:99px">${f}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // timeline รายวัน
+  dates.forEach(d=>{
+    const fabs=up[d];
+    const dt=new Date(d+'T00:00:00');
+    const dow=dt.getDay();
+    const isWkend=dow===0||dow===6;
+    const dayRem=Object.values(fabs).reduce((a,v)=>a+v.rem,0);
+    const dayQty=Object.values(fabs).reduce((a,v)=>a+v.qty,0);
+    const accentColor=isWkend?'#d97706':'#4361ee';
+    const accentBg=isWkend?'#fef3c7':'#eff6ff';
+
+    html+=`<div class="card" style="margin-bottom:8px;border-left:4px solid ${accentColor};padding:12px 14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:42px;height:42px;border-radius:10px;background:${accentBg};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="font-size:9px;color:${accentColor};font-weight:600">${thDow[dow]}</div>
+            <div style="font-size:20px;font-weight:800;color:${accentColor};line-height:1.1">${dt.getDate()}</div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700">${fmtD(d)}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px">แผน ${dayRem} เครื่อง (รวม ${dayQty} ตามแผน)</div>
+          </div>
+        </div>
+        <div style="text-align:center;background:${accentBg};border-radius:10px;padding:6px 14px">
+          <div style="font-size:22px;font-weight:800;color:${accentColor}">${dayRem}</div>
+          <div style="font-size:9px;color:${accentColor}">เครื่อง</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">`;
+
+    Object.entries(fabs).forEach(([fab,v])=>{
+      const fc=FAB_C[fab]||'#888';
+      // types chips
+      const maxTypes=4;
+      const typeChips=v.types.slice(0,maxTypes).map(t=>
+        `<span style="font-size:10px;background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:6px;white-space:nowrap">${t}</span>`
+      ).join('');
+      const moreTypes=v.types.length>maxTypes?`<span style="font-size:10px;color:var(--text2)">+${v.types.length-maxTypes} อื่นๆ</span>`:'';
+      // loc chips
+      const maxLocs=3;
+      const locChips=v.locs.slice(0,maxLocs).map(l=>
+        `<span style="font-size:10px;background:#f0fdf4;color:#166534;padding:2px 8px;border-radius:6px;border:1px solid #bbf7d0;white-space:nowrap">📍 ${l}</span>`
+      ).join('');
+      const moreLocs=v.locs.length>maxLocs?`<span style="font-size:10px;color:var(--text2)">+${v.locs.length-maxLocs}</span>`:'';
+      // cat badges
+      const catBadges=[...new Set(v.cats)].map(c=>{
+        const s=CAT_STYLE[c]||{bg:'#f5f5f5',color:'#666',icon:'📦'};
+        return `<span style="font-size:10px;background:${s.bg};color:${s.color};padding:2px 8px;border-radius:99px;font-weight:600">${s.icon}${c}</span>`;
+      }).join('');
+      const pctDone=v.qty>0?Math.round((v.qty-v.rem)/v.qty*100):0;
+
+      html+=`<div style="background:#f8faff;border-radius:8px;padding:10px 12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+            <div style="width:10px;height:10px;border-radius:50%;background:${fc};flex-shrink:0"></div>
+            <span style="font-size:13px;font-weight:700;color:${fc}">${fab}</span>
+            ${catBadges}
+            ${pctDone>0?`<span style="font-size:10px;color:var(--success);font-weight:600">✓ ติดตั้งแล้ว ${pctDone}%</span>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:8px">
+            <div style="font-size:15px;font-weight:800;color:${fc}">${v.rem}</div>
+            <div style="font-size:9px;color:var(--text2)">เหลือ/${v.qty} ตามแผน</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">${typeChips}${moreTypes}</div>
+        ${v.locs.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${locChips}${moreLocs}</div>`:''}
+      </div>`;
+    });
+
+    html+='</div></div>';
+  });
+
+  wrap.innerHTML=html;
+}
+
