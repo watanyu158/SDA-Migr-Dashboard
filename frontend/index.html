@@ -826,7 +826,7 @@ main { padding: 12px 10px; }
           <span class="ins-kpi-unit">/วัน</span>
         </div>
         <div class="ins-kpi-row ins-kpi-gap">
-          <span class="ins-kpi-lbl" id="kpi-gap-lbl">ส่วนต่าง</span>
+          <span class="ins-kpi-lbl">ส่วนต่าง</span>
           <span class="ins-kpi-val" style="color:var(--danger)">+2.1</span>
           <span class="ins-kpi-unit" style="color:var(--danger)">/วัน</span>
         </div>
@@ -3357,7 +3357,7 @@ async function loadData(){
     (()=>{
       const nm=Number(ins.need_more);
       const col=nm<=0?'var(--success)':'var(--danger)';
-      const txt=nm<0?Math.abs(nm).toFixed(1)+' /วัน':nm===0?'0.0 /วัน':nm.toFixed(1)+' /วัน';
+      const txt=nm<=0?'เกินเป้า '+Math.abs(nm).toFixed(1)+' อุปกรณ์/วัน':'ต้องเพิ่ม '+nm.toFixed(1)+' อุปกรณ์/วัน';
       document.querySelectorAll('.ins-big em').forEach(em=>{em.textContent=txt;em.style.color=col;});
     })();
     document.querySelectorAll('.ins-pct-tag').forEach(t=>t.textContent='↑'+ins.pct_more+'% จากอัตราปัจจุบัน');
@@ -3375,14 +3375,11 @@ async function loadData(){
     if(kv[2]){
       const nm2=Number(ins.need_more);
       const col2=nm2<=0?'var(--success)':'var(--danger)';
-      const lbl2=nm2<0?'เกินเป้า':nm2===0?'ตามเป้า':'ต้องเพิ่ม';
-      const val2=(nm2<0?'-':nm2>0?'+':'')+Math.abs(nm2).toFixed(1);
-      kv[2].textContent=val2;
+      const txt2=nm2<=0?'เกินเป้า '+Math.abs(nm2).toFixed(1):'ต้องเพิ่ม '+nm2.toFixed(1);
+      kv[2].textContent=txt2;
       kv[2].style.color=col2;
-      const unit=kv[2].nextElementSibling;
-      if(unit){unit.style.color=col2;}
-      const lbl=document.getElementById('kpi-gap-lbl');
-      if(lbl){lbl.textContent=lbl2;}
+      const unit2=kv[2].nextElementSibling;
+      if(unit2){unit2.textContent='/วัน';unit2.style.color=col2;}
     }
 
     // pills คาดเสร็จ / วันเหลือ
