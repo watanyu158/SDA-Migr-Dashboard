@@ -8,7 +8,7 @@ const http    = require('http');
 
 const app = express();
 app.use(cors({
-  origin: ['https://svb-migr-progress.onrender.com', 'http://localhost:3000', 'http://localhost:5500'],
+  origin: ['https://svb-migr-progress.onrender.com', 'https://sda-migr-progress.onrender.com', 'http://localhost:3000', 'http://localhost:5500'],
   methods: ['GET','POST'],
 }));
 app.use(express.json());
