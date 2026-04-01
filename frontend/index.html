@@ -2849,34 +2849,6 @@ async function loadData(){
     hideLoading();
   }
 }
-
-function showLoading(){
-  // reset topbar
-  const _stxt=document.getElementById('tb-status-txt');
-  const _sdot=document.getElementById('tb-sdot');
-  if(_stxt) _stxt.textContent='⏳';
-  if(_sdot){ _sdot.style.animation='none'; _sdot.style.background='rgba(255,255,255,.4)'; }
-  // reset numbers เป็น –
-  ['ts-done','pill-rem','pill-hold','pill-over','gauge-pct-lbl',
-   'ov-all','ov-sw','ov-ap','ov-inf','tb-days','tb-rate','tb-over','tb-pct',
-   'pill-ontime','pill-ontime-sub','donut-ontime-pct','donut-ontime-sub',
-   'donut-ontime-cnt','donut-early-cnt','donut-late-cnt','donut-pending-cnt'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.innerHTML='<span style="opacity:.35">–</span>';
-  });
-  ['pill-finish','pill-late'].forEach(id=>{
-    const e=document.getElementById(id); if(e) e.textContent='–';
-  });
-  document.querySelectorAll('.ins-warn').forEach(w=>w.textContent='⏳ กำลังคำนวณ...');
-  document.querySelectorAll('.ins-big em').forEach(em=>em.textContent='–');
-  document.querySelectorAll('.ins-rate-val').forEach(el=>el.textContent='–');
-  document.querySelectorAll('.ins-kpi-val').forEach(el=>el.textContent='–');
-}
-
-function hideLoading(){}
-
-function updateLoadingProgress(pct, label){}
-
 async function manualRefresh(){
   // Show loading on all refresh buttons
   const btns = document.querySelectorAll('[onclick*="manualRefresh"]');

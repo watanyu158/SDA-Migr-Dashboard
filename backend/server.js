@@ -7,7 +7,10 @@ const https   = require('https');
 const http    = require('http');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://svb-migr-progress.onrender.com', 'http://localhost:3000', 'http://localhost:5500'],
+  methods: ['GET','POST'],
+}));
 app.use(express.json());
 
 // ── Config ────────────────────────────────────────────────────────────────────
