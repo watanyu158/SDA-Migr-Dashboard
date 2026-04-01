@@ -3354,7 +3354,12 @@ async function loadData(){
     if(_e('donut-ontime-sub'))_e('donut-ontime-sub').textContent= `${meta.on_time_qty}/${meta.installed}`;
 
     // insight text — อัพเดทเสมอโดยไม่ check ข้อความเดิม
-    document.querySelectorAll('.ins-big em').forEach(em=>em.textContent=Number(ins.need_more).toFixed(1));
+    (()=>{
+      const nm=Number(ins.need_more);
+      const txt=nm<0?'เกินเป้า '+(Math.abs(nm)).toFixed(1):nm===0?'ตามเป้าพอดี':'ต้องเพิ่ม '+nm.toFixed(1);
+      const col=nm<=0?'var(--success)':'var(--danger)';
+      document.querySelectorAll('.ins-big em').forEach(em=>{em.textContent=txt;em.style.color=col;});
+    })();
     document.querySelectorAll('.ins-pct-tag').forEach(t=>t.textContent='↑'+ins.pct_more+'% จากอัตราปัจจุบัน');
     const rv=document.querySelectorAll('.ins-rate-val');
     if(rv[0]) rv[0].textContent=Number(ins.daily_rate).toFixed(1);
@@ -3367,7 +3372,20 @@ async function loadData(){
     const kv=document.querySelectorAll('.ins-kpi-val');
     if(kv[0]) kv[0].textContent=Number(ins.daily_rate).toFixed(1);
     if(kv[1]) kv[1].textContent=ins.req_rate;
-    if(kv[2]) kv[2].textContent='+'+Number(ins.need_more).toFixed(1);
+    if(kv[2]){
+      const nm2=Number(ins.need_more);
+      if(nm2<0){
+        kv[2].textContent='▼ เกินเป้า '+Math.abs(nm2).toFixed(1);
+        kv[2].style.color='var(--success)';
+        if(kv[2].closest('.ins-kpi-gap')) kv[2].closest('.ins-kpi-gap').style.color='var(--success)';
+      } else if(nm2===0){
+        kv[2].textContent='✓ ตามเป้า';
+        kv[2].style.color='var(--success)';
+      } else {
+        kv[2].textContent='▲ +'+nm2.toFixed(1);
+        kv[2].style.color='var(--danger)';
+      }
+    }
 
     // pills คาดเสร็จ / วันเหลือ
     document.querySelectorAll('.ip-val').forEach(el=>{
