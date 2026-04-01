@@ -74,7 +74,7 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--t
 .ins-kpi-lbl{font-size:12px;color:var(--text2);flex:1}
 .ins-kpi-val{font-size:16px;font-weight:700;color:var(--text);min-width:24px;text-align:right}
 .ins-kpi-unit{font-size:11px;color:var(--text2);min-width:28px}
-.ins-kpi-gap .ins-kpi-val,.ins-kpi-gap .ins-kpi-unit{color:var(--danger)!important}
+.ins-kpi-gap .ins-kpi-val,.ins-kpi-gap .ins-kpi-unit{}
 
 /* PILLS: 6-col grid row */
 .ins-pills{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;border-top:1px solid rgba(253,211,77,.5);padding-top:10px}
@@ -826,7 +826,7 @@ main { padding: 12px 10px; }
           <span class="ins-kpi-unit">/วัน</span>
         </div>
         <div class="ins-kpi-row ins-kpi-gap">
-          <span class="ins-kpi-lbl">ส่วนต่าง</span>
+          <span class="ins-kpi-lbl" id="kpi-gap-lbl">ส่วนต่าง</span>
           <span class="ins-kpi-val" style="color:var(--danger)">+2.1</span>
           <span class="ins-kpi-unit" style="color:var(--danger)">/วัน</span>
         </div>
@@ -3356,8 +3356,8 @@ async function loadData(){
     // insight text — อัพเดทเสมอโดยไม่ check ข้อความเดิม
     (()=>{
       const nm=Number(ins.need_more);
-      const txt=nm<0?'เกินเป้า '+(Math.abs(nm)).toFixed(1):nm===0?'ตามเป้าพอดี':'ต้องเพิ่ม '+nm.toFixed(1);
       const col=nm<=0?'var(--success)':'var(--danger)';
+      const txt=nm<0?Math.abs(nm).toFixed(1)+' /วัน':nm===0?'0.0 /วัน':nm.toFixed(1)+' /วัน';
       document.querySelectorAll('.ins-big em').forEach(em=>{em.textContent=txt;em.style.color=col;});
     })();
     document.querySelectorAll('.ins-pct-tag').forEach(t=>t.textContent='↑'+ins.pct_more+'% จากอัตราปัจจุบัน');
@@ -3374,17 +3374,15 @@ async function loadData(){
     if(kv[1]) kv[1].textContent=ins.req_rate;
     if(kv[2]){
       const nm2=Number(ins.need_more);
-      if(nm2<0){
-        kv[2].textContent='▼ เกินเป้า '+Math.abs(nm2).toFixed(1);
-        kv[2].style.color='var(--success)';
-        if(kv[2].closest('.ins-kpi-gap')) kv[2].closest('.ins-kpi-gap').style.color='var(--success)';
-      } else if(nm2===0){
-        kv[2].textContent='✓ ตามเป้า';
-        kv[2].style.color='var(--success)';
-      } else {
-        kv[2].textContent='▲ +'+nm2.toFixed(1);
-        kv[2].style.color='var(--danger)';
-      }
+      const col2=nm2<=0?'var(--success)':'var(--danger)';
+      const lbl2=nm2<0?'เกินเป้า':nm2===0?'ตามเป้า':'ต้องเพิ่ม';
+      const val2=(nm2<0?'-':nm2>0?'+':'')+Math.abs(nm2).toFixed(1);
+      kv[2].textContent=val2;
+      kv[2].style.color=col2;
+      const unit=kv[2].nextElementSibling;
+      if(unit){unit.style.color=col2;}
+      const lbl=document.getElementById('kpi-gap-lbl');
+      if(lbl){lbl.textContent=lbl2;}
     }
 
     // pills คาดเสร็จ / วันเหลือ
