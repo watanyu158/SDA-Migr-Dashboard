@@ -549,9 +549,9 @@ function calcDashboard(wb) {
       fd._apc += dayFabApPlan[f][k]||0;
       fd._swAc += (dayFabSwAct[f]&&dayFabSwAct[f][k])||0;
       fd._apAc += (dayFabApAct[f]&&dayFabApAct[f][k])||0;
-      const fLast2 = fabLastInstall[f];
-      const fLastDt2 = fLast2 ? new Date(fLast2+'T00:00:00') : null;
-      const inFAct = fLastDt2 && cur <= fLastDt2;
+      // ใช้ lastActDt (วันสุดท้ายของทุก fabric) เหมือน overall chart
+      // ทำให้เส้นทุก fabric หยุดตรงวันเดียวกัน
+      const inFAct = lastActDt && cur <= lastActDt;
       fd.sw_plan.push(pct(fd._spc/(fabSwPlanTotal[f]||1)));
       fd.ap_plan.push(pct(fd._apc/(fabApPlanTotal[f]||1)));
       fd.sw_act.push(inFAct ? pct(fd._swAc/(fabSwPlanTotal[f]||1)) : null);
