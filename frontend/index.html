@@ -3205,21 +3205,26 @@ async function loadData(){
           }
         });
 
-        // หา last install idx (SW หรือ AP)
+        // ใช้ LAST_INSTALL_DATE (global) เพื่อให้ทุก fabric หยุดตรงวันเดียวกัน
+        const _globalLastIdx=(()=>{
+          if(!LAST_INSTALL_DATE) return -1;
+          const ld=new Date(LAST_INSTALL_DATE+'T00:00:00');
+          const ll=ld.getDate()+'/'+(String(ld.getMonth()+1).padStart(2,'0'));
+          return DAILY_PROG_LABELS.indexOf(ll);
+        })();
+        // fallback: ใช้ fabLastIdx ของ fabric นี้ถ้าไม่มี global
         let fabLastIdx=-1;
         for(let i=DAILY_PROG_LABELS.length-1;i>=0;i--){
           if(swActDay[i]+apActDay[i]>0){fabLastIdx=i;break;}
         }
+        const cutoffIdx=_globalLastIdx>=0?_globalLastIdx:fabLastIdx;
 
         let cSwPlan=0,cApPlan=0,cSw=0,cAp=0;
         const swPlanArr=[],swActArr=[],apPlanArr=[],apActArr=[];
 
-        // ใช้ sw_plan/ap_plan จาก server โดยตรง ถ้ามี
-        // plan ใช้จาก DAILY_FAB_PROG ที่ _safe block load มาแล้ว (จาก dailyProgress.fab)
-        // compute เฉพาะ actual
         DAILY_PROG_LABELS.forEach((lbl,i)=>{
           cSw+=swActDay[i]; cAp+=apActDay[i];
-          const inAct=fabLastIdx<0||i<=fabLastIdx;
+          const inAct=cutoffIdx<0||i<=cutoffIdx;
           swActArr.push(inAct?Math.round(cSw/swTotal*10000)/100:null);
           apActArr.push(apTotal>0&&inAct?Math.round(cAp/apTotal*10000)/100:null);
         });
