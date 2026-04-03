@@ -838,7 +838,7 @@ main { padding: 12px 10px; }
         <div class="ins-kpi-row ins-kpi-gap">
           <span class="ins-kpi-lbl">ส่วนต่าง</span>
           <span class="ins-kpi-val">–</span>
-          <span class="ins-kpi-unit" style="color:var(--danger)">/วัน</span>
+          <span class="ins-kpi-unit" id="ins-kpi-gap-unit">/วัน</span>
         </div>
       </div>
     </div>
@@ -3390,6 +3390,8 @@ async function loadData(){
 
     // gauge
     buildGauge(ins.gauge_pct||0);
+    const _gapUnit=document.getElementById('ins-kpi-gap-unit');
+    if(_gapUnit) _gapUnit.style.color=(ins.need_more<=0)?'var(--success)':'var(--danger)';
 
     // on-time
     if(_e('pill-ontime'))     _e('pill-ontime').textContent     = meta.on_time_pct+'%';
