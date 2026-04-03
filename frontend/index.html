@@ -1915,9 +1915,9 @@ function buildBurndown(){
     ctx.font='bold 10px Segoe UI,sans-serif';
     const tw=ctx.measureText(todayLbl).width;
     ctx.fillStyle='#ee4b4b';
-    ctx.beginPath();ctx.roundRect(x-tw/2-4,top-1,tw+8,16,4);ctx.fill();
+    ctx.beginPath();ctx.roundRect(x-tw/2-4,top-18,tw+8,16,4);ctx.fill();
     ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='top';
-    ctx.fillText(todayLbl,x,top+2);ctx.restore();
+    ctx.fillText(todayLbl,x,top-16);ctx.restore();
   }};
 
   new Chart(cv,{
@@ -2062,9 +2062,9 @@ function buildDailyChart(canvasId, labels, planData, actData, planColor, actColo
     cv.font='bold 9px Segoe UI,sans-serif';
     const tw=cv.measureText(todayLbl).width;
     cv.fillStyle='#ee4b4b';
-    cv.beginPath();cv.roundRect(x-tw/2-4,top-1,tw+8,14,3);cv.fill();
+    cv.beginPath();cv.roundRect(x-tw/2-4,top-18,tw+8,14,3);cv.fill();
     cv.fillStyle='#fff';cv.textAlign='center';cv.textBaseline='top';
-    cv.fillText(todayLbl,x,top+2);
+    cv.fillText(todayLbl,x,top-16);
     cv.restore();
   }};
 
@@ -2177,9 +2177,9 @@ function buildProgressCharts(){
       cv.font='bold 10px Segoe UI,sans-serif';
       const tw=cv.measureText(todayLbl).width;
       cv.fillStyle='#ee4b4b';
-      cv.beginPath();cv.roundRect(x-tw/2-4,top-1,tw+8,16,4);cv.fill();
+      cv.beginPath();cv.roundRect(x-tw/2-4,top-18,tw+8,16,4);cv.fill();
       cv.fillStyle='#fff';cv.textAlign='center';cv.textBaseline='top';
-      cv.fillText(todayLbl,x,top+2);cv.restore();
+      cv.fillText(todayLbl,x,top-16);cv.restore();
     }};
 
     // datalabels — เฉพาะ last actual index (plan+actual คู่กัน)
@@ -2347,9 +2347,9 @@ function buildProgressCharts(){
         cv3.font='bold 9px Segoe UI,sans-serif';
         const tw=cv3.measureText(_tod).width;
         cv3.fillStyle='#ee4b4b';
-        cv3.beginPath();cv3.roundRect(x-tw/2-3,top-1,tw+6,13,3);cv3.fill();
+        cv3.beginPath();cv3.roundRect(x-tw/2-3,top-18,tw+6,13,3);cv3.fill();
         cv3.fillStyle='#fff';cv3.textAlign='center';cv3.textBaseline='top';
-        cv3.fillText(_tod,x,top+2);cv3.restore();
+        cv3.fillText(_tod,x,top-16);cv3.restore();
       }};
       // datalabel plugin — ทุก 14 วัน + last point
       // datalabel — plan+actual ที่ last actual index
@@ -2624,9 +2624,9 @@ function buildGraphs(){
         cv2.font='bold 9px Segoe UI';
         const tw2=cv2.measureText(_todayL).width;
         cv2.fillStyle='#ee4b4b';
-        cv2.beginPath();cv2.roundRect(x-tw2/2-3,top-1,tw2+6,13,3);cv2.fill();
+        cv2.beginPath();cv2.roundRect(x-tw2/2-3,top-18,tw2+6,13,3);cv2.fill();
         cv2.fillStyle='#fff';cv2.textAlign='center';cv2.textBaseline='top';
-        cv2.fillText(_todayL,x,top+2);cv2.restore();
+        cv2.fillText(_todayL,x,top-16);cv2.restore();
       }};
       // ใช้ installed totals จาก Dashboard sheet สำหรับ last value label
       const _swTotal = window.INSTALLED_SW || _cumSW[_cumSW.length-1] || 0;
