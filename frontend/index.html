@@ -3542,8 +3542,9 @@ function showLoading(){
   const _sdot=document.getElementById('tb-sdot');
   if(_stxt) _stxt.textContent='⏳';
   if(_sdot){ _sdot.style.animation='none'; _sdot.style.background='rgba(255,255,255,.4)'; }
+  buildGauge(0);
   // reset numbers เป็น –
-  ['ts-done','pill-rem','pill-hold','pill-over','gauge-pct-lbl',
+  ['ts-done','pill-rem','pill-hold','pill-over',
    'ov-all','ov-sw','ov-ap','ov-inf','tb-days','tb-rate','tb-over','tb-pct',
    'pill-ontime','pill-ontime-sub','donut-ontime-pct','donut-ontime-sub',
    'donut-ontime-cnt','donut-early-cnt','donut-late-cnt','donut-pending-cnt'].forEach(id=>{
