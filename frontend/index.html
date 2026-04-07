@@ -1865,10 +1865,19 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (el) el.textContent = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 });
 
-function buildGauge(){
-  const _ch_gaugec = Chart.getChart(document.getElementById('gauge-c'));
-  if(_ch_gaugec) _ch_gaugec.destroy();
-  new Chart(document.getElementById('gauge-c'),{type:'doughnut',data:{datasets:[{data:[83,17],backgroundColor:['#ff9f43','rgba(253,211,77,.3)'],borderWidth:0}]},options:{cutout:'72%',circumference:180,rotation:-90,responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}}}});
+function buildGauge(pct){
+  const cv=document.getElementById('gauge-c'); if(!cv) return;
+  const ex=Chart.getChart(cv); if(ex) ex.destroy();
+  const p=Math.min(Math.max(pct||0,0),150);
+  const color=p>=100?'#2bc48a':p>=70?'#ff9f43':'#ee4b4b';
+  const trackColor=p>=100?'rgba(43,196,138,.2)':p>=70?'rgba(253,211,77,.25)':'rgba(238,75,75,.15)';
+  // arc: filled = p/150 ของครึ่งวงกลม
+  const filled=Math.round(p/150*100);
+  const remain=100-filled;
+  new Chart(cv,{type:'doughnut',
+    data:{datasets:[{data:[filled,remain],backgroundColor:[color,trackColor],borderWidth:0}]},
+    options:{cutout:'72%',circumference:180,rotation:-90,responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{enabled:false}}}});
 }
 
 function buildBurndown(){
@@ -3363,6 +3372,7 @@ async function loadData(){
 
     // gauge
     if(_e('gauge-pct-lbl')) _e('gauge-pct-lbl').textContent = ins.gauge_pct+'%';
+    buildGauge(ins.gauge_pct);
 
     // on-time
     if(_e('pill-ontime'))     _e('pill-ontime').textContent     = meta.on_time_pct+'%';
@@ -3454,7 +3464,7 @@ async function loadData(){
     if(_e('donut-early-cnt'))   _e('donut-early-cnt').textContent   = earlyQ.toLocaleString();
     if(_e('donut-late-cnt'))    _e('donut-late-cnt').textContent    = lateQ.toLocaleString();
     if(_e('donut-pending-cnt')) _e('donut-pending-cnt').textContent = pendQ.toLocaleString();
-    buildGauge(); buildBurndown();
+    buildGauge(ins.gauge_pct); buildBurndown();
     gblt=false; buildProgressCharts(); buildFabBreakdown(); buildTypeBarChart();
     buildVelocityChart(); buildWeekdayChart(); buildFabGap();
     // wd-cells populate ทันทีหลัง data load
