@@ -12,8 +12,7 @@ app.use(cors({origin:['https://svb-migr-progress.onrender.com','http://localhost
 app.use(express.json());
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const SHAREPOINT_URL = process.env.SHAREPOINT_URL ||
-  'https://aitcoth-my.sharepoint.com/:x:/g/personal/suttipong_s_ait_co_th/IQB4depTDLOdRbI2UEHtAB7RAbaE9Ybz60zc_CjOHPUMkmI?e=FkfnTR';
+const SHAREPOINT_URL = process.env.SHAREPOINT_URL || '';
 const LOCAL_EXCEL    = path.join(__dirname, 'SDA_Installation_Plan_V2.xlsx');
 const CACHE_PATH     = path.join(__dirname, 'sda_cache.xlsx');
 const CACHE_TTL      = 5 * 60 * 1000; // 5 min
@@ -59,35 +58,7 @@ function downloadFile(url, dest) {
   });
 }
 
-// Excel อยู่ใน /tmp เพื่อ persist ข้ามการ request (แต่ไม่ข้าม deploy)
-const TMP_EXCEL = '/tmp/sda_latest.xlsx';
-
-async function downloadFile(url, dest) {
-  let dlUrl = url;
-  if (url.includes('sharepoint.com') && !url.includes('download=1')) {
-    dlUrl = url.includes('?') ? url + '&download=1' : url + '?download=1';
-  }
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    const proto = dlUrl.startsWith('https') ? require('https') : require('http');
-    const req = proto.get(dlUrl, res => {
-      if (res.statusCode === 301 || res.statusCode === 302) {
-        file.close();
-        return downloadFile(res.headers.location, dest).then(resolve).catch(reject);
-      }
-      if (res.statusCode !== 200) {
-        file.close();
-        return reject(new Error('HTTP ' + res.statusCode));
-      }
-      res.pipe(file);
-      file.on('finish', () => file.close(resolve));
-    }).on('error', err => { file.close(); reject(err); });
-    req.setTimeout(15000, () => { req.destroy(); reject(new Error('Timeout')); });
-  });
-}
-
 async function getWorkbook() {
-  // 1. SharePoint — แหล่งข้อมูลหลัก ดึงทุกครั้งที่ cache หมดอายุ
   if (SHAREPOINT_URL) {
     try {
       console.log('Fetching Excel from SharePoint...');
@@ -96,16 +67,11 @@ async function getWorkbook() {
       return XLSX.readFile(CACHE_PATH);
     } catch(e) {
       console.warn('SharePoint failed:', e.message);
-      // fallback: ใช้ cache เดิมถ้าดึงไม่ได้
-      if (fs.existsSync(CACHE_PATH)) {
-        console.log('Using cached Excel (SharePoint unreachable)');
-        return XLSX.readFile(CACHE_PATH);
-      }
     }
   }
-  // 2. fallback: local file ใน repo
+  // fallback: local file (uploaded to GitHub)
   if (fs.existsSync(LOCAL_EXCEL)) {
-    console.log('Using local Excel from repo');
+    console.log('Using local Excel from GitHub');
     return XLSX.readFile(LOCAL_EXCEL);
   }
   throw new Error('No Excel source available');
@@ -141,24 +107,39 @@ function cumActNull(arr, total, upto) {
 
 // ── Main calculation ──────────────────────────────────────────────────────────
 function calcDashboard(wb) {
-  const wsD  = wb.Sheets['Dashboard'];
-  const wsA  = wb.Sheets['All_Detail'];
-  const dRows = XLSX.utils.sheet_to_json(wsD, { header:1, defval:null });
-  const aRows = XLSX.utils.sheet_to_json(wsA, { defval:null });
-
-  // หา TOTAL และ installed ด้วย header scan (ไม่ hardcode row index)
-  let _totalRow = -1, _installedRow = -1;
-  for (let i = 0; i < Math.min(dRows.length, 15); i++) {
-    const r = dRows[i] || [];
-    if (typeof r[0] === 'number' && r[0] > 100 && _totalRow < 0) _totalRow = i;
-    if (typeof r[0] === 'string' && r[0].includes('Overall')) _installedRow = i;
+  let dRows, aRows;
+  if (wb._isGSheet) {
+    // Google Sheets format
+    dRows = wb.dash;
+    // แปลง detail rows เป็น object format เหมือน XLSX
+    const hdr = wb.detail[0] || [];
+    aRows = wb.detail.slice(1).map(r => {
+      const obj = {};
+      hdr.forEach((h,i) => { if(h) obj[h] = r[i]; });
+      return obj;
+    });
+  } else {
+    // XLSX format (fallback)
+    const wsD = wb.Sheets['Dashboard'];
+    const wsA = wb.Sheets['All_Detail'];
+    dRows = XLSX.utils.sheet_to_json(wsD, { header:1, defval:null });
+    aRows = XLSX.utils.sheet_to_json(wsA, { defval:null });
   }
-  if (_totalRow >= 0 && typeof dRows[_totalRow][0] === 'number' && dRows[_totalRow][0] > 0)
-    TOTAL = dRows[_totalRow][0];
-  const installed = (_installedRow >= 0 && typeof dRows[_installedRow][3] === 'number')
-    ? dRows[_installedRow][3] : 0;
-  const INSTALLED_SW  = (dRows[18]&&dRows[18][2]) || 0;  // SW Done
-  const INSTALLED_AP  = (dRows[19]&&dRows[19][2]) || 0;  // AP Done
+
+  // header scan — ไม่ hardcode row index
+  let _totalRow = -1, _installedRow = -1, _swRow = -1, _apRow = -1;
+  for (let i = 0; i < Math.min(dRows.length, 30); i++) {
+    const r = dRows[i] || [];
+    const r0 = String(r[0]||'');
+    if (_totalRow < 0 && typeof r[0] === 'number' && r[0] > 100) _totalRow = i;
+    if (_installedRow < 0 && r0.includes('Overall')) _installedRow = i;
+    if (_swRow < 0 && r0.includes('SW') && typeof r[2] === 'number') _swRow = i;
+    if (_apRow < 0 && r0.includes('AP') && typeof r[2] === 'number') _apRow = i;
+  }
+  if (_totalRow >= 0 && dRows[_totalRow][0] > 0) TOTAL = dRows[_totalRow][0];
+  const installed     = _installedRow >= 0 ? (dRows[_installedRow][3] || 0) : 0;
+  const INSTALLED_SW  = _swRow >= 0 ? (dRows[_swRow][2] || 0) : 0;
+  const INSTALLED_AP  = _apRow >= 0 ? (dRows[_apRow][2] || 0) : 0;
   const INSTALLED_INF = installed - INSTALLED_SW - INSTALLED_AP;
 
   // hold = นับจำนวน rows ที่ Status='Hold' (ไม่ใช่ qty)
