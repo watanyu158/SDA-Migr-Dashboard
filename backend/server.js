@@ -15,6 +15,7 @@ app.use(express.json());
 const SHAREPOINT_URL = process.env.SHAREPOINT_URL || '';
 const LOCAL_EXCEL    = path.join(__dirname, 'SDA_Installation_Plan_V2.xlsx');
 const CACHE_PATH     = path.join(__dirname, 'sda_cache.xlsx');
+const GSHEET_ID      = '1DzFekcggT71Rq_oU4cwLe9GZlVe0UUT6oz9fg7GlPbE';
 const CACHE_TTL      = 5 * 60 * 1000; // 5 min
 
 let TOTAL = 1592, TOTAL_SW = 1121, TOTAL_AP = 445, TOTAL_INF = 26;
@@ -58,20 +59,58 @@ function downloadFile(url, dest) {
   });
 }
 
-async function getWorkbook() {
-  if (SHAREPOINT_URL) {
-    try {
-      console.log('Fetching Excel from SharePoint...');
-      await downloadFile(SHAREPOINT_URL, CACHE_PATH);
-      console.log('SharePoint OK');
-      return XLSX.readFile(CACHE_PATH);
-    } catch(e) {
-      console.warn('SharePoint failed:', e.message);
+async function fetchCSV(sheetName) {
+  const axios = require('axios');
+  const url = `https://docs.google.com/spreadsheets/d/${GSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  console.log('Fetching sheet:', sheetName);
+  const res = await axios.get(url, {
+    timeout: 15000,
+    maxRedirects: 10,
+    headers: { 'User-Agent': 'Mozilla/5.0' },
+    responseType: 'text'
+  });
+  return res.data;
+}
+
+function parseCSVRow(line) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"' && !inQ) { inQ = true; continue; }
+    if (ch === '"' && inQ) {
+      if (line[i+1] === '"') { cur += '"'; i++; }
+      else inQ = false;
+      continue;
     }
+    if (ch === ',' && !inQ) { result.push(cur); cur = ''; continue; }
+    cur += ch;
   }
-  // fallback: local file (uploaded to GitHub)
+  result.push(cur);
+  return result.map(v => {
+    v = v.trim();
+    if (v === '' || v === '-') return null;
+    const n = Number(v);
+    return isNaN(n) ? v : n;
+  });
+}
+
+function csvToRows(csv) {
+  return csv.split('\n').filter(l => l.trim()).map(parseCSVRow);
+}
+
+async function getWorkbook() {
+  try {
+    console.log('Fetching from Google Sheets...');
+    const dashCSV   = await fetchCSV('Dashboard');
+    const detailCSV = await fetchCSV('All_Detail');
+    console.log('Google Sheets OK');
+    return { _isGSheet:true, dash:csvToRows(dashCSV), detail:csvToRows(detailCSV) };
+  } catch(e) {
+    console.warn('Google Sheets failed:', e.message);
+  }
   if (fs.existsSync(LOCAL_EXCEL)) {
-    console.log('Using local Excel from GitHub');
+    console.log('Using local Excel fallback');
     return XLSX.readFile(LOCAL_EXCEL);
   }
   throw new Error('No Excel source available');
