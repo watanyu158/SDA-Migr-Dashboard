@@ -300,7 +300,7 @@ function calcDashboard(wb) {
       }
     }
     if (schedDt && FABRICS.includes(fab)) {
-      const dk=schedDt.getTime();
+      const dk=schedDt ? schedDt.getTime() : new Date(schedDt).getTime();
       if(!fabSchedMin[fab]||dk<fabSchedMin[fab]) fabSchedMin[fab]=dk;
       if(!fabSchedMax[fab]||dk>fabSchedMax[fab]) fabSchedMax[fab]=dk;
     }
@@ -317,7 +317,7 @@ function calcDashboard(wb) {
     }
 
     // Install date → actual (daily timeline ต้องมี Install Date)
-    const instDt = toDate(r['Install Date']);
+    let instDt = toDate(r['Install Date']);
     if (!instDt && ok > 0) instDt = new Date();  // ติดตั้งแล้วแต่ไม่มีวันที่
     if (instDt && ok > 0) {
       const wi = wkIdx(instDt); const dk = fmtDate(instDt);
@@ -364,8 +364,7 @@ function calcDashboard(wb) {
     const cutoff = w.e < _bdGMT7 ? w.e : _bdGMT7;
     let cum = 0;
     aRows.forEach(r => {
-      let sd = r['Scheduled Date'];
-      if (typeof sd === 'number') sd = new Date((sd - 25569) * 86400000);
+      const sd = toDate(r['Scheduled Date']);
       if (sd && r['Qty'] > 0) {
         const d = new Date(sd); d.setHours(0,0,0,0);
         if (d <= cutoff) cum += (r['Qty'] || 0);
@@ -479,11 +478,9 @@ function calcDashboard(wb) {
   // นับ Qty.Success ทั้งหมด (ไม่ require Install Date) — ตรงกับ Dashboard
   aRows.forEach(r => {
     const ok    = r['Qty. Success'] || 0;
-    let instDt  = toDate(r['Install Date']);
-    let schedDt = r['Scheduled Date'];
-    if (typeof instDt  === 'number') instDt  = new Date((instDt  - 25569) * 86400000);
-    if (typeof schedDt === 'number') schedDt = new Date((schedDt - 25569) * 86400000);
-    if (ok > 0 && instDt instanceof Date && schedDt instanceof Date && !isNaN(instDt) && !isNaN(schedDt)) {
+    const instDt  = toDate(r['Install Date']);
+    const schedDt = toDate(r['Scheduled Date']);
+    if (ok > 0 && instDt && schedDt) {
       instDt.setHours(0,0,0,0); schedDt.setHours(0,0,0,0);
       if (instDt <= schedDt) {
         onTimeQty += ok;
@@ -512,9 +509,8 @@ function calcDashboard(wb) {
   let lastInstallDate = null;
   // นับ Qty.Success ทั้งหมด (ไม่ require Install Date) — ตรงกับ Dashboard
   aRows.forEach(r => {
-    let d = r['Install Date'];
-    if (typeof d === 'number') d = new Date((d - 25569) * 86400000);
-    if (d instanceof Date && !isNaN(d)) {
+    const d = toDate(r['Install Date']);
+    if (d) {
       const ds = d.toISOString().slice(0,10);
       if (!lastInstallDate || ds > lastInstallDate) lastInstallDate = ds;
     }
@@ -536,19 +532,17 @@ function calcDashboard(wb) {
     const cat   = r['Category'];
     const qty   = r['Qty'] || 0;
     const ok    = r['Qty. Success'] || 0;
-    let instDt  = toDate(r['Install Date']);
-    let schedDt = r['Scheduled Date'];
-    if (typeof instDt  === 'number') instDt  = new Date((instDt  - 25569) * 86400000);
-    if (typeof schedDt === 'number') schedDt = new Date((schedDt - 25569) * 86400000);
+    const instDt  = toDate(r['Install Date']);
+    const schedDt = toDate(r['Scheduled Date']);
 
-    if (instDt instanceof Date && !isNaN(instDt) && ok > 0) {
+    if (instDt && ok > 0) {
       const k = instDt.toISOString().slice(0,10);
       dayActMap[k] = (dayActMap[k]||0) + ok;
       if (cat==='Switch') daySwAct[k] = (daySwAct[k]||0) + ok;
       else if (cat==='AP') dayApAct[k] = (dayApAct[k]||0) + ok;
       if (FABRICS.includes(fab)) dayFabAct[fab][k] = (dayFabAct[fab][k]||0) + ok;
     }
-    if (schedDt instanceof Date && !isNaN(schedDt) && qty > 0) {
+    if (schedDt && qty > 0) {
       const k = schedDt.toISOString().slice(0,10);
       dayPlanMap[k] = (dayPlanMap[k]||0) + qty;
       if (cat==='Switch') daySwPlan[k] = (daySwPlan[k]||0) + qty;
