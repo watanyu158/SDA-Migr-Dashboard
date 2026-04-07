@@ -3587,12 +3587,8 @@ async function exportPDF(){
   const active=document.querySelector('.tab.on');
   const activeName=active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
   try{
-    // แสดงทุก tab
+    // แสดงทุก tab ชั่วคราวเพื่อ capture เท่านั้น (restore ใน finally)
     TABS.forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.style.display='block';});
-    // rebuild charts
-    // buildProgressCharts ไม่ rebuild ใน exportPDF (ใช้ charts ที่มีอยู่แล้ว)
-    // buildFabBreakdown ไม่จำเป็นใน exportPDF (ใช้ tbody ที่มีอยู่แล้ว)
-    if(typeof buildGraphs==='function'){gblt=false;buildGraphs();}
     // expand loc-list ทั้งหมดก่อน capture
     document.querySelectorAll('#loc-list .fgb').forEach(b=>{
       b.classList.add('open');
