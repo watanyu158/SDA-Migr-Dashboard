@@ -618,7 +618,7 @@ function calcDashboard(wb) {
   while (cur <= PROJ_END_D) {
     const k  = cur.toISOString().slice(0,10);
     const dd = cur.getDate(), mm = cur.getMonth()+1;
-    const lbl = `${dd}/${String(mm).padStart(2,'0')}`;
+    const lbl = `${String(dd).padStart(2,'0')}/${String(mm).padStart(2,'0')}`;
 
     cAll  += dayActMap[k]||0; cPlan += dayPlanMap[k]||0;
     cSWd  += daySwAct[k]||0;  cSWp  += daySwPlan[k]||0;
