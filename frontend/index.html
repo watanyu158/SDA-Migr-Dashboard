@@ -3408,6 +3408,7 @@ async function loadData(){
     if(_e('hold-cnt'))  _e('hold-cnt').textContent  = meta.hold+' รายการ';
 
     // gauge
+    console.log('[GAUGE] ins.gauge_pct=', ins.gauge_pct, 'ins=', JSON.stringify(ins));
     buildGauge(ins.gauge_pct||0);
     const _gapUnit=document.getElementById('ins-kpi-gap-unit');
     if(_gapUnit) _gapUnit.style.color=(ins.need_more<=0)?'var(--success)':'var(--danger)';
