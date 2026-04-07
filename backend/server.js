@@ -12,7 +12,8 @@ app.use(cors({origin:['https://svb-migr-progress.onrender.com','http://localhost
 app.use(express.json());
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const SHAREPOINT_URL = process.env.SHAREPOINT_URL || '';
+const SHAREPOINT_URL = process.env.SHAREPOINT_URL ||
+  'https://aitcoth-my.sharepoint.com/:x:/g/personal/suttipong_s_ait_co_th/IQB4depTDLOdRbI2UEHtAB7RAbaE9Ybz60zc_CjOHPUMkmI?e=FkfnTR';
 const LOCAL_EXCEL    = path.join(__dirname, 'SDA_Installation_Plan_V2.xlsx');
 const CACHE_PATH     = path.join(__dirname, 'sda_cache.xlsx');
 const CACHE_TTL      = 5 * 60 * 1000; // 5 min
@@ -58,7 +59,35 @@ function downloadFile(url, dest) {
   });
 }
 
+// Excel อยู่ใน /tmp เพื่อ persist ข้ามการ request (แต่ไม่ข้าม deploy)
+const TMP_EXCEL = '/tmp/sda_latest.xlsx';
+
+async function downloadFile(url, dest) {
+  let dlUrl = url;
+  if (url.includes('sharepoint.com') && !url.includes('download=1')) {
+    dlUrl = url.includes('?') ? url + '&download=1' : url + '?download=1';
+  }
+  return new Promise((resolve, reject) => {
+    const file = fs.createWriteStream(dest);
+    const proto = dlUrl.startsWith('https') ? require('https') : require('http');
+    const req = proto.get(dlUrl, res => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        file.close();
+        return downloadFile(res.headers.location, dest).then(resolve).catch(reject);
+      }
+      if (res.statusCode !== 200) {
+        file.close();
+        return reject(new Error('HTTP ' + res.statusCode));
+      }
+      res.pipe(file);
+      file.on('finish', () => file.close(resolve));
+    }).on('error', err => { file.close(); reject(err); });
+    req.setTimeout(15000, () => { req.destroy(); reject(new Error('Timeout')); });
+  });
+}
+
 async function getWorkbook() {
+  // 1. SharePoint — แหล่งข้อมูลหลัก ดึงทุกครั้งที่ cache หมดอายุ
   if (SHAREPOINT_URL) {
     try {
       console.log('Fetching Excel from SharePoint...');
@@ -67,11 +96,16 @@ async function getWorkbook() {
       return XLSX.readFile(CACHE_PATH);
     } catch(e) {
       console.warn('SharePoint failed:', e.message);
+      // fallback: ใช้ cache เดิมถ้าดึงไม่ได้
+      if (fs.existsSync(CACHE_PATH)) {
+        console.log('Using cached Excel (SharePoint unreachable)');
+        return XLSX.readFile(CACHE_PATH);
+      }
     }
   }
-  // fallback: local file (uploaded to GitHub)
+  // 2. fallback: local file ใน repo
   if (fs.existsSync(LOCAL_EXCEL)) {
-    console.log('Using local Excel from GitHub');
+    console.log('Using local Excel from repo');
     return XLSX.readFile(LOCAL_EXCEL);
   }
   throw new Error('No Excel source available');

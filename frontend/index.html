@@ -764,6 +764,10 @@ main { padding: 12px 10px; }
     <button class="tbtn" id="auto-sync-btn" onclick="toggleAutoSync()">🔄 ซิงค์อัตโนมัติ</button>
     <button class="tbtn" onclick="manualRefresh()">↺ รีเฟรช</button>
     <button class="tbtn" id="pdf-btn" onclick="exportPDF()">⬇ PDF</button>
+    <label class="tbtn" style="cursor:pointer" title="อัพเดท Excel">
+      📂 Excel
+      <input type="file" accept=".xlsx" style="display:none" onchange="uploadExcel(this)">
+    </label>
   </div>
 </div>
 
@@ -3578,6 +3582,30 @@ async function manualRefresh(){
   btns.forEach(b=>{ b.textContent=b._orig||'↺ รีเฟรชข้อมูล'; b.disabled=false; });
 }
 
+
+// ── Upload Excel ──────────────────────────────────────────────────────────────
+async function uploadExcel(input){
+  const file = input.files[0]; if(!file) return;
+  const btn = input.parentElement;
+  btn.textContent = '⏳ กำลังอัพโหลด...';
+  try {
+    const fd = new FormData();
+    fd.append('excel', file);
+    const r = await fetch(API+'/api/upload-excel', {method:'POST', body:fd});
+    const j = await r.json();
+    if(j.ok){
+      btn.textContent = '✓ อัพโหลดแล้ว';
+      setTimeout(()=>{ btn.innerHTML='📂 Excel<input type="file" accept=".xlsx" style="display:none" onchange="uploadExcel(this)">'; }, 2000);
+      await manualRefresh();
+    } else {
+      btn.textContent = '✗ Error';
+      alert('Upload failed: '+(j.error||'unknown'));
+    }
+  } catch(e) {
+    btn.textContent = '✗ Error';
+    alert('Upload error: '+e.message);
+  }
+}
 // ── EXPORT PDF ────────────────────────────────────────────────────────────────
 async function exportPDF(){
   const pw=window.open('','_blank','width=1280,height=900');
