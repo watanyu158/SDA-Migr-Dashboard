@@ -1252,7 +1252,7 @@ function getLastInstallFrac(){
 function getLastInstallLabel(){
   if(!LAST_INSTALL_DATE) return null;
   const d = new Date(LAST_INSTALL_DATE+'T00:00:00');
-  return d.getDate()+'/'+(String(d.getMonth()+1).padStart(2,'0'));
+  return String(d.getDate()).padStart(2,'0')+'/'+(String(d.getMonth()+1).padStart(2,'0'));
 }
 let PLAN_ALL = []; // populated from API
 let DAILY_PROG_LABELS = []; // populated from API — daily labels
@@ -1787,7 +1787,7 @@ function buildWeekdayChart(){
   const days7=[], fullLabels=[];
   for(let d=0;d<7;d++){
     const dt=new Date(wkStart); dt.setDate(wkStart.getDate()+d);
-    const dk=`${dt.getDate()}/${String(dt.getMonth()+1).padStart(2,'0')}`;
+    const dk=`${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}`;
     days7.push({dt,dk,dow:dt.getDay()});
     // label 2 บรรทัด: "จ.\n16/03"
     fullLabels.push(`${dayFull[dt.getDay()]} ${fmtD(dt)}`);
@@ -1907,7 +1907,7 @@ function buildBurndown(){
   }
   if(!_labels.length) return;
 
-  const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+  const todayLbl=String(_todayGMT7().getDate()).padStart(2,'0')+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
   const lastActIdx=_bdAct.reduce((a,v,j)=>v!=null?j:a,-1);
   const _uid='burndown_'+Date.now();
   const tickStep=useDaily?14:1;
@@ -1979,7 +1979,7 @@ function buildTimeline(){
   const _projDays =Math.round((_projEnd-_projStart)/(24*60*60*1000));
   const _elapsed  =Math.round((_todayGMT7()-_projStart)/(24*60*60*1000));
   const tdp=Math.max(0,Math.min(100,Math.round(_elapsed/_projDays*100)));
-  const _todayLabel=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+  const _todayLabel=String(_todayGMT7().getDate()).padStart(2,'0')+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
   const _fabLen=FABRICS.length;
 
   // plan % ณ วันนี้ per Fabric
@@ -2051,7 +2051,7 @@ function buildDailyChart(canvasId, labels, planData, actData, planColor, actColo
   const ex=Chart.getChart(ctx); if(ex) ex.destroy();
   if(!labels||!labels.length) return;
 
-  const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+  const todayLbl=String(_todayGMT7().getDate()).padStart(2,'0')+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
   const lastActIdx=actData.reduce((a,v,j)=>v!=null?j:a,-1);
   const _uid=canvasId+'_'+Date.now();
   const isDaily=labels.length>30; // daily ถ้า label เยอะ, weekly ถ้าน้อย
@@ -2153,7 +2153,7 @@ function buildDailyChart(canvasId, labels, planData, actData, planColor, actColo
 
 function buildProgressCharts(){
   // todayLbl ใช้ร่วมกันทุก chart ใน function นี้
-  const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+  const todayLbl=String(_todayGMT7().getDate()).padStart(2,'0')+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
 
   // ── Overall: กราฟรายวัน แผน vs จริง ──
   (()=>{
@@ -2170,7 +2170,7 @@ function buildProgressCharts(){
     if(!_pLabels.length) return;
 
     const _uid=Date.now();
-    const todayLbl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+    const todayLbl=String(_todayGMT7().getDate()).padStart(2,'0')+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
 
     // today line plugin
     const tdPlugin={id:'tdAll_'+_uid,afterDraw(chart){
@@ -2343,7 +2343,7 @@ function buildProgressCharts(){
       const _uid3=cid+'_'+Date.now();
       const lastSwIdx=fabDailyData.sw_act.reduce((a,v,j)=>v!=null?j:a,-1);
       const lastApIdx=fabDailyData.ap_act.reduce((a,v,j)=>v!=null?j:a,-1);
-      const _tod=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+      const _tod=String(_todayGMT7().getDate()).padStart(2,'0')+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
       const tdPl3={id:'td3_'+_uid3,afterDraw(chart){
         const {top,bottom}=chart.chartArea; const cv3=chart.ctx;
         const tIdx=chart.data.labels.indexOf(_tod);
@@ -2619,7 +2619,7 @@ function buildGraphs(){
         cs+=DAILY_SW[i]||0; ca+=DAILY_AP[i]||0; ci+=DAILY_INF[i]||0;
         _cumSW.push(cs); _cumAP.push(ca); _cumInf.push(ci);
       });
-      const _todayL=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+      const _todayL=String(_todayGMT7().getDate()).padStart(2,'0')+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
       const _lastIdx=DAILY_L.length-1;
       const _tdCum={id:'tdCum',afterDraw(chart){
         const {top,bottom}=chart.chartArea; const cv2=chart.ctx;
@@ -3225,7 +3225,7 @@ async function loadData(){
         const _globalLastIdx=(()=>{
           if(!LAST_INSTALL_DATE) return -1;
           const ld=new Date(LAST_INSTALL_DATE+'T00:00:00');
-          const ll=ld.getDate()+'/'+(String(ld.getMonth()+1).padStart(2,'0'));
+          const ll=String(ld.getDate()).padStart(2,'0')+'/'+(String(ld.getMonth()+1).padStart(2,'0'));
           return DAILY_PROG_LABELS.indexOf(ll);
         })();
         // fallback: ใช้ fabLastIdx ของ fabric นี้ถ้าไม่มี global
@@ -3335,7 +3335,7 @@ async function loadData(){
     if(_e('plan-remaining')) _e('plan-remaining').textContent = meta.remaining.toLocaleString()+' อุปกรณ์';
     // plan-plan-pct: plan ณ วันนี้
     const _todayPlanIdx=(()=>{
-      const tl=_todayGMT7().getDate()+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
+      const tl=String(_todayGMT7().getDate()).padStart(2,'0')+'/'+(String(_todayGMT7().getMonth()+1).padStart(2,'0'));
       const ti=DAILY_PROG_LABELS.indexOf(tl);
       return ti>=0?ti:DAILY_PROG_LABELS.length-1;
     })();
