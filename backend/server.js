@@ -17,7 +17,7 @@ const LOCAL_EXCEL    = path.join(__dirname, 'SDA_Installation_Plan_V2.xlsx');
 const CACHE_PATH     = path.join(__dirname, 'sda_cache.xlsx');
 const CACHE_TTL      = 5 * 60 * 1000; // 5 min
 
-let TOTAL = 1604, TOTAL_SW = 1121, TOTAL_AP = 445, TOTAL_INF = 26;
+let TOTAL = 1592, TOTAL_SW = 1121, TOTAL_AP = 445, TOTAL_INF = 26;
 const PROJ_START = new Date('2026-02-09');
 const PROJ_END   = new Date('2026-06-23');
 const FABRICS    = ['D1-041','CFZ','T1-015','D1-091','RFF','AMF','PPW'];
