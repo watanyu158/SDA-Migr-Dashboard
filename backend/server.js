@@ -107,8 +107,10 @@ async function getWorkbook() {
     const dashRows = csvToRows(dashCSV);
     const detailRows = csvToRows(detailCSV);
     console.log('[GS] dash rows:', dashRows.length, 'detail rows:', detailRows.length);
-    console.log('[GS] detail header:', JSON.stringify(detailRows[0]?.slice(0,10)));
-    console.log('[GS] detail row1:', JSON.stringify(detailRows[1]?.slice(0,10)));
+    // หา header row จริง — row ที่มี 'Install Date' หรือ 'Qty'
+    let hdrIdx = detailRows.findIndex(r => r && r.some(v => String(v||'').includes('Install Date') || String(v||'').includes('Qty. Success')));
+    console.log('[GS] header row idx:', hdrIdx, JSON.stringify(detailRows[hdrIdx]?.slice(0,12)));
+    console.log('[GS] data row after header:', JSON.stringify(detailRows[hdrIdx+1]?.slice(0,12)));
     console.log('Google Sheets OK');
     return { _isGSheet:true, dash:dashRows, detail:detailRows };
   } catch(e) {
