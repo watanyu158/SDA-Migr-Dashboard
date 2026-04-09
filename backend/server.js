@@ -104,15 +104,8 @@ async function getWorkbook() {
     console.log('Fetching from Google Sheets...');
     const dashCSV   = await fetchCSV('Dashboard');
     const detailCSV = await fetchCSV('All_Detail');
-    const dashRows = csvToRows(dashCSV);
-    const detailRows = csvToRows(detailCSV);
-    console.log('[GS] dash rows:', dashRows.length, 'detail rows:', detailRows.length);
-    // หา header row จริง — row ที่มี 'Install Date' หรือ 'Qty'
-    let hdrIdx = detailRows.findIndex(r => r && r.some(v => String(v||'').includes('Install Date') || String(v||'').includes('Qty. Success')));
-    console.log('[GS] header row idx:', hdrIdx, JSON.stringify(detailRows[hdrIdx]?.slice(0,12)));
-    console.log('[GS] data row after header:', JSON.stringify(detailRows[hdrIdx+1]?.slice(0,12)));
     console.log('Google Sheets OK');
-    return { _isGSheet:true, dash:dashRows, detail:detailRows };
+    return { _isGSheet:true, dash:csvToRows(dashCSV), detail:csvToRows(detailCSV) };
   } catch(e) {
     console.warn('Google Sheets failed:', e.message);
   }
@@ -362,8 +355,7 @@ function calcDashboard(wb) {
       }
     }
     // DEBUG: ดู raw Install Date format
-  const _sampleInst = aRows.slice(0,30).map(r=>r['Install Date']).filter(v=>v!=null).slice(0,5);
-  console.log('[INST DATE DEBUG]', JSON.stringify(_sampleInst));
+
 
   // นับ ok ทุก row (เหมือน Dashboard) — ไม่ require Install Date
     if (ok > 0) {
