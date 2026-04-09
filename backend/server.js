@@ -104,8 +104,13 @@ async function getWorkbook() {
     console.log('Fetching from Google Sheets...');
     const dashCSV   = await fetchCSV('Dashboard');
     const detailCSV = await fetchCSV('All_Detail');
+    const dashRows = csvToRows(dashCSV);
+    const detailRows = csvToRows(detailCSV);
+    console.log('[GS] dash rows:', dashRows.length, 'detail rows:', detailRows.length);
+    console.log('[GS] detail header:', JSON.stringify(detailRows[0]?.slice(0,10)));
+    console.log('[GS] detail row1:', JSON.stringify(detailRows[1]?.slice(0,10)));
     console.log('Google Sheets OK');
-    return { _isGSheet:true, dash:csvToRows(dashCSV), detail:csvToRows(detailCSV) };
+    return { _isGSheet:true, dash:dashRows, detail:detailRows };
   } catch(e) {
     console.warn('Google Sheets failed:', e.message);
   }
