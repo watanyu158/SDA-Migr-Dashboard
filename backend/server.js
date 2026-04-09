@@ -354,7 +354,11 @@ function calcDashboard(wb) {
         else fabDailyAct[fab][dk].inf+=ok;
       }
     }
-    // นับ ok ทุก row (เหมือน Dashboard) — ไม่ require Install Date
+    // DEBUG: ดู raw Install Date format
+  const _sampleInst = aRows.slice(0,30).map(r=>r['Install Date']).filter(v=>v!=null).slice(0,5);
+  console.log('[INST DATE DEBUG]', JSON.stringify(_sampleInst));
+
+  // นับ ok ทุก row (เหมือน Dashboard) — ไม่ require Install Date
     if (ok > 0) {
       if (cat === 'Switch') totalSwOk += ok;
       else if (cat === 'AP') totalApOk += ok;
