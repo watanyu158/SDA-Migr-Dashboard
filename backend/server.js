@@ -737,5 +737,16 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
+process.on('uncaughtException', (err) => {
+  console.error('[UNCAUGHT]', err.message, err.stack);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[UNHANDLED]', reason);
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`SVB Dashboard running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`SVB Dashboard running on port ${PORT}`);
+  // pre-warm cache เพื่อดู error ตอน startup
+  getDashboard().then(() => console.log('Cache warmed OK')).catch(e => console.error('[STARTUP ERROR]', e.message, e.stack));
+});
